@@ -1,0 +1,379 @@
+# Translation of Plugins - Form Maker by WD &#8211; user-friendly drag &amp; drop Form Builder plugin - Stable (latest release) in Swedish
+# This file is distributed under the same license as the Plugins - Form Maker by WD &#8211; user-friendly drag &amp; drop Form Builder plugin - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2017-11-29 09:10:34+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: GlotPress/2.4.0-alpha\n"
+"Language: sv_SE\n"
+"Project-Id-Version: Plugins - Form Maker by WD &#8211; user-friendly drag &amp; drop Form Builder plugin - Stable (latest release)\n"
+
+#. Author URI of the plugin/theme
+msgid "https://web-dorado.com/"
+msgstr "https://web-dorado.com/"
+
+#. Author of the plugin/theme
+msgid "WebDorado"
+msgstr "WebDorado"
+
+#. Description of the plugin/theme
+msgid "This plugin is a modern and advanced tool for easy and fast creating of a WordPress Form. The backend interface is intuitive and user friendly which allows users far from scripting and programming to create WordPress Forms."
+msgstr "Det här tillägget är ett modernt och avancerat verktyg för att snabbt och enkelt skapa WordPress-formulär. Backend-gränssnittet är intuitivt och användarvänligt vilket gör att användare som inte kan skripta eller programmera även kan skapa WordPress-formulär."
+
+#. Plugin URI of the plugin/theme
+msgid "https://web-dorado.com/products/form-maker-wordpress.html"
+msgstr "https://web-dorado.com/products/form-maker-wordpress.html"
+
+#. Plugin Name of the plugin/theme
+msgid "Form Maker"
+msgstr "Form Maker"
+
+#: notices.php:21
+msgid "We hope you've enjoyed using WordPress FormMaker! Would you consider leaving us a review on WordPress.org?"
+msgstr "Vi hoppas att du har haft glädje av att använda WordPress FormMaker! Skulle du kunna överväga att lämna en recension om oss på WordPress.org?"
+
+#: notices.php:10
+msgid "Thank you for using WordPress Form Maker! We hope that you've found everything you need, but if you have any questions:"
+msgstr "Tack för att du använder WordPress Form Maker! Vi hoppas att du har hittat allt du behöver, men om du har några frågor:"
+
+#: frontend/views/FMViewForm_maker.php:4290
+msgid "To"
+msgstr "Till"
+
+#: frontend/views/FMViewForm_maker.php:4289
+msgid "From"
+msgstr "Från"
+
+#: frontend/views/FMViewForm_maker.php:4286
+msgid "Cents"
+msgstr "Cent"
+
+#: frontend/views/FMViewForm_maker.php:4285
+msgid "Dollars"
+msgstr "Dollar"
+
+#: frontend/views/FMViewForm_maker.php:4284
+msgid "Phone Number"
+msgstr "Telefonnummer"
+
+#: frontend/views/FMViewForm_maker.php:4283
+msgid "Area Code"
+msgstr "Riktnummer"
+
+#: frontend/views/FMViewForm_maker.php:4264
+msgid "Middle"
+msgstr "mellan"
+
+#: frontend/views/FMViewForm_maker.php:4263
+msgid "Last"
+msgstr "Senast"
+
+#: frontend/views/FMViewForm_maker.php:4262
+msgid "First"
+msgstr "Först"
+
+#: frontend/views/FMViewForm_maker.php:4261
+msgid "Title"
+msgstr "Titel"
+
+#: frontend/views/FMViewForm_maker.php:3868
+#: frontend/views/FMViewForm_maker.php:4077
+#: frontend/views/FMViewForm_maker.php:4078
+#: frontend/views/FMViewForm_maker.php:4310
+#: frontend/views/FMViewForm_maker.php:4311
+msgid "Your score should be less than"
+msgstr "Din poäng bör vara mindre än "
+
+#: frontend/views/FMViewForm_maker.php:2971
+#: frontend/views/FMViewForm_maker.php:3011
+#: frontend/views/FMViewForm_maker.php:3142
+#: frontend/views/FMViewForm_maker.php:3179
+#: frontend/views/FMViewForm_maker.php:3298
+#: frontend/views/FMViewForm_maker.php:3339
+#: frontend/views/FMViewForm_maker.php:4288
+msgid "Quantity"
+msgstr "Mängd"
+
+#: frontend/views/FMViewForm_maker.php:2845
+#: frontend/views/FMViewForm_maker.php:4315
+msgid "value must be between"
+msgstr "Värdet måste vara mellan "
+
+#: frontend/views/FMViewForm_maker.php:2845
+#: frontend/views/FMViewForm_maker.php:4315
+msgid "The"
+msgstr "Den"
+
+#: frontend/views/FMViewForm_maker.php:2359
+msgid "You cannot select former dates. Choose a date starting from the current one."
+msgstr "Du kan inte välja tidigare datum. Välj ett datum från och med den nuvarande."
+
+#: frontend/views/FMViewForm_maker.php:1692
+#: frontend/views/FMViewForm_maker.php:4312
+msgid "This is not a valid email address."
+msgstr "Detta är inte en giltig e-postadress."
+
+#: frontend/views/FMViewForm_maker.php:1036
+#: frontend/views/FMViewForm_maker.php:1087
+#: frontend/views/FMViewForm_maker.php:1160
+#: frontend/views/FMViewForm_maker.php:1207
+#: frontend/views/FMViewForm_maker.php:1256
+#: frontend/views/FMViewForm_maker.php:1311
+#: frontend/views/FMViewForm_maker.php:1383
+#: frontend/views/FMViewForm_maker.php:1502
+#: frontend/views/FMViewForm_maker.php:1603
+#: frontend/views/FMViewForm_maker.php:1675
+#: frontend/views/FMViewForm_maker.php:1857
+#: frontend/views/FMViewForm_maker.php:2024
+#: frontend/views/FMViewForm_maker.php:2157
+#: frontend/views/FMViewForm_maker.php:2216
+#: frontend/views/FMViewForm_maker.php:2292
+#: frontend/views/FMViewForm_maker.php:2343
+#: frontend/views/FMViewForm_maker.php:2460
+#: frontend/views/FMViewForm_maker.php:2508
+#: frontend/views/FMViewForm_maker.php:2563
+#: frontend/views/FMViewForm_maker.php:2611
+#: frontend/views/FMViewForm_maker.php:2806
+#: frontend/views/FMViewForm_maker.php:2996
+#: frontend/views/FMViewForm_maker.php:3166
+#: frontend/views/FMViewForm_maker.php:3323
+#: frontend/views/FMViewForm_maker.php:3464
+#: frontend/views/FMViewForm_maker.php:3565
+#: frontend/views/FMViewForm_maker.php:3624
+#: frontend/views/FMViewForm_maker.php:3679
+#: frontend/views/FMViewForm_maker.php:3737
+#: frontend/views/FMViewForm_maker.php:3794
+#: frontend/views/FMViewForm_maker.php:3854
+#: frontend/views/FMViewForm_maker.php:3968
+#: frontend/views/FMViewForm_maker.php:3982
+#: frontend/views/FMViewForm_maker.php:3997
+#: frontend/views/FMViewForm_maker.php:4012
+#: frontend/views/FMViewForm_maker.php:4314
+msgid "field is required."
+msgstr "fältet är obligatoriskt."
+
+#: frontend/models/FMModelVerify_email.php:99
+msgid "Verification link is invalid."
+msgstr "Verifieringslänken är ogiltig."
+
+#: frontend/models/FMModelVerify_email.php:71
+msgid "Your email verification has timed out."
+msgstr "Din e-postverifiering har gått ut."
+
+#: frontend/models/FMModelVerify_email.php:68
+#: frontend/models/FMModelVerify_email.php:94
+msgid "Your email has been successfully verified."
+msgstr "Din e-postadress har verifierats."
+
+#: frontend/models/FMModelVerify_email.php:27
+msgid "Your email address is already verified."
+msgstr "Din e-postadress som redan har kontrollerats."
+
+#: frontend/models/FMModelForm_maker.php:2370
+#: frontend/models/FMModelForm_maker.php:4062
+#: frontend/views/FMViewForm_maker.php:62
+msgid "Error, email was not sent."
+msgstr "Fel, e-postmeddelandet skickades inte."
+
+#: frontend/models/FMModelForm_maker.php:2362
+#: frontend/models/FMModelForm_maker.php:2375
+#: frontend/models/FMModelForm_maker.php:4066
+#: frontend/models/FMModelForm_maker.php:4071
+#: frontend/views/FMViewForm_maker.php:65
+msgid "Your form was successfully submitted."
+msgstr "Formuläret har skickats in."
+
+#: frontend/models/FMModelForm_maker.php:1452
+msgid "Nothing was submitted."
+msgstr "Ingenting skickades in."
+
+#: frontend/models/FMModelForm_maker.php:914
+msgid "Error, file destination does not exist."
+msgstr "Fel, fildestination existerar inte."
+
+#: frontend/models/FMModelForm_maker.php:766
+#: frontend/models/FMModelForm_maker.php:1226
+msgid "This field %s requires a unique entry and this value was already submitted."
+msgstr "Detta fält %s kräver ett unikt värde och detta värde har redan skickats in."
+
+#: frontend/models/FMModelForm_maker.php:386
+#: frontend/models/FMModelForm_maker.php:909
+msgid "Error, file cannot be moved."
+msgstr "Fel, kan filen inte flyttas."
+
+#: frontend/models/FMModelForm_maker.php:369
+#: frontend/models/FMModelForm_maker.php:892
+#: frontend/views/FMViewForm_maker.php:2523
+#: frontend/views/FMViewForm_maker.php:4309
+msgid "Sorry, you are not allowed to upload this type of file."
+msgstr "Tyvärr, du får inte ladda upp denna typ av fil."
+
+#: frontend/models/FMModelForm_maker.php:350
+#: frontend/models/FMModelForm_maker.php:877
+msgid "The file exceeds the allowed size of"
+msgstr "Filen överskrider den tillåtna storleken på"
+
+#: frontend/models/FMModelForm_maker.php:130
+msgid "Your ip is blacklisted. Please contact the website administrator."
+msgstr "Din ip är svartlistad. Kontakta webbplatsens administratör"
+
+#: frontend/models/FMModelForm_maker.php:77
+#: frontend/models/FMModelForm_maker.php:89
+#: frontend/models/FMModelForm_maker.php:104
+#: frontend/models/FMModelForm_maker.php:116
+msgid "Error, incorrect Security code."
+msgstr "Fel, fel säkerhetskod."
+
+#: form_maker_notices_class.php:238 notices.php:12
+msgid "Get Some Help"
+msgstr "Få lite hjälp"
+
+#: form_maker_notices_class.php:237 notices.php:11
+msgid "Check out User Guide"
+msgstr "Kolla in användarhandboken"
+
+#: form_maker_notices_class.php:236
+msgid "Thank you for using WordPress %s! We hope that you've found everything you need, but if you have any questions:"
+msgstr "Tack för att du använder WordPress %s! Vi hoppas att du har hittat allt du behöver, men om du har några frågor:"
+
+#: form_maker_notices_class.php:235 notices.php:9
+msgid "Hey! How's It Going?"
+msgstr "Hej! Hur går det?"
+
+#: form_maker_notices_class.php:229 form_maker_notices_class.php:239
+#: notices.php:13 notices.php:25
+msgid "Never show again"
+msgstr "Visa aldrig igen"
+
+#: form_maker_notices_class.php:228 notices.php:24
+msgid "Maybe Later"
+msgstr "Kanske senare"
+
+#: form_maker_notices_class.php:227 notices.php:23
+msgid "I've already left a review"
+msgstr "Jag har redan lämnat en recension"
+
+#: form_maker_notices_class.php:226 notices.php:22
+msgid "Sure! I'd love to!"
+msgstr "Självklart, det vill jag gärna!"
+
+#: form_maker_notices_class.php:225
+msgid "We hope you've enjoyed using WordPress %s! Would you consider leaving us a review on WordPress.org?"
+msgstr "Vi hoppas att du har haft glädje av att använda WordPress %s! Skulle du kunna överväga att lämna en recension om oss på WordPress.org?"
+
+#: form_maker_notices_class.php:224 notices.php:20
+msgid "Leave A Review?"
+msgstr "Lämna en recension?"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4276
+msgid "December"
+msgstr "December"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4275
+msgid "November"
+msgstr "November"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4274
+msgid "October"
+msgstr "Oktober"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4273
+msgid "September"
+msgstr "September"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4272
+msgid "August"
+msgstr "Augusti"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4271
+msgid "July"
+msgstr "Juli"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4270
+msgid "June"
+msgstr "Juni"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4269
+msgid "May"
+msgstr "Maj"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4268
+msgid "April"
+msgstr "April"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4267
+msgid "March"
+msgstr "Mars"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4266
+msgid "February"
+msgstr "Februari"
+
+#: admin/views/FMViewSubmissions_fm.php:2543
+#: frontend/views/FMViewForm_maker.php:2422
+#: frontend/views/FMViewForm_maker.php:4265
+msgid "January"
+msgstr "Januari"
+
+#: admin/views/FMViewSelect_data_from_db.php:140
+msgid "Type"
+msgstr "Typ"
+
+#: admin/views/FMViewSelect_data_from_db.php:104
+msgid "Connection type"
+msgstr "Anslutningstyp"
+
+#: admin/models/FMModelSubmissions_fm.php:255
+#: frontend/views/FMViewForm_maker.php:4282
+msgid "Country"
+msgstr "Land"
+
+#: admin/models/FMModelSubmissions_fm.php:252
+#: frontend/views/FMViewForm_maker.php:4281
+msgid "Postal / Zip Code"
+msgstr "Postnummer"
+
+#: admin/models/FMModelSubmissions_fm.php:249
+#: frontend/views/FMViewForm_maker.php:4280
+msgid "State / Province / Region"
+msgstr "Stat / Provins / Region"
+
+#: admin/models/FMModelSubmissions_fm.php:246
+#: frontend/views/FMViewForm_maker.php:4279
+msgid "City"
+msgstr "Ort"
+
+#: admin/models/FMModelSubmissions_fm.php:243
+#: frontend/views/FMViewForm_maker.php:4278
+msgid "Street Address Line 2"
+msgstr "Gatuadress Linje 2"
+
+#: admin/models/FMModelSubmissions_fm.php:240
+#: frontend/views/FMViewForm_maker.php:4277
+msgid "Street Address"
+msgstr "Gatunamn"

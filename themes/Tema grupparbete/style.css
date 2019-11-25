@@ -1,0 +1,380 @@
+/*
+Theme Name: Tema grupparbete
+Author: Yasmine, Elin & Annika
+*/
+/* --------- Yasmines kod -------*/
+.first-text, .studio, .gallery, .photographers, footer {
+  background-color: #FFF;
+}
+
+.first-text {
+  padding: 100px;
+  font-size: 1.5rem;
+}
+
+.four-info {
+  background-color: #eee;
+  padding: 70px;
+}
+
+.four-info .title {
+  text-decoration: underline;
+}
+
+.photograph-name {
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: NavbarText;
+}
+
+.photographers img {
+  height: 55%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.photograpers-info {
+  height: 25%;
+}
+
+.navbar {
+  text-transform: uppercase;
+  font-family: NavbarText;
+  font-size: 1.4rem;
+  letter-spacing: 3px;
+}
+
+.navbar-item {
+  padding-right: 60px;
+}
+
+.no-space {
+  vertical-align: bottom;
+}
+
+h2 {
+  font-size: 14px;
+}
+
+#fixed-thing {
+  position: fixed;
+  overflow: hidden;
+  bottom: 0px;
+  z-index: -2;
+}
+
+.title {
+  font-family: Title;
+}
+
+p {
+  font-family: BreadText;
+}
+
+h1 {
+  font-size: 32px;
+}
+
+.kontakt {
+  padding: 100px;
+}
+
+.naven {
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.naven-no-opacity {
+  z-index: 2;
+  background-color: #FFF;
+}
+
+.social-media {
+  list-style-type: none;
+  padding-top: 70px;
+}
+
+.social-media li {
+  text-align: center;
+}
+
+.kontakt {
+  padding: 100px;
+}
+
+.map {
+  margin-right: 50px;
+}
+
+#pageNotFound {
+  background-color: #8f607d;
+  color: #fff;
+  font-family: BreadText;
+}
+
+.home {
+  color: black;
+}
+
+.sub404 {
+  text-transform: uppercase;
+}
+
+.big404 {
+  font-size: 10rem;
+}
+
+/* ----- Elins kod ----- */
+.image {
+  opacity: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: .5s ease;
+  backface-visibility: hidden;
+}
+
+.kolumn:hover .image {
+  opacity: 0.3;
+}
+
+.kolumn {
+  position: relative;
+  width: 100%;
+}
+
+.middle {
+  transition: .5s ease;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.kolumn:hover .middle {
+  opacity: 1;
+}
+
+.kolumn .text {
+  color: white;
+  font-size: 16px;
+  padding: 16px 32px;
+  text-shadow: 1px 1px 3px #000,
+    -1px -1px 3px #000;
+}
+
+/* ---- Yasmine & Elin ----- */
+.kontaktTitle {
+  font-size: 1.8rem;
+  font-family: BreadText;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.control {
+  padding-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+}
+
+.faq-info {
+  background-color: #eee;
+  padding: 70px;
+}
+
+.accordions .accordion .accordion-header {
+  background-color: #eee;
+  color: black;
+}
+
+.accordion-header h2 {
+  font-family: BreadText;
+  font-size: 1.2rem;
+  color: #8f609f;
+}
+
+.accordions .accordion .accordion-header+.accordion-body {
+  border: none;
+  background-color: #f9f9f9;
+}
+
+.faq-category {
+  font-family: BreadText;
+  text-align: center;
+  font-size: 1.6rem;
+  padding-bottom: 40px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* ---- annikas css med kommentarer ---- */
+
+/* Woocommerce-styling för att få korrekta färger bl.a. */
+.woocommerce span.onsale {
+  background: #8f609f;
+  width: 50px;
+  height: 50px;
+}
+
+.woocommerce ul.products li.product .price {
+  color: black;
+}
+
+.woocommerce div.product p.price, .woocommerce div.product span.price {
+  color: #8f609f;
+}
+
+
+#add_payment_method .wc-proceed-to-checkout a.checkout-button,
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button,
+.woocommerce-checkout .wc-proceed-to-checkout a.checkout-button {
+  padding: 0.5em;
+}
+
+/* Styling av sidebar på blogg-sidan. För att få rätt färger samt kunna styla om
+sök-delen. */
+.widgettitle {
+  padding-top: 20px;
+  font-family: Title;
+  font-size: 1.5em;
+}
+
+.side-menu li {
+  font-family: BreadText;
+}
+
+#searchsubmit {
+  background: #e7e7e7;
+  color: black;
+  font-family: BreadText;
+  padding: 6px 28px 3.5px 28px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+  margin-top: 10px;
+  transition-property: background;
+  transition-duration: 0.4s;
+  transition-timing-function: linear;
+}
+
+#searchsubmit:hover {
+  background: #d4c2da;
+}
+
+.side-menu {
+  position: fixed;
+  padding-top: 20px;
+}
+
+/* Styling av inläggsflödet */
+.blogarticle {
+  border-bottom: solid black 1px;
+  margin-bottom: 50px;
+  padding-bottom: 20px;
+  padding-top: 20px;
+}
+
+/* Styling så det bllir rätt färg på länkar samt i navbaren. */
+a {
+  color: #8f609f;
+}
+
+a.navbar-item:hover {
+  color: #8f609f;
+}
+
+a.navbar-link:hover {
+  color: #8f609f;
+}
+
+.navbar-link:not(.is-arrowless)::after {
+  border-color: #8f609f;
+  margin-top: -12px;
+}
+
+.navbar-item img {
+  max-height: none;
+  width: 150px;
+}
+
+
+/*-------------FONTS------------------*/
+@font-face {
+  font-family: Title;
+  src: url(fonts/espacio_novo/Espacio Novo Medium.ttf);
+}
+
+@font-face {
+  font-family: NavbarText;
+  src: url(fonts/generica/Generica.otf);
+}
+
+@font-face {
+  font-family: BreadText;
+  src: url(fonts/open_serif/OpenSerif-Book.ttf);
+}
+
+/* ----------MEDIA QUERY--------------*/
+/*--- Kod tillsammans ---*/
+@media screen and (max-width: 1087px) {
+  .navbar-end {
+    display: none;
+  }
+
+  .navbar-item {
+    padding-right: 10px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .service-slide .columns.is-mobile>.column.is-half {
+    width: 100%;
+  }
+
+  .first-text {
+    padding: 50px 10px 50px 10px;
+    font-size: 1.3rem;
+  }
+
+  .four-info {
+    padding: 10px;
+  }
+
+  .navbar-link.is-active, .navbar-link:hover, a.navbar-item.is-active, a.navbar-item:hover {
+    color: #8f609f;
+  }
+
+  .map {
+    margin-right: 0px;
+    width: 100%;
+  }
+
+  .kontakt {
+    padding: 10px;
+  }
+
+  .kontaktTitle {
+    margin-top: 40px;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .woocommerce ul.products li.product .button {
+    font-size: 0.8rem;
+  }
+
+  .faq-info {
+    padding: 50px 10px 50px 10px;
+  }
+}
