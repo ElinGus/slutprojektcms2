@@ -7,7 +7,7 @@
       <h1 class="big404"> 404 gg</h1>
       <h1 class="404"> Oops! </h1>
       <h1 class="404"> Här finns inget att se. </h1>
-      <h2 class="sub404"> Du hittade en ofungerande länk </h2>
+      <h2 class="sub404"> Du hittade en ofungerande länk...</h2>
 
       <div class="columns is-centered">
         <div class="column  is-one-fifth">
