@@ -72,13 +72,13 @@ function modify_read_more_link() {
 }
     add_filter( 'the_content_more_link', 'modify_read_more_link' );
 
-//Custom post types - tjänster
-function mina_tjanster() {
-  $typ_av_post = 'services';
+//Custom post types - stores
+function stores() {
+  $postType = 'stores';
 
-  $service_labels = array(
-    'name' => 'Tjänster',
-    'add_new' => 'Ny tjänst',
+  $storeLabels = array(
+    'name' => 'Stores',
+    'add_new' => 'New store',
   );
   $supports = array(
     'title',
@@ -86,19 +86,19 @@ function mina_tjanster() {
     'thumbnail',
   );
   $argument = array(
-    'label' => 'Services',
-    'labels' => $service_labels,
-    'description' => 'Posttyp för tjänster',
+    'label' => 'Stores',
+    'labels' => $storeLabels,
+    'description' => 'Stores post type',
     'public' => true,
     'menu_position' => 5,
     'supports' => $supports,
     'has_archive' => true,
   );
 
-  register_post_type($typ_av_post, $argument);
+  register_post_type($postType, $argument);
 }
 
-    add_action('init', 'mina_tjanster');
+add_action('init', 'stores');
 
 // Byta ut text i Sale-knapp till Rea på Woocommerce produktsida
 add_filter( 'woocommerce_sale_flash', 'wc_custom_replace_sale_text' );
