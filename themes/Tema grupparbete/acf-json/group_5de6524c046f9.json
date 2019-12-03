@@ -26,8 +26,8 @@
                             "key": "field_5de6538d0691c",
                             "label": "Address",
                             "name": "address",
-                            "type": "text",
-                            "instructions": "",
+                            "type": "wysiwyg",
+                            "instructions": "[Gata]\r\n[Postnummer][Stad]",
                             "required": 0,
                             "conditional_logic": 0,
                             "wrapper": {
@@ -36,10 +36,10 @@
                                 "id": ""
                             },
                             "default_value": "",
-                            "placeholder": "",
-                            "prepend": "",
-                            "append": "",
-                            "maxlength": ""
+                            "tabs": "all",
+                            "toolbar": "full",
+                            "media_upload": 1,
+                            "delay": 0
                         },
                         {
                             "key": "field_5de6539ea7b19",
@@ -87,5 +87,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1575375783
+    "modified": 1575383420
 }
