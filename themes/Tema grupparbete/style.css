@@ -105,7 +105,7 @@ h1 {
 
 .woocommerce form.checkout_coupon, .woocommerce form.login, .woocommerce form.register {
   border-radius: 0px;
-  background-color: #fff;
+  background-color: #fcfcfc;
 }
 
 .col2-set h2, .myaccount-title {
@@ -115,18 +115,18 @@ h1 {
   letter-spacing: 2px;
 }
 
-.woocommerce-account .addresses .title h3 {
-  font-family: BreadText;
-  font-size: 1.6rem;
-}
-
 .myaccount-title {
   margin-bottom: 5%;
 }
 
 /*--- logged in user ---*/
 .woocommerce-account .woocommerce-MyAccount-navigation {
-  padding: 0 5% 0 10%;
+  padding: 3% 5% 0 10%;
+}
+
+.woocommerce-account .addresses .title h3 {
+  font-family: BreadText;
+  font-size: 1.6rem;
 }
 
 .woocommerce-account .woocommerce-MyAccount-navigation li {
@@ -136,6 +136,18 @@ h1 {
 
 .woocommerce-account .woocommerce-MyAccount-content {
   padding-right: 15%;
+  background-color: #f6f6f6;
+  padding: 3%;
+}
+
+.woocommerce-Address {
+  background-color: #fcfcfc;
+  padding: 3%;
+}
+
+.woocommerce table.shop_table {
+  border-radius: 0;
+  background-color: #fcfcfc;
 }
 
 a.edit {
