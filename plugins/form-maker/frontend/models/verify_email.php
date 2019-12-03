@@ -41,7 +41,7 @@ class FMModelVerify_email {
           $date = strtotime($submission->date);
           if ( $key === $md5 ) {
             $now = time();
-            $hourInterval = floor(($now - $date) / 3600);
+            $hourInterval = ($now - $date) / 3600;
             if ( $expHour > 0 && $hourInterval > $expHour ) {
               $message = __('Your email verification has timed out.', WDFMInstance(self::PLUGIN)->prefix);
             }

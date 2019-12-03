@@ -47,7 +47,7 @@ if ( class_exists( 'WC_Widget' ) ) {
 
 			$this->widget_start( $args, $instance );
 
-			echo \DgoraWcas\Shortcode::get_form($args);
+			echo \DgoraWcas\Shortcode::getForm($args);
 
 			$this->widget_end( $args );
 		}

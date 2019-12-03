@@ -40,6 +40,8 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 	/*-----------------------------------------------------------------------------------*/
 	public function __construct() {
 
+		parent::__construct();
+
 		$this->admin_includes();
 
 		add_action( 'init', array( $this, 'init_scripts' ) );
@@ -87,9 +89,30 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 
 	public function register_modal_scripts() {
 		$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
-		wp_register_style( 'bootstrap-modal', $this->admin_plugin_url() . '/assets/css/modal' . $suffix . '.css', array(), '4.0.0', 'all' );
-		wp_register_script( 'bootstrap-util', $this->admin_plugin_url() . '/assets/js/bootstrap/util' . $suffix . '.js', array( 'jquery' ), '4.0.0', false );
-		wp_register_script( 'bootstrap-modal', $this->admin_plugin_url() . '/assets/js/bootstrap/modal' . $suffix . '.js', array( 'jquery', 'bootstrap-util' ), '4.0.0', false );
+		wp_register_style( 'bootstrap-modal', $this->admin_plugin_url() . '/assets/css/modal' . $suffix . '.css', array(), '4.1.1', 'all' );
+
+		if ( ! wp_script_is( 'bootstrap-util', 'registered' ) ) {
+			wp_register_script( 'bootstrap-util', $this->admin_plugin_url() . '/assets/js/bootstrap/util' . $suffix . '.js', array( 'jquery' ), '4.1.1', false );
+		}
+
+		wp_register_script( 'bootstrap-modal', $this->admin_plugin_url() . '/assets/js/bootstrap/modal' . $suffix . '.js', array( 'jquery', 'bootstrap-util' ), '4.1.1', false );
+	}
+
+	public function register_popover_scripts() {
+		$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
+		wp_enqueue_style( 'bootstrap-popover', $this->admin_plugin_url() . '/assets/css/popover' . $suffix . '.css', array(), '4.1.1', 'all' );
+
+		wp_register_script( 'bootstrap-popper', $this->admin_plugin_url() . '/assets/js/bootstrap/popper.min.js', array( 'jquery' ), '4.1.1', false );
+
+		if ( ! wp_script_is( 'bootstrap-tooltip', 'registered' ) ) {
+			wp_register_script( 'bootstrap-tooltip', $this->admin_plugin_url() . '/assets/js/bootstrap/tooltip' . $suffix . '.js', array( 'jquery' ), '4.1.1', false );
+		}
+
+		if ( ! wp_script_is( 'bootstrap-util', 'registered' ) ) {
+			wp_register_script( 'bootstrap-util', $this->admin_plugin_url() . '/assets/js/bootstrap/util' . $suffix . '.js', array( 'jquery' ), '4.1.1', false );
+		}
+
+		wp_register_script( 'bootstrap-popover', $this->admin_plugin_url() . '/assets/js/bootstrap/popover' . $suffix . '.js', array( 'jquery', 'bootstrap-popper', 'bootstrap-util', 'bootstrap-tooltip' ), '4.1.1', false );
 	}
 	
 	/*-----------------------------------------------------------------------------------*/
@@ -100,16 +123,18 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 		
 		$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
 		$rtl = is_rtl() ? '.rtl' : '';
+
+		$this->register_popover_scripts();
 		
 		wp_register_script( 'chosen', $this->admin_plugin_url() . '/assets/js/chosen/chosen.jquery' . $suffix . '.js', array( 'jquery' ), true, false );
 		wp_register_script( 'a3rev-chosen-new', $this->admin_plugin_url() . '/assets/js/chosen/chosen.jquery' . $suffix . '.js', array( 'jquery' ), $this->framework_version, false );
+		wp_register_script( 'a3rev-chosen-ajaxify', $this->admin_plugin_url() . '/assets/js/chosen/chosen.ajaxify.js', array( 'jquery', 'a3rev-chosen-new' ), $this->framework_version, false );
 		wp_register_script( 'a3rev-style-checkboxes', $this->admin_plugin_url() . '/assets/js/iphone-style-checkboxes' . $rtl . '.js', array('jquery'), $this->framework_version, false );
 		wp_register_script( 'jquery-ui-slider-rtl', $this->admin_plugin_url() . '/assets/js/ui-slider/jquery.ui.slider.rtl' . $suffix . '.js', array('jquery'), true, true );
 		
-		wp_register_script( 'a3rev-admin-ui-script', $this->admin_plugin_url() . '/assets/js/admin-ui-script.js', array('jquery'), $this->framework_version, true );
+		wp_register_script( 'a3rev-admin-ui-script', $this->admin_plugin_url() . '/assets/js/admin-ui-script.js', array('jquery', 'bootstrap-popover' ), $this->framework_version, true );
 		wp_register_script( 'a3rev-typography-preview', $this->admin_plugin_url() . '/assets/js/a3rev-typography-preview.js',  array('jquery'), $this->framework_version, true );
 		wp_register_script( 'a3rev-settings-preview', $this->admin_plugin_url() . '/assets/js/a3rev-settings-preview.js',  array('jquery'), $this->framework_version, true );
-		wp_register_script( 'jquery-tiptip', $this->admin_plugin_url() . '/assets/js/tipTip/jquery.tipTip' . $suffix . '.js', array( 'jquery' ), true, true );
 		wp_register_script( 'a3rev-metabox-ui', $this->admin_plugin_url() . '/assets/js/data-meta-boxes.js', array( 'jquery' ), $this->framework_version, true );
 		wp_register_script( 'jquery-rwd-image-maps', $this->admin_plugin_url() . '/assets/js/rwdImageMaps/jquery.rwdImageMaps.min.js', array( 'jquery' ), true, true );
 		wp_register_script( 'jquery-datetime-picker', $this->admin_plugin_url() . '/assets/js/datetimepicker/jquery.datetimepicker.js', array( 'jquery' ), true, true );
@@ -123,12 +148,11 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 			wp_enqueue_script( 'jquery-ui-slider' );
 		}
 		wp_enqueue_script( 'chosen' );
-		wp_enqueue_script( 'a3rev-chosen-new' );
+		wp_enqueue_script( 'a3rev-chosen-ajaxify' );
 		wp_enqueue_script( 'a3rev-style-checkboxes' );
 		wp_enqueue_script( 'a3rev-admin-ui-script' );
 		wp_enqueue_script( 'a3rev-typography-preview' );
 		wp_enqueue_script( 'a3rev-settings-preview' );
-		wp_enqueue_script( 'jquery-tiptip' );
 		wp_enqueue_script( 'a3rev-metabox-ui' );
 
 	} // End admin_script_load()
@@ -156,8 +180,8 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 		if ( isset( $_REQUEST['type'] ) ) {
 			switch ( trim( $_REQUEST['type'] ) ) {
 				case 'open_close_panel_box':
-					$form_key = $_REQUEST['form_key'];
-					$box_id   = $_REQUEST['box_id'];
+					$form_key = sanitize_key( $_REQUEST['form_key'] );
+					$box_id   = sanitize_text_field( $_REQUEST['box_id'] );
 					$is_open  = $_REQUEST['is_open'];
 
 					$user_id = get_current_user_id();
@@ -174,7 +198,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					break;
 
 				case 'check_new_version':
-					$transient_name = $_REQUEST['transient_name'];
+					$transient_name = sanitize_key( $_REQUEST['transient_name'] );
 					delete_transient( $transient_name );
 
 					$new_version = '';
@@ -233,7 +257,6 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_style( 'jquery-datetime-picker', $this->admin_plugin_url() . '/assets/css/jquery.datetimepicker.css' );
 		wp_enqueue_style( 'a3rev-chosen-new-style', $this->admin_plugin_url() . '/assets/js/chosen/chosen' . $suffix . '.css', array(), $this->framework_version );
-		wp_enqueue_style( 'a3rev-tiptip-style', $this->admin_plugin_url() . '/assets/js/tipTip/tipTip.css' );
 		wp_enqueue_style( 'a3rev-metabox-ui-style', $this->admin_plugin_url() . '/assets/css/a3_admin_metabox.css', array(), $this->framework_version );
 
 		if ( is_rtl() ) {
@@ -327,45 +350,21 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 			if ( in_array( $value['type'], array( 'row', 'column', 'heading', 'ajax_submit', 'ajax_multi_submit' ) ) ) continue;
 			if ( ! isset( $value['id'] ) || trim( $value['id'] ) == '' ) continue;
 			if ( ! isset( $value['default'] ) ) $value['default'] = '';
-			
-			switch ( $value['type'] ) {
-				
+
+			if ( 'array_textfields' === $value['type'] ) {
 				// Array textfields
-				case 'array_textfields' :
-					if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) break;
-					
-					foreach ( $value['ids'] as $text_field ) {
-						if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
-						if ( ! isset( $text_field['default'] ) ) $text_field['default'] = '';
-						
-						// Do not include when it's separate option
-						if ( isset( $text_field['separate_option'] ) && $text_field['separate_option'] != false ) continue;
-						
-						// Remove [, ] characters from id argument
-						if ( strstr( $text_field['id'], '[' ) ) {
-							parse_str( esc_attr( $text_field['id'] ), $option_array );
+				if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) continue;
 				
-							// Option name is first key
-							$option_keys = array_keys( $option_array );
-							$first_key = current( $option_keys );
-								
-							$id_attribute		= $first_key;
-						} else {
-							$id_attribute		= esc_attr( $text_field['id'] );
-						}
-						
-						$default_settings[$id_attribute] = $text_field['default'];
-					}
+				foreach ( $value['ids'] as $text_field ) {
+					if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
+					if ( ! isset( $text_field['default'] ) ) $text_field['default'] = '';
 					
-				break;
-				
-				default :
 					// Do not include when it's separate option
-					if ( isset( $value['separate_option'] ) && $value['separate_option'] != false ) continue 2;
+					if ( isset( $text_field['separate_option'] ) && $text_field['separate_option'] != false ) continue;
 					
 					// Remove [, ] characters from id argument
-					if ( strstr( $value['id'], '[' ) ) {
-						parse_str( esc_attr( $value['id'] ), $option_array );
+					if ( strstr( $text_field['id'], '[' ) ) {
+						parse_str( esc_attr( $text_field['id'] ), $option_array );
 			
 						// Option name is first key
 						$option_keys = array_keys( $option_array );
@@ -373,17 +372,34 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 							
 						$id_attribute		= $first_key;
 					} else {
-						$id_attribute		= esc_attr( $value['id'] );
+						$id_attribute		= esc_attr( $text_field['id'] );
 					}
-
-					// Backward compatibility to old settings don't have line_height option for typography
-					if ( 'typography' == $value['type'] && ! isset( $value['default']['line_height'] ) ) {
-						$value['default']['line_height'] = '1.4em';
-					}
-
-					$default_settings[$id_attribute] = $value['default'];
+					
+					$default_settings[$id_attribute] = $text_field['default'];
+				}
+			} else {
+				// Do not include when it's separate option
+				if ( isset( $value['separate_option'] ) && $value['separate_option'] != false ) continue;
 				
-				break;
+				// Remove [, ] characters from id argument
+				if ( strstr( $value['id'], '[' ) ) {
+					parse_str( esc_attr( $value['id'] ), $option_array );
+		
+					// Option name is first key
+					$option_keys = array_keys( $option_array );
+					$first_key = current( $option_keys );
+						
+					$id_attribute		= $first_key;
+				} else {
+					$id_attribute		= esc_attr( $value['id'] );
+				}
+
+				// Backward compatibility to old settings don't have line_height option for typography
+				if ( 'typography' == $value['type'] && ! isset( $value['default']['line_height'] ) ) {
+					$value['default']['line_height'] = '1.4em';
+				}
+
+				$default_settings[$id_attribute] = $value['default'];
 			}
 		}
 		
@@ -594,146 +610,77 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 			
 			// Get the option name
 			$option_value = null;
-			
-			switch ( $value['type'] ) {
-	
-				// Checkbox type
-				case 'checkbox' :
-				case 'onoff_checkbox' :
-				case 'switcher_checkbox' :
-				
-					if ( ! isset( $value['checked_value'] ) ) $value['checked_value'] = 1;
-					if ( ! isset( $value['unchecked_value'] ) ) $value['unchecked_value'] = 0;
-					
-					if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
-						if ( $key != false ) {
-							if ( isset( $_POST[ $id_attribute ][ $key ] ) ) {
-								$option_value = $value['checked_value'];
-							} else {
-								$option_value = $value['unchecked_value'];
-							}	
-						} else {
-							if ( isset( $_POST[ $id_attribute ] ) ) {
-								$option_value = $value['checked_value'];
-							} else {
-								$option_value = $value['unchecked_value'];
-							}
-						}
-							
-					} else {
-						if ( $key != false ) {
-							if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
-								$option_value = $value['checked_value'];
-							} else {
-								$option_value = $value['unchecked_value'];
-							}	
-						} else {
-							if ( isset( $_POST[ $option_name ][ $id_attribute ] ) ) {
-								$option_value = $value['checked_value'];
-							} else {
-								$option_value = $value['unchecked_value'];
-							}
-						}
-					}
-	
-				break;
-				
-				// Array textfields
-				case 'array_textfields' :
-					if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) break;
-					
-					foreach ( $value['ids'] as $text_field ) {
-						if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
-						if ( ! isset( $text_field['default'] ) ) $text_field['default'] = '';
-						
-						// Remove [, ] characters from id argument
-						$key = false;
-						if ( strstr( $text_field['id'], '[' ) ) {
-							parse_str( esc_attr( $text_field['id'] ), $option_array );
-				
-							// Option name is first key
-							$option_keys = array_keys( $option_array );
-							$first_key = current( $option_keys );
-								
-							$id_attribute		= $first_key;
-							
-							$key = key( $option_array[ $id_attribute ] );
-						} else {
-							$id_attribute		= esc_attr( $text_field['id'] );
-						}
-						
-						// Get the option name
-						$option_value = null;
-						
-						if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
-							if ( $key != false ) {
-								if ( isset( $_POST[ $id_attribute ][ $key ] ) ) {
-									$option_value = $_POST[ $id_attribute ][ $key ];
-								} else {
-									$option_value = '';
-								}	
-							} else {
-								if ( isset( $_POST[ $id_attribute ] ) ) {
-									$option_value = $_POST[ $id_attribute ];
-								} else {
-									$option_value = '';
-								}
-							}
-								
-						} else {
-							if ( $key != false ) {
-								if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
-									$option_value = $_POST[ $option_name ][ $id_attribute ][ $key ];
-								} else {
-									$option_value = '';
-								}	
-							} else {
-								if ( isset( $_POST[ $option_name ][ $id_attribute ] ) ) {
-									$option_value = $_POST[ $option_name ][ $id_attribute ];
-								} else {
-									$option_value = '';
-								}
-							}
-						}
 
-						// Set Default value if this field is required and has default value and option value is empty
-						if ( isset ( $text_field['required'] ) && $text_field['required'] && empty( $option_value ) && ! empty( $text_field['default'] ) ) {
-							$option_value = $text_field['default'];
-						}
-						
-						if ( strstr( $text_field['id'], '[' ) ) {
-							// Set keys and value
-	    					$key = key( $option_array[ $id_attribute ] );
-			
-							$update_options[ $id_attribute ][ $key ] = $option_value;
-							
-							if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
-								$update_separate_options[ $id_attribute ][ $key ] = $option_value;
-							}
-							
+			if ( in_array( $value['type'], array( 'checkbox', 'onoff_checkbox', 'switcher_checkbox' ) ) ) {
+				if ( ! isset( $value['checked_value'] ) ) $value['checked_value'] = 1;
+				if ( ! isset( $value['unchecked_value'] ) ) $value['unchecked_value'] = 0;
+				
+				if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
+					if ( $key != false ) {
+						if ( isset( $_POST[ $id_attribute ][ $key ] ) ) {
+							$option_value = $value['checked_value'];
 						} else {
-							$update_options[ $id_attribute ] = $option_value;
-							
-							if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
-								$update_separate_options[ $id_attribute ] = $option_value;
-							}
+							$option_value = $value['unchecked_value'];
+						}	
+					} else {
+						if ( isset( $_POST[ $id_attribute ] ) ) {
+							$option_value = $value['checked_value'];
+						} else {
+							$option_value = $value['unchecked_value'];
 						}
 					}
+						
+				} else {
+					if ( $key != false ) {
+						if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
+							$option_value = $value['checked_value'];
+						} else {
+							$option_value = $value['unchecked_value'];
+						}	
+					} else {
+						if ( isset( $_POST[ $option_name ][ $id_attribute ] ) ) {
+							$option_value = $value['checked_value'];
+						} else {
+							$option_value = $value['unchecked_value'];
+						}
+					}
+				}
+			} elseif ( 'array_textfields' === $value['type'] ) {
+				if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) continue;
 					
-				break;
-	
-				// Other types
-				default :
+				foreach ( $value['ids'] as $text_field ) {
+					if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
+					if ( ! isset( $text_field['default'] ) ) $text_field['default'] = '';
+					
+					// Remove [, ] characters from id argument
+					$key = false;
+					if ( strstr( $text_field['id'], '[' ) ) {
+						parse_str( esc_attr( $text_field['id'] ), $option_array );
+			
+						// Option name is first key
+						$option_keys = array_keys( $option_array );
+						$first_key = current( $option_keys );
+							
+						$id_attribute		= $first_key;
+						
+						$key = key( $option_array[ $id_attribute ] );
+					} else {
+						$id_attribute		= esc_attr( $text_field['id'] );
+					}
+					
+					// Get the option name
+					$option_value = null;
+					
 					if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
 						if ( $key != false ) {
 							if ( isset( $_POST[ $id_attribute ][ $key ] ) ) {
-								$option_value = $_POST[ $id_attribute ][ $key ];
+								$option_value = sanitize_text_field( $_POST[ $id_attribute ][ $key ] );
 							} else {
 								$option_value = '';
 							}	
 						} else {
 							if ( isset( $_POST[ $id_attribute ] ) ) {
-								$option_value = $_POST[ $id_attribute ];
+								$option_value = sanitize_text_field( $_POST[ $id_attribute ] );
 							} else {
 								$option_value = '';
 							}
@@ -742,69 +689,213 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					} else {
 						if ( $key != false ) {
 							if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
-								$option_value = $_POST[ $option_name ][ $id_attribute ][ $key ];
+								$option_value = sanitize_text_field( $_POST[ $option_name ][ $id_attribute ][ $key ] );
 							} else {
 								$option_value = '';
 							}	
 						} else {
 							if ( isset( $_POST[ $option_name ][ $id_attribute ] ) ) {
-								$option_value = $_POST[ $option_name ][ $id_attribute ];
+								$option_value = sanitize_text_field( $_POST[ $option_name ][ $id_attribute ] );
 							} else {
 								$option_value = '';
 							}
 						}
 					}
 
-					// Just for Color type
-					if ( 'color' == $value['type'] && '' == trim( $option_value ) ) {
-						$option_value = 'transparent';
+					// Set Default value if this field is required and has default value and option value is empty
+					if ( isset ( $text_field['required'] ) && $text_field['required'] && empty( $option_value ) && ! empty( $text_field['default'] ) ) {
+						$option_value = $text_field['default'];
 					}
-					// Just for Background Color type
-					elseif ( 'bg_color' == $value['type'] && '' == trim( $option_value['color'] ) ) {
-						$option_value['color'] = 'transparent';
-					} elseif ( 'upload' == $value['type'] ) {
-						// Uploader: Set key and value for attachment id of upload type
-						if ( strstr( $value['id'], '[' ) ) {
-							$key = key( $option_array[ $id_attribute ] );
-
-							if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
-								if ( isset( $_POST[ $id_attribute ][ $key . '_attachment_id' ] ) ) {
-									$attachment_id = $_POST[ $id_attribute ][ $key . '_attachment_id' ];
-								} else {
-									$attachment_id = 0;
-								}
-
-								$update_separate_options[ $id_attribute ][ $key . '_attachment_id' ] = $attachment_id;
-							} else {
-								if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key . '_attachment_id' ] ) ) {
-									$attachment_id = $_POST[ $option_name ][ $id_attribute ][ $key . '_attachment_id' ];
-								} else {
-									$attachment_id = 0;
-								}
-
-								$update_options[ $id_attribute ][ $key . '_attachment_id' ] = $attachment_id;
-							}
-						} else {
-							if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
-								if ( isset( $_POST[ $id_attribute . '_attachment_id' ] ) ) {
-									$attachment_id = $_POST[ $id_attribute . '_attachment_id' ];
-								} else {
-									$attachment_id = 0;
-								}
-								$update_separate_options[ $id_attribute . '_attachment_id' ] = $attachment_id;
-							} else {
-								if ( isset( $_POST[ $option_name ][ $id_attribute . '_attachment_id' ] ) ) {
-									$attachment_id = $_POST[ $option_name ][ $id_attribute . '_attachment_id' ];
-								} else {
-									$attachment_id = 0;
-								}
-								$update_options[ $id_attribute . '_attachment_id' ] = $attachment_id;
-							}
+					
+					if ( strstr( $text_field['id'], '[' ) ) {
+						// Set keys and value
+    					$key = key( $option_array[ $id_attribute ] );
+		
+						$update_options[ $id_attribute ][ $key ] = $option_value;
+						
+						if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
+							$update_separate_options[ $id_attribute ][ $key ] = $option_value;
+						}
+						
+					} else {
+						$update_options[ $id_attribute ] = $option_value;
+						
+						if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
+							$update_separate_options[ $id_attribute ] = $option_value;
 						}
 					}
+				}
+			} else {
+				if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
+					if ( $key != false ) {
+						if ( isset( $_POST[ $id_attribute ][ $key ] ) ) {
 
-				break;
-	
+							// sanitize content for wp_editor type
+							if ( 'wp_editor' === $value['type'] ) {
+								$option_value = wp_kses_post_deep( $_POST[ $id_attribute ][ $key ] );
+							} elseif ( 'email' === $value['type'] ) {
+								if ( is_array( $_POST[ $id_attribute ][ $key ] ) ) {
+									$option_value = array_map( 'sanitize_email', $_POST[ $id_attribute ][ $key ] );
+								} else {
+									$option_value = sanitize_email( $_POST[ $id_attribute ][ $key ] );
+								}
+							} elseif ( 'color' === $value['type'] ) {
+								if ( is_array( $_POST[ $id_attribute ][ $key ] ) ) {
+									$option_value = array_map( 'sanitize_hex_color', $_POST[ $id_attribute ][ $key ] );
+								} else {
+									$option_value = sanitize_hex_color( $_POST[ $id_attribute ][ $key ] );
+								}
+							} else {
+								if ( is_array( $_POST[ $id_attribute ][ $key ] ) ) {
+									$option_value = array_map( 'sanitize_text_field', $_POST[ $id_attribute ][ $key ] );
+								} else {
+									$option_value = sanitize_text_field( $_POST[ $id_attribute ][ $key ] );
+								}
+							}
+
+						} else {
+							$option_value = '';
+						}	
+					} else {
+						if ( isset( $_POST[ $id_attribute ] ) ) {
+
+							// sanitize content for wp_editor type
+							if ( 'wp_editor' === $value['type'] ) {
+								$option_value = wp_kses_post_deep( $_POST[ $id_attribute ] );
+							} elseif ( 'email' === $value['type'] ) {
+								if ( is_array( $_POST[ $id_attribute ] ) ) {
+									$option_value = array_map( 'sanitize_email', $_POST[ $id_attribute ] );
+								} else {
+									$option_value = sanitize_email( $_POST[ $id_attribute ] );
+								}
+							} elseif ( 'color' === $value['type'] ) {
+								if ( is_array( $_POST[ $id_attribute ] ) ) {
+									$option_value = array_map( 'sanitize_hex_color', $_POST[ $id_attribute ] );
+								} else {
+									$option_value = sanitize_hex_color( $_POST[ $id_attribute ] );
+								}
+							} else {
+								if ( is_array( $_POST[ $id_attribute ] ) ) {
+									$option_value = array_map( 'sanitize_text_field', $_POST[ $id_attribute ] );
+								} else {
+									$option_value = sanitize_text_field( $_POST[ $id_attribute ] );
+								}
+							}
+
+						} else {
+							$option_value = '';
+						}
+					}
+						
+				} else {
+					if ( $key != false ) {
+						if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
+
+							// sanitize content for wp_editor type
+							if ( 'wp_editor' === $value['type'] ) {
+								$option_value = wp_kses_post_deep( $_POST[ $option_name ][ $id_attribute ][ $key ] );
+							} elseif ( 'email' === $value['type'] ) {
+								if ( is_array( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
+									$option_value = array_map( 'sanitize_email', $_POST[ $option_name ][ $id_attribute ][ $key ] );
+								} else {
+									$option_value = sanitize_email( $_POST[ $option_name ][ $id_attribute ][ $key ] );
+								}
+							} elseif ( 'color' === $value['type'] ) {
+								if ( is_array( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
+									$option_value = array_map( 'sanitize_hex_color', $_POST[ $option_name ][ $id_attribute ][ $key ] );
+								} else {
+									$option_value = sanitize_hex_color( $_POST[ $option_name ][ $id_attribute ][ $key ] );
+								}
+							} else {
+								if ( is_array( $_POST[ $option_name ][ $id_attribute ][ $key ] ) ) {
+									$option_value = array_map( 'sanitize_text_field', $_POST[ $option_name ][ $id_attribute ][ $key ] );
+								} else {
+									$option_value = sanitize_text_field( $_POST[ $option_name ][ $id_attribute ][ $key ] );
+								}
+							}
+
+						} else {
+							$option_value = '';
+						}	
+					} else {
+						if ( isset( $_POST[ $option_name ][ $id_attribute ] ) ) {
+
+							// sanitize content for wp_editor type
+							if ( 'wp_editor' === $value['type'] ) {
+								$option_value = wp_kses_post_deep( $_POST[ $option_name ][ $id_attribute ] );
+							} elseif ( 'email' === $value['type'] ) {
+								if ( is_array( $_POST[ $option_name ][ $id_attribute ] ) ) {
+									$option_value = array_map( 'sanitize_email', $_POST[ $option_name ][ $id_attribute ] );
+								} else {
+									$option_value = sanitize_email( $_POST[ $option_name ][ $id_attribute ] );
+								}
+							} elseif ( 'color' === $value['type'] ) {
+								if ( is_array( $_POST[ $option_name ][ $id_attribute ] ) ) {
+									$option_value = array_map( 'sanitize_hex_color', $_POST[ $option_name ][ $id_attribute ] );
+								} else {
+									$option_value = sanitize_hex_color( $_POST[ $option_name ][ $id_attribute ] );
+								}
+							} else {
+								if ( is_array( $_POST[ $option_name ][ $id_attribute ] ) ) {
+									$option_value = array_map( 'sanitize_text_field', $_POST[ $option_name ][ $id_attribute ] );
+								} else {
+									$option_value = sanitize_text_field( $_POST[ $option_name ][ $id_attribute ] );
+								}
+							}
+
+						} else {
+							$option_value = '';
+						}
+					}
+				}
+
+				// Just for Color type
+				if ( 'color' == $value['type'] && '' == trim( $option_value ) ) {
+					$option_value = 'transparent';
+				}
+				// Just for Background Color type
+				elseif ( 'bg_color' == $value['type'] && '' == trim( $option_value['color'] ) ) {
+					$option_value['color'] = 'transparent';
+				} elseif ( 'upload' == $value['type'] ) {
+					// Uploader: Set key and value for attachment id of upload type
+					if ( strstr( $value['id'], '[' ) ) {
+						$key = key( $option_array[ $id_attribute ] );
+
+						if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
+							if ( isset( $_POST[ $id_attribute ][ $key . '_attachment_id' ] ) ) {
+								$attachment_id = intval( $_POST[ $id_attribute ][ $key . '_attachment_id' ] );
+							} else {
+								$attachment_id = 0;
+							}
+
+							$update_separate_options[ $id_attribute ][ $key . '_attachment_id' ] = $attachment_id;
+						} else {
+							if ( isset( $_POST[ $option_name ][ $id_attribute ][ $key . '_attachment_id' ] ) ) {
+								$attachment_id = intval( $_POST[ $option_name ][ $id_attribute ][ $key . '_attachment_id' ] );
+							} else {
+								$attachment_id = 0;
+							}
+
+							$update_options[ $id_attribute ][ $key . '_attachment_id' ] = $attachment_id;
+						}
+					} else {
+						if ( trim( $option_name ) != '' && $value['separate_option'] != false ) {
+							if ( isset( $_POST[ $id_attribute . '_attachment_id' ] ) ) {
+								$attachment_id = intval( $_POST[ $id_attribute . '_attachment_id' ] );
+							} else {
+								$attachment_id = 0;
+							}
+							$update_separate_options[ $id_attribute . '_attachment_id' ] = $attachment_id;
+						} else {
+							if ( isset( $_POST[ $option_name ][ $id_attribute . '_attachment_id' ] ) ) {
+								$attachment_id = intval( $_POST[ $option_name ][ $id_attribute . '_attachment_id' ] );
+							} else {
+								$attachment_id = 0;
+							}
+							$update_options[ $id_attribute . '_attachment_id' ] = $attachment_id;
+						}
+					}
+				}
 			}
 			
 			if ( !in_array( $value['type'], array( 'array_textfields' ) ) ) {
@@ -884,12 +975,10 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 						if ( ! isset( $value['type'] ) ) continue;
 						if ( in_array( $value['type'], array( 'row', 'column', 'heading', 'ajax_submit', 'ajax_multi_submit' ) ) ) continue;
 						if ( ! isset( $value['id'] ) || trim( $value['id'] ) == '' ) continue;
-						
-						switch ( $value['type'] ) {
-				
+
+						if ( 'array_textfields' === $value['type'] ) {
 							// Array textfields
-							case 'array_textfields' :
-								if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) break;
+							if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) continue;
 								
 								foreach ( $value['ids'] as $text_field ) {
 									if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
@@ -902,15 +991,10 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 									}
 									if ( $text_field['free_version'] ) unset( $default_settings[ $text_field['id']] );
 								}
-								
-							break;
-							
-							default :
-								if ( ! isset( $value['default'] ) ) $value['default'] = '';
-								if ( ! isset( $value['free_version'] ) ) $value['free_version'] = false;
-								if ( $value['free_version'] ) unset( $default_settings[ $value['id']] );
-							
-							break;
+						} else {
+							if ( ! isset( $value['default'] ) ) $value['default'] = '';
+							if ( ! isset( $value['free_version'] ) ) $value['free_version'] = false;
+							if ( $value['free_version'] ) unset( $default_settings[ $value['id']] );
 						}
 					}
 					
@@ -933,86 +1017,25 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 			
 			// For way it has an option name
 			if ( ! isset( $value['separate_option'] ) ) $value['separate_option'] = false;
-			
-			switch ( $value['type'] ) {
-				
-				// Array textfields
-				case 'array_textfields' :
-					if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) break;
-								
-					foreach ( $value['ids'] as $text_field ) {
-						if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
-						if ( ! isset( $text_field['default'] ) ) $text_field['default'] = '';
-						if ( ! isset( $text_field['free_version'] ) ) {
-							if ( ! isset( $value['free_version'] ) ) 
-								$text_field['free_version'] = false;
-							else
-								$text_field['free_version'] = $value['free_version'];
-						}
-						
-						// Remove [, ] characters from id argument
-						$key = false;
-						if ( strstr( $text_field['id'], '[' ) ) {
-							parse_str( esc_attr( $text_field['id'] ), $option_array );
-				
-							// Option name is first key
-							$option_keys = array_keys( $option_array );
-							$first_key = current( $option_keys );
-								
-							$id_attribute		= $first_key;
 
-							$key = key( $option_array[ $id_attribute ] );
-						} else {
-							$id_attribute		= esc_attr( $text_field['id'] );
-						}
-						
-						if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
-							if ( $reset && $text_field['free_version'] && !$free_version ) {
-								if ( $key != false ) {
-									$current_settings = get_option( $id_attribute, array() );
-									if ( ! is_array( $current_settings) ) {
-										$current_settings = array();
-									}
-									$current_settings[$key] = $text_field['default'];
-									update_option( $id_attribute,  $current_settings );
-								} else {
-									update_option( $id_attribute,  $text_field['default'] );
-								}
-							} elseif ( $reset && !$text_field['free_version'] ) {
-								if ( $key != false ) {
-									$current_settings = get_option( $id_attribute, array() );
-									if ( ! is_array( $current_settings) ) {
-										$current_settings = array();
-									}
-									$current_settings[$key] = $text_field['default'];
-									update_option( $id_attribute,  $current_settings );
-								} else {
-									update_option( $id_attribute,  $text_field['default'] );
-								}
-							} else {
-								if ( $key != false ) {
-								$current_settings = get_option( $id_attribute, array() );
-								if ( ! is_array( $current_settings) ) {
-									$current_settings = array();
-								}
-								if ( ! isset( $current_settings[$key] ) ) {
-									$current_settings[$key] = $text_field['default'];
-									update_option( $id_attribute,  $current_settings );
-								}
-								} else {
-									add_option( $id_attribute,  $text_field['default'] );
-								}
-							}
-						}
-					}
+			if ( 'array_textfields' === $value['type'] ) {
+				// Array textfields
+				if ( !isset( $value['ids'] ) || !is_array( $value['ids'] ) || count( $value['ids'] ) < 1 ) continue;
 								
-				break;
-							
-				default :
+				foreach ( $value['ids'] as $text_field ) {
+					if ( ! isset( $text_field['id'] ) || trim( $text_field['id'] ) == '' ) continue;
+					if ( ! isset( $text_field['default'] ) ) $text_field['default'] = '';
+					if ( ! isset( $text_field['free_version'] ) ) {
+						if ( ! isset( $value['free_version'] ) ) 
+							$text_field['free_version'] = false;
+						else
+							$text_field['free_version'] = $value['free_version'];
+					}
+					
 					// Remove [, ] characters from id argument
 					$key = false;
-					if ( strstr( $value['id'], '[' ) ) {
-						parse_str( esc_attr( $value['id'] ), $option_array );
+					if ( strstr( $text_field['id'], '[' ) ) {
+						parse_str( esc_attr( $text_field['id'] ), $option_array );
 			
 						// Option name is first key
 						$option_keys = array_keys( $option_array );
@@ -1022,49 +1045,103 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 
 						$key = key( $option_array[ $id_attribute ] );
 					} else {
-						$id_attribute		= esc_attr( $value['id'] );
+						$id_attribute		= esc_attr( $text_field['id'] );
 					}
 					
 					if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
-						if ( $reset && $value['free_version'] && !$free_version ) {
+						if ( $reset && $text_field['free_version'] && !$free_version ) {
 							if ( $key != false ) {
 								$current_settings = get_option( $id_attribute, array() );
 								if ( ! is_array( $current_settings) ) {
 									$current_settings = array();
 								}
-								$current_settings[$key] = $value['default'];
+								$current_settings[$key] = $text_field['default'];
 								update_option( $id_attribute,  $current_settings );
 							} else {
-								update_option( $id_attribute,  $value['default'] );
+								update_option( $id_attribute,  $text_field['default'] );
 							}
-						} elseif ( $reset && !$value['free_version'] ) {
+						} elseif ( $reset && !$text_field['free_version'] ) {
 							if ( $key != false ) {
 								$current_settings = get_option( $id_attribute, array() );
 								if ( ! is_array( $current_settings) ) {
 									$current_settings = array();
 								}
-								$current_settings[$key] = $value['default'];
+								$current_settings[$key] = $text_field['default'];
 								update_option( $id_attribute,  $current_settings );
 							} else {
-								update_option( $id_attribute,  $value['default'] );
+								update_option( $id_attribute,  $text_field['default'] );
 							}
 						} else {
 							if ( $key != false ) {
-								$current_settings = get_option( $id_attribute, array() );
-								if ( ! is_array( $current_settings) ) {
-									$current_settings = array();
-								}
-								if ( ! isset( $current_settings[$key] ) ) {
-									$current_settings[$key] = $value['default'];
-									update_option( $id_attribute,  $current_settings );
-								}
+							$current_settings = get_option( $id_attribute, array() );
+							if ( ! is_array( $current_settings) ) {
+								$current_settings = array();
+							}
+							if ( ! isset( $current_settings[$key] ) ) {
+								$current_settings[$key] = $text_field['default'];
+								update_option( $id_attribute,  $current_settings );
+							}
 							} else {
-								add_option( $id_attribute,  $value['default'] );
+								add_option( $id_attribute,  $text_field['default'] );
 							}
 						}
 					}
-							
-				break;
+				}
+			} else {
+				// Remove [, ] characters from id argument
+				$key = false;
+				if ( strstr( $value['id'], '[' ) ) {
+					parse_str( esc_attr( $value['id'] ), $option_array );
+		
+					// Option name is first key
+					$option_keys = array_keys( $option_array );
+					$first_key = current( $option_keys );
+						
+					$id_attribute		= $first_key;
+
+					$key = key( $option_array[ $id_attribute ] );
+				} else {
+					$id_attribute		= esc_attr( $value['id'] );
+				}
+				
+				if ( trim( $option_name ) == '' || $value['separate_option'] != false ) {
+					if ( $reset && $value['free_version'] && !$free_version ) {
+						if ( $key != false ) {
+							$current_settings = get_option( $id_attribute, array() );
+							if ( ! is_array( $current_settings) ) {
+								$current_settings = array();
+							}
+							$current_settings[$key] = $value['default'];
+							update_option( $id_attribute,  $current_settings );
+						} else {
+							update_option( $id_attribute,  $value['default'] );
+						}
+					} elseif ( $reset && !$value['free_version'] ) {
+						if ( $key != false ) {
+							$current_settings = get_option( $id_attribute, array() );
+							if ( ! is_array( $current_settings) ) {
+								$current_settings = array();
+							}
+							$current_settings[$key] = $value['default'];
+							update_option( $id_attribute,  $current_settings );
+						} else {
+							update_option( $id_attribute,  $value['default'] );
+						}
+					} else {
+						if ( $key != false ) {
+							$current_settings = get_option( $id_attribute, array() );
+							if ( ! is_array( $current_settings) ) {
+								$current_settings = array();
+							}
+							if ( ! isset( $current_settings[$key] ) ) {
+								$current_settings[$key] = $value['default'];
+								update_option( $id_attribute,  $current_settings );
+							}
+						} else {
+							add_option( $id_attribute,  $value['default'] );
+						}
+					}
+				}
 			}
 			
 		}
@@ -1121,7 +1198,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 	 * @return void
 	 * ========================================================================
 	 * Option Array Structure :
-	 * type					=> row | column | heading | ajax_submit | ajax_multi_submit | google_api_key | onoff_toggle_box 
+	 * type					=> row | column | heading | ajax_submit | ajax_multi_submit | google_api_key | google_map_api_key | onoff_toggle_box 
 	 * 						   | text | email | number | password | color | bg_color | textarea | select | multiselect | radio | onoff_radio | checkbox | onoff_checkbox 
 	 *						   | switcher_checkbox | image_size | single_select_page | typography | border | border_styles | border_corner | box_shadow 
 	 *						   | slider | upload | wp_editor | array_textfields | time_picker
@@ -1158,6 +1235,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 	 * checked_label		=> text : apply for onoff_checkbox, switcher_checkbox only ( set it to show the text instead ON word default )
 	 * unchecked_label		=> text : apply for onoff_checkbox, switcher_checkbox only ( set it to show the text instead OFF word default  )
 	 * options				=> array : apply for select, multiselect, radio types
+	 * options_url		 	=> url : apply for select, multiselect
 	 *
 	 * onoff_options		=> array : apply for onoff_radio only
 	 *						   ---------------- example ---------------------
@@ -1457,7 +1535,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 	
 			} elseif ( $tip ) {
 	
-				$tip = '<div class="help_tip a3-plugin-ui-icon a3-plugin-ui-help-icon" data-tip="' . esc_attr( $tip ) . '"></div>';
+				$tip = '<div class="help_tip a3-plugin-ui-icon a3-plugin-ui-help-icon" data-trigger="hover" data-content="' . esc_attr( $tip ) . '"></div>';
 	
 			}
 			
@@ -1702,7 +1780,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 							$box_handle_class .= 'box_active';
 						}
 
-						if ( isset( $_GET['box_open'] ) && $_GET['box_open'] == $value['id'] ) {
+						if ( isset( $_GET['box_open'] ) && sanitize_text_field( $_GET['box_open'] ) == $value['id'] ) {
 							$opened_class = 'box_open';
 						}
 
@@ -1712,7 +1790,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 						// open box handle
 						echo '<div data-form-key="'. esc_attr( trim( $form_key ) ) .'" data-box-id="'. esc_attr( $heading_box_id ) .'" class="a3rev_panel_box_handle ' . $box_handle_class .'" >' . "\n\n";
 
-						echo ( ! empty( $value['name'] ) ) ? '<h3 class="a3-plugin-ui-panel-box '. $toggle_box_class . ' ' . $opened_class . '">'. esc_html( $value['name'] ) .' '. $view_doc .'</h3>' : '';
+						echo ( ! empty( $value['name'] ) ) ? '<h3 class="a3-plugin-ui-panel-box '. $toggle_box_class . ' ' . $opened_class . '">'. $value['name'] .' '. $view_doc .'</h3>' : '';
 
 						if ( stristr( $value['class'], 'pro_feature_fields' ) !== false && ! empty( $value['id'] ) ) $this->upgrade_top_message( true, sanitize_title( $value['id'] ) );
 						elseif ( stristr( $value['class'], 'pro_feature_fields' ) !== false ) $this->upgrade_top_message( true );
@@ -1738,7 +1816,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 						if ( stristr( $value['class'], 'pro_feature_fields' ) !== false && ! empty( $value['id'] ) ) $this->upgrade_top_message( true, sanitize_title( $value['id'] ) );
 						elseif ( stristr( $value['class'], 'pro_feature_fields' ) !== false ) $this->upgrade_top_message( true );
 
-						echo ( ! empty( $value['name'] ) ) ? '<h3>'. esc_html( $value['name'] ) .' '. $view_doc .'</h3>' : '';
+						echo ( ! empty( $value['name'] ) ) ? '<h3>'. $value['name'] .' '. $view_doc .'</h3>' : '';
 					}
 
 					if ( ! empty( $value['desc'] ) ) {
@@ -1765,12 +1843,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $this->google_api_key_option; ?>"><?php echo __( 'Google Fonts API', 'woocommerce-product-sort-and-display' ); ?></label>
+							<label for="<?php echo esc_attr( $this->google_api_key_option ); ?>"><?php echo __( 'Google Fonts API', 'woocommerce-product-sort-and-display' ); ?></label>
 						</th>
-						<td class="forminp forminp-onoff_checkbox forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-onoff_checkbox forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
-								name="<?php echo $this->google_api_key_option; ?>_enable"
-                                id="<?php echo $this->google_api_key_option; ?>_enable"
+								name="<?php echo esc_attr( $this->google_api_key_option ); ?>_enable"
+                                id="<?php echo esc_attr( $this->google_api_key_option ); ?>_enable"
 								class="a3rev-ui-onoff_checkbox a3rev-ui-onoff_google_api_key_enable"
                                 checked_label="<?php echo esc_html( $value['checked_label'] ); ?>"
                                 unchecked_label="<?php echo esc_html( $value['unchecked_label'] ); ?>"
@@ -1792,13 +1870,69 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 									?>
 									">
 									<input
-										name="<?php echo $this->google_api_key_option; ?>"
-										id="<?php echo $this->google_api_key_option; ?>"
+										name="<?php echo esc_attr( $this->google_api_key_option ); ?>"
+										id="<?php echo esc_attr( $this->google_api_key_option ); ?>"
 										type="text"
 										style="<?php echo esc_attr( $value['css'] ); ?>"
 										value="<?php echo esc_attr( $google_api_key ); ?>"
-										class="a3rev-ui-text a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?> <?php echo esc_attr( $value['class'] ); ?>"
+										class="a3rev-ui-text a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $value['class'] ); ?>"
 		                                placeholder="<?php echo __( 'Google Fonts API Key', 'woocommerce-product-sort-and-display' ); ?>"
+										<?php echo implode( ' ', $custom_attributes ); ?>
+										/>
+									<p class="a3rev-ui-google-valid-key-message"><?php echo __( 'Your Google API Key is valid and automatic font updates are enabled.', 'woocommerce-product-sort-and-display' ); ?></p>
+									<p class="a3rev-ui-google-unvalid-key-message"><?php echo __( 'Please enter a valid Google API Key.', 'woocommerce-product-sort-and-display' ); ?></p>
+								</div>
+							</div>
+						</td>
+					</tr><?php
+
+				break;
+
+				// Google Map API Key input
+				case 'google_map_api_key':
+
+					$google_map_api_key        = $this->settings_get_option( $this->google_map_api_key_option );
+					$google_map_api_key_enable = $this->settings_get_option( $this->google_map_api_key_option . '_enable', 0 );
+					if ( ! isset( $value['checked_label'] ) ) $value['checked_label'] = __( 'ON', 'woocommerce-product-sort-and-display' );
+					if ( ! isset( $value['unchecked_label'] ) ) $value['unchecked_label'] = __( 'OFF', 'woocommerce-product-sort-and-display' );
+
+					?><tr valign="top">
+						<th scope="row" class="titledesc">
+                        	<?php echo $tip; ?>
+							<label for="<?php echo esc_attr( $this->google_map_api_key_option ); ?>"><?php echo __( 'Google Maps API', 'woocommerce-product-sort-and-display' ); ?></label>
+						</th>
+						<td class="forminp forminp-onoff_checkbox forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
+							<input
+								name="<?php echo esc_attr( $this->google_map_api_key_option ); ?>_enable"
+                                id="<?php echo esc_attr( $this->google_map_api_key_option ); ?>_enable"
+								class="a3rev-ui-onoff_checkbox a3rev-ui-onoff_google_api_key_enable"
+                                checked_label="<?php echo esc_html( $value['checked_label'] ); ?>"
+                                unchecked_label="<?php echo esc_html( $value['unchecked_label'] ); ?>"
+                                type="checkbox"
+								value="1"
+								<?php checked( $google_map_api_key_enable, 1 ); ?>
+								/> <span class="description" style="margin-left:5px;"><?php echo __( 'Switch ON to connect to Google Maps API', 'woocommerce-product-sort-and-display' ); ?></span>
+
+							<div>&nbsp;</div>
+							<div class="a3rev-ui-google-api-key-container" style="<?php if( 1 != $google_map_api_key_enable ) { echo 'display: none;'; } ?>">
+								<div class="a3rev-ui-google-api-key-description"><?php echo sprintf( __( "Enter your existing Google Map API Key below. Don't have a key? Visit <a href='%s' target='_blank'>Google Maps API</a> to create a key", 'woocommerce-product-sort-and-display' ), 'https://developers.google.com/maps/documentation/javascript/get-api-key' ); ?></div>
+								<div class="a3rev-ui-google-api-key-inside 
+									<?php
+									if ( $this->is_valid_google_map_api_key() ) {
+										echo 'a3rev-ui-google-valid-key';
+									} elseif ( '' != $google_map_api_key ) {
+										echo 'a3rev-ui-google-unvalid-key';
+									}
+									?>
+									">
+									<input
+										name="<?php echo esc_attr( $this->google_map_api_key_option ); ?>"
+										id="<?php echo esc_attr( $this->google_map_api_key_option ); ?>"
+										type="text"
+										style="<?php echo esc_attr( $value['css'] ); ?>"
+										value="<?php echo esc_attr( $google_map_api_key ); ?>"
+										class="a3rev-ui-text a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $value['class'] ); ?>"
+		                                placeholder="<?php echo __( 'Google Map API Key', 'woocommerce-product-sort-and-display' ); ?>"
 										<?php echo implode( ' ', $custom_attributes ); ?>
 										/>
 									<p class="a3rev-ui-google-valid-key-message"><?php echo __( 'Your Google API Key is valid and automatic font updates are enabled.', 'woocommerce-product-sort-and-display' ); ?></p>
@@ -1834,7 +1968,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 
 					?><tr valign="top">
 						<td colspan="2">
-							<p class="a3rev-ui-check-version-message <?php echo $check_version_class; ?>"><?php echo $version_message; ?></p>
+							<p class="a3rev-ui-check-version-message <?php echo esc_attr( $check_version_class ); ?>"><?php echo $version_message; ?></p>
 						</td>
 					</tr><?php
 
@@ -1850,22 +1984,22 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$submit_data      = json_encode( $value['submit_data'] );
 
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp">
 
-                            <div class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-control">
+                            <div class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-control">
 
 								<button
 									name="<?php echo $name_attribute; ?>"
-									id="<?php echo $id_attribute; ?>"
+									id="<?php echo esc_attr( $id_attribute ); ?>"
 									data-submit_data="<?php echo esc_attr( $submit_data ); ?>"
 									type="button"
-									class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-button <?php echo esc_attr( $value['class'] ); ?>"
+									class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-button <?php echo esc_attr( $value['class'] ); ?>"
 									style="<?php echo esc_attr( $value['css'] ); ?>"
 									<?php echo implode( ' ', $custom_attributes ); ?>
 								><?php echo $button_name; ?></button>
-								<span class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-successed"><?php echo $successed_text; ?></span>
-								<span class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-errors"><?php echo $errors_text; ?></span>
+								<span class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-successed"><?php echo $successed_text; ?></span>
+								<span class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-errors"><?php echo $errors_text; ?></span>
 
 								<!-- Progress Bar -->
 								<div class="a3rev-ui-progress-bar-wrap">
@@ -1890,6 +2024,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$successed_text   = $value['successed_text'];
 					$errors_text      = $value['errors_text'];
 					$statistic_column = isset( $value['statistic_column'] ) ? $value['statistic_column'] : 1;
+
+					$notice          = isset( $value['notice'] ) ? $value['notice'] : '';
+					$confirm_message = '';
+					if ( isset( $value['confirm_run'] ) && $value['confirm_run']['allow'] ) {
+						$confirm_message = isset( $value['confirm_run']['message'] ) ? $value['confirm_run']['message'] : '';
+					}
 
 					$multi_current_items = 0;
 					$multi_total_items   = 0;
@@ -1917,27 +2057,33 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$multi_ajax = json_encode( $multi_ajax );
 
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp">
 
-                            <div class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-control">
+                            <div class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-control">
 								<?php echo $description; ?>
 								<button
 									data-resubmit="<?php echo $resubmit ? 1 : 0 ; ?>"
 									name="<?php echo $name_attribute; ?>"
-									id="<?php echo $id_attribute; ?>"
+									id="<?php echo esc_attr( $id_attribute ); ?>"
 									data-multi_ajax="<?php echo esc_attr( $multi_ajax ); ?>"
 									type="button"
-									class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-button <?php echo esc_attr( $value['class'] ); ?>"
+									class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-button <?php echo esc_attr( $value['class'] ); ?>"
 									style="<?php echo esc_attr( $value['css'] ); ?>"
 									<?php echo implode( ' ', $custom_attributes ); ?>
+								<?php if ( ! empty( $confirm_message ) ) { ?>
+									data-confirm_message="<?php echo esc_attr( $confirm_message ); ?>"
+								<?php } ?> 
 								><?php echo $button_name; ?></button>
-								<span class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-successed"><?php echo $successed_text; ?></span>
-								<span class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-errors"><?php echo $errors_text; ?></span>
+								<span class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-successed"><?php echo $successed_text; ?></span>
+								<span class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-errors"><?php echo $errors_text; ?></span>
 
 								<!-- Progress Bar -->
+								<?php if ( ! empty( $notice ) ) { ?>
+								<div class="a3rev-ui-progress-notice"><?php echo $notice; ?></div>
+								<?php } ?>
 								<div class="a3rev-ui-progress-bar-wrap">
-									<div class="a3rev-ui-progress-inner" data-current="<?php echo $multi_current_items; ?>" data-total="<?php echo $multi_total_items; ?>" ></div>
+									<div class="a3rev-ui-progress-inner" data-current="<?php echo esc_attr( $multi_current_items ); ?>" data-total="<?php echo $multi_total_items; ?>" ></div>
 									<div class="a3rev-ui-progressing-text"><?php echo $progressing_text; ?></div>
 									<div class="a3rev-ui-completed-text"><?php echo $completed_text; ?></div>
 								</div>
@@ -1973,16 +2119,16 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 											$current_color = isset( $statistic_customizer['current_color'] ) ? $statistic_customizer['current_color'] : '';
 										}
 								?>
-									<div style="<?php echo ( isset( $single_submit['show_statistic'] ) && ! $single_submit['show_statistic'] ) ? 'display:none;' : ''; ?> width: <?php echo $column_width; ?>%;" class="a3rev-ui-statistic-item a3rev-ui-statistic-<?php echo esc_attr( $single_submit['item_id'] ); ?>">
+									<div style="<?php echo ( isset( $single_submit['show_statistic'] ) && ! $single_submit['show_statistic'] ) ? 'display:none;' : ''; ?> width: <?php echo esc_attr( $column_width ); ?>%;" class="a3rev-ui-statistic-item a3rev-ui-statistic-<?php echo esc_attr( $single_submit['item_id'] ); ?>">
 										<div class="a3rev-ui-pie-wrap">
 											<div class="a3rev-ui-pie <?php echo esc_attr( $pie_class); ?>">
-												<div class="a3rev-ui-pie-left-side a3rev-ui-pie-half-circle" style="transform: rotate(<?php echo $left_deg; ?>deg); <?php echo ( ! empty( $current_color ) ? 'border-color:' . $current_color : '' ); ?>"></div>
-												<div class="a3rev-ui-pie-right-side a3rev-ui-pie-half-circle" style="transform: rotate(<?php echo $right_deg; ?>deg); <?php echo ( ! empty( $current_color ) ? 'border-color:' . $current_color : '' ); ?>"></div>
+												<div class="a3rev-ui-pie-left-side a3rev-ui-pie-half-circle" style="transform: rotate(<?php echo esc_attr( $left_deg ); ?>deg); <?php echo ( ! empty( $current_color ) ? 'border-color:' . esc_attr( $current_color ) : '' ); ?>"></div>
+												<div class="a3rev-ui-pie-right-side a3rev-ui-pie-half-circle" style="transform: rotate(<?php echo esc_attr( $right_deg ); ?>deg); <?php echo ( ! empty( $current_color ) ? 'border-color:' . esc_attr( $current_color ) : '' ); ?>"></div>
 											</div>
 											<div class="a3rev-ui-pie-shadow"></div>
 										</div>
 										<div class="a3rev-ui-statistic-text">
-											<span class="a3rev-ui-statistic-current-item" data-current="<?php echo $current_items; ?>" ><?php echo $current_items; ?></span>
+											<span class="a3rev-ui-statistic-current-item" data-current="<?php echo esc_attr( $current_items ); ?>" ><?php echo $current_items; ?></span>
 											<span class="a3rev-ui-statistic-separate">/</span>
 											<span class="a3rev-ui-statistic-total-item"><?php echo $total_items; ?></span>
 											<br />
@@ -2010,12 +2156,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $this->toggle_box_open_option; ?>"><?php echo __( 'Open Box Display', 'woocommerce-product-sort-and-display' ); ?></label>
+							<label for="<?php echo esc_attr( $this->toggle_box_open_option ); ?>"><?php echo __( 'Open Box Display', 'woocommerce-product-sort-and-display' ); ?></label>
 						</th>
-						<td class="forminp forminp-onoff_checkbox forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-onoff_checkbox forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
-								name="<?php echo $this->toggle_box_open_option; ?>"
-                                id="<?php echo $this->toggle_box_open_option; ?>"
+								name="<?php echo esc_attr( $this->toggle_box_open_option ); ?>"
+                                id="<?php echo esc_attr( $this->toggle_box_open_option ); ?>"
 								class="a3rev-ui-onoff_checkbox a3rev-ui-onoff_toggle_box <?php echo esc_attr( $value['class'] ); ?>"
                                 checked_label="<?php echo esc_html( $value['checked_label'] ); ?>"
                                 unchecked_label="<?php echo esc_html( $value['unchecked_label'] ); ?>"
@@ -2039,16 +2185,16 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
 								name="<?php echo $name_attribute; ?>"
-								id="<?php echo $id_attribute; ?>"
+								id="<?php echo esc_attr( $id_attribute ); ?>"
 								type="<?php echo esc_attr( $type ); ?>"
 								style="<?php echo esc_attr( $value['css'] ); ?>"
 								value="<?php echo esc_attr( $option_value ); ?>"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?> <?php echo esc_attr( $value['class'] ); ?>"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $value['class'] ); ?>"
                                 placeholder="<?php echo esc_attr( $value['placeholder'] ); ?>"
 								<?php echo implode( ' ', $custom_attributes ); ?>
 								/> <?php echo $description; ?>
@@ -2066,12 +2212,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
 								name="<?php echo $name_attribute; ?>"
-								id="<?php echo $id_attribute; ?>"
+								id="<?php echo esc_attr( $id_attribute ); ?>"
 								type="text"
 								value="<?php echo esc_attr( $option_value ); ?>"
 								class="a3rev-color-picker"
@@ -2097,12 +2243,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
 							<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
 									name="<?php echo $name_attribute; ?>[enable]"
-									id="<?php echo $id_attribute; ?>"
+									id="<?php echo esc_attr( $id_attribute ); ?>"
 									class="a3rev-ui-bg_color-enable a3rev-ui-onoff_checkbox <?php echo esc_attr( $value['class'] ); ?>"
 									checked_label="<?php _e( 'ON', 'woocommerce-product-sort-and-display' ); ?>"
 									unchecked_label="<?php _e( 'OFF', 'woocommerce-product-sort-and-display' ); ?>"
@@ -2115,7 +2261,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 							<div class="a3rev-ui-bg_color-enable-container">
 							<input
 								name="<?php echo $name_attribute; ?>[color]"
-								id="<?php echo $id_attribute; ?>-color"
+								id="<?php echo esc_attr( $id_attribute ); ?>-color"
 								type="text"
 								value="<?php echo esc_attr( $color ); ?>"
 								class="a3rev-color-picker"
@@ -2133,16 +2279,16 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<?php echo $description; ?>
 	
 							<textarea
 								name="<?php echo $name_attribute; ?>"
-								id="<?php echo $id_attribute; ?>"
+								id="<?php echo esc_attr( $id_attribute ); ?>"
 								style="<?php echo esc_attr( $value['css'] ); ?>"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?> <?php echo esc_attr( $value['class'] ); ?>"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $value['class'] ); ?>"
                                 placeholder="<?php echo esc_attr( $value['placeholder'] ); ?>"
 								<?php echo implode( ' ', $custom_attributes ); ?>
 								><?php echo esc_textarea( $option_value );  ?></textarea>
@@ -2159,21 +2305,32 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 						$value['class'] .= ' chzn-rtl';
 					}
 					if ( ! isset( $value['options'] ) ) $value['options'] = array();
+
+					$is_ajax = false;
+					if ( isset( $value['options_url'] ) && ! empty( $value['options_url'] ) ) {
+						$is_ajax = true;
+						$value['class'] .= ' chzn-select-ajaxify';
+					}
 		
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<select
 								name="<?php echo $name_attribute; ?><?php if ( $value['type'] == 'multiselect' ) echo '[]'; ?>"
-								id="<?php echo $id_attribute; ?>"
+								id="<?php echo esc_attr( $id_attribute ); ?>"
 								style="<?php echo esc_attr( $value['css'] ); ?>"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?> <?php echo esc_attr( $value['class'] ); ?>"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $value['class'] ); ?>"
 								data-placeholder="<?php echo esc_html( $value['placeholder'] ); ?>"
 								<?php echo implode( ' ', $custom_attributes ); ?>
 								<?php if ( $value['type'] == 'multiselect' ) echo 'multiple="multiple"'; ?>
+								<?php if ( $is_ajax ) {
+									echo 'options_url="'.esc_url( $value['options_url'] ).'"';
+									echo 'data-no_results_text="Please enter 3 or more characters"';
+								}
+								?>
 								>
 								<?php
 								if ( is_array( $value['options'] ) && count( $value['options'] ) > 0 ) {
@@ -2225,9 +2382,9 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<fieldset>
 								<?php echo $description; ?>
 								<ul>
@@ -2238,10 +2395,10 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 										<li>
 											<label><input
 												name="<?php echo $name_attribute; ?>"
-												value="<?php echo $val; ?>"
+												value="<?php echo esc_attr( $val ); ?>"
 												type="radio"
 												style="<?php echo esc_attr( $value['css'] ); ?>"
-												class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?> <?php echo esc_attr( $value['class'] ); ?>"
+												class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $value['class'] ); ?>"
 												<?php echo implode( ' ', $custom_attributes ); ?>
 												<?php checked( $val, $option_value ); ?>
 												/> <span class="description" style="margin-left:5px;"><?php echo $text ?></span></label>
@@ -2264,9 +2421,9 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<fieldset>
 								<?php echo $description; ?>
 								<ul>
@@ -2316,7 +2473,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 							if ( $value['show_if_checked'] == 'option' ) echo 'show_options_if_checked';
 						?>">
 						<th scope="row" class="titledesc">
-                        	<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+                        	<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
                         </th>
 						<td class="forminp forminp-checkbox">
 							<fieldset>
@@ -2332,12 +2489,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					}
 	
 					?>
-						<legend class="screen-reader-text"><span><?php echo esc_html( $value['name'] ) ?></span></legend>
+						<legend class="screen-reader-text"><span><?php echo $value['name']; ?></span></legend>
 	
-						<label for="<?php echo $id_attribute; ?>">
+						<label for="<?php echo esc_attr( $id_attribute ); ?>">
 						<input
 							name="<?php echo $name_attribute; ?>"
-							id="<?php echo $id_attribute; ?>"
+							id="<?php echo esc_attr( $id_attribute ); ?>"
 							type="checkbox"
 							value="<?php echo esc_attr( stripslashes( $value['checked_value'] ) ); ?>"
 							<?php checked( $option_value, esc_attr( stripslashes( $value['checked_value'] ) ) ); ?>
@@ -2369,12 +2526,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
 								name="<?php echo $name_attribute; ?>"
-                                id="<?php echo $id_attribute; ?>"
+                                id="<?php echo esc_attr( $id_attribute ); ?>"
 								class="a3rev-ui-onoff_checkbox <?php echo esc_attr( $value['class'] ); ?>"
                                 checked_label="<?php echo esc_html( $value['checked_label'] ); ?>"
                                 unchecked_label="<?php echo esc_html( $value['unchecked_label'] ); ?>"
@@ -2398,12 +2555,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 							<input
 								name="<?php echo $name_attribute; ?>"
-                                id="<?php echo $id_attribute; ?>"
+                                id="<?php echo esc_attr( $id_attribute ); ?>"
 								class="a3rev-ui-onoff_checkbox <?php echo esc_attr( $value['class'] ); ?>"
                                 checked_label="<?php echo esc_html( $value['checked_label'] ); ?>"
                                 unchecked_label="<?php echo esc_html( $value['unchecked_label'] ); ?>"
@@ -2425,8 +2582,8 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$crop 	= checked( 1, $option_value['crop'], false );
 	
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 	
 							<label><?php _e( 'Width', 'woocommerce-product-sort-and-display' ); ?> <input name="<?php echo $name_attribute; ?>[width]" id="<?php echo $id_attribute; ?>-width" type="text" class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-width" value="<?php echo $width; ?>" /></label>
 	
@@ -2460,7 +2617,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 						$args = wp_parse_args( $value['args'], $args );
 	
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp">
 							<?php echo str_replace(' id=', " data-placeholder='" . esc_html( $value['placeholder'] ) .  "' style='" . $value['css'] . "' class='" . $value['class'] . "' id=", wp_dropdown_pages( $args ) ); ?> <?php echo $description; ?>
 						</td>
@@ -2483,15 +2640,15 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$color       = $option_value['color'];
 
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp">
                         	<?php echo $description; ?>
-                            <div class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-control">
+                            <div class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-control">
                         	<!-- Font Size -->
 							<select
 								name="<?php echo $name_attribute; ?>[size]"
-                                id="<?php echo $id_attribute; ?>-size"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-size chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-size"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-size chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
 									for ( $i = 6; $i <= 70; $i++ ) {
@@ -2506,8 +2663,8 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 						   <!-- Line Height -->
 							<select
 								name="<?php echo $name_attribute; ?>[line_height]"
-                                id="<?php echo $id_attribute; ?>-line_height"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-line_height chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-line_height"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-line_height chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
 									for ( $i = 0.6; $i <= 3.1; $i = $i + 0.1 ) {
@@ -2522,8 +2679,8 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Font Face -->
 							<select
 								name="<?php echo $name_attribute; ?>[face]"
-                                id="<?php echo $id_attribute; ?>-face"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-face chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-face"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-face chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<optgroup label="<?php _e( '-- Default Fonts --', 'woocommerce-product-sort-and-display' ); ?>">
                                 <?php
@@ -2552,8 +2709,8 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Font Weight -->
                            <select
 								name="<?php echo $name_attribute; ?>[style]"
-                                id="<?php echo $id_attribute; ?>-style"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-style chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-style"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-style chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
 									foreach ( $this->get_font_weights() as $val => $text ) {
@@ -2569,10 +2726,10 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Font Color -->
                            <input
 								name="<?php echo $name_attribute; ?>[color]"
-								id="<?php echo $id_attribute; ?>-color"
+								id="<?php echo esc_attr( $id_attribute ); ?>-color"
 								type="text"
 								value="<?php echo esc_attr( $color ); ?>"
-								class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?>-color a3rev-color-picker"
+								class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>-color a3rev-color-picker"
 								<?php echo $default_color; ?>
 								/> 
                                 
@@ -2637,14 +2794,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$bottom_right_corner = intval( $bottom_right_corner );
 				
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp forminp-border_corner">
 							<?php echo $description; ?>
                             <div class="a3rev-ui-settings-control">
                         	<!-- Border Width -->
 							<select
 								name="<?php echo $name_attribute; ?>[width]"
-                                id="<?php echo $id_attribute; ?>-width"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-width"
 								class="a3rev-ui-border_styles-width chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
@@ -2661,7 +2818,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Border Style -->
                            <select
 								name="<?php echo $name_attribute; ?>[style]"
-                                id="<?php echo $id_attribute; ?>-style"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-style"
 								class="a3rev-ui-border_styles-style chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
@@ -2678,7 +2835,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Border Color -->
                            <input
 								name="<?php echo $name_attribute; ?>[color]"
-								id="<?php echo $id_attribute; ?>-color"
+								id="<?php echo esc_attr( $id_attribute ); ?>-color"
 								type="text"
 								value="<?php echo esc_attr( $color ); ?>"
 								class="a3rev-ui-border_styles-color a3rev-color-picker"
@@ -2693,7 +2850,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Border Corner : Rounded or Square -->
 								<input
                                     name="<?php echo $name_attribute; ?>[corner]"
-                                    id="<?php echo $id_attribute; ?>"
+                                    id="<?php echo esc_attr( $id_attribute ); ?>"
                                     class="a3rev-ui-border-corner a3rev-ui-onoff_checkbox <?php echo esc_attr( $value['class'] ); ?>"
                                     checked_label="<?php _e( 'Rounded', 'woocommerce-product-sort-and-display' ); ?>"
                                     unchecked_label="<?php _e( 'Square', 'woocommerce-product-sort-and-display' ); ?>"
@@ -2710,14 +2867,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container">
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-top_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-top_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[top_left_corner]"
-                                                id="<?php echo $id_attribute; ?>-top_left_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-top_left_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $top_left_corner ); ?>"
                                                 class="a3rev-ui-border_top_left_corner a3rev-ui-slider"
@@ -2730,14 +2887,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container">
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-top_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-top_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[top_right_corner]"
-                                                id="<?php echo $id_attribute; ?>-top_right_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-top_right_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $top_right_corner ); ?>"
                                                 class="a3rev-ui-border_top_right_corner a3rev-ui-slider"
@@ -2750,14 +2907,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container">
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-bottom_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-bottom_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[bottom_right_corner]"
-                                                id="<?php echo $id_attribute; ?>-bottom_right_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-bottom_right_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $bottom_right_corner ); ?>"
                                                 class="a3rev-ui-border_bottom_right_corner a3rev-ui-slider"
@@ -2770,14 +2927,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container"> 
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-bottom_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-bottom_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[bottom_left_corner]"
-                                                id="<?php echo $id_attribute; ?>-bottom_left_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-bottom_left_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $bottom_left_corner ); ?>"
                                                 class="a3rev-ui-border_bottom_left_corner a3rev-ui-slider"
@@ -2804,14 +2961,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$color	= $option_value['color'];
 				
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp">
 							<?php echo $description; ?>
                             <div class="a3rev-ui-settings-control">
                         	<!-- Border Width -->
 							<select
 								name="<?php echo $name_attribute; ?>[width]"
-                                id="<?php echo $id_attribute; ?>-width"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-width"
 								class="a3rev-ui-border_styles-width chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
@@ -2828,7 +2985,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Border Style -->
                            <select
 								name="<?php echo $name_attribute; ?>[style]"
-                                id="<?php echo $id_attribute; ?>-style"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-style"
 								class="a3rev-ui-border_styles-style chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
 								>
 								<?php
@@ -2845,7 +3002,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Border Color -->
                            <input
 								name="<?php echo $name_attribute; ?>[color]"
-								id="<?php echo $id_attribute; ?>-color"
+								id="<?php echo esc_attr( $id_attribute ); ?>-color"
 								type="text"
 								value="<?php echo esc_attr( $color ); ?>"
 								class="a3rev-ui-border_styles-color a3rev-color-picker"
@@ -2903,13 +3060,13 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$bottom_right_corner = intval( $bottom_right_corner );
 				
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
                             <div class="a3rev-ui-settings-control">	
                                 <!-- Border Corner : Rounded or Square -->
                                 <input
                                     name="<?php echo $name_attribute; ?>[corner]"
-                                    id="<?php echo $id_attribute; ?>"
+                                    id="<?php echo esc_attr( $id_attribute ); ?>"
                                     class="a3rev-ui-border-corner a3rev-ui-onoff_checkbox <?php echo esc_attr( $value['class'] ); ?>"
                                     checked_label="<?php _e( 'Rounded', 'woocommerce-product-sort-and-display' ); ?>"
                                     unchecked_label="<?php _e( 'Square', 'woocommerce-product-sort-and-display' ); ?>"
@@ -2929,14 +3086,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container">
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-top_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-top_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[top_left_corner]"
-                                                id="<?php echo $id_attribute; ?>-top_left_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-top_left_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $top_left_corner ); ?>"
                                                 class="a3rev-ui-border_top_left_corner a3rev-ui-slider"
@@ -2949,14 +3106,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container"> 
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-top_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-top_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[top_right_corner]"
-                                                id="<?php echo $id_attribute; ?>-top_right_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-top_right_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $top_right_corner ); ?>"
                                                 class="a3rev-ui-border_top_right_corner a3rev-ui-slider"
@@ -2969,14 +3126,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container"> 
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-bottom_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-bottom_right_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[bottom_right_corner]"
-                                                id="<?php echo $id_attribute; ?>-bottom_right_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-bottom_right_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $bottom_right_corner ); ?>"
                                                 class="a3rev-ui-border_bottom_right_corner a3rev-ui-slider"
@@ -2989,14 +3146,14 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                                         <div class="a3rev-ui-slide-container">
                                             <div class="a3rev-ui-slide-container-start">
                                                 <div class="a3rev-ui-slide-container-end">
-                                                    <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>-bottom_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                                    <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>-bottom_left_corner_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                                                 </div>
                                             </div>
                                             <div class="a3rev-ui-slide-result-container">
                                             <input
                                                 readonly="readonly"
                                                 name="<?php echo $name_attribute; ?>[bottom_left_corner]"
-                                                id="<?php echo $id_attribute; ?>-bottom_left_corner"
+                                                id="<?php echo esc_attr( $id_attribute ); ?>-bottom_left_corner"
                                                 type="text"
                                                 value="<?php echo esc_attr( $bottom_left_corner ); ?>"
                                                 class="a3rev-ui-border_bottom_left_corner a3rev-ui-slider"
@@ -3029,11 +3186,11 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					$inset		= $option_value['inset'];
 				
 					?><tr valign="top">
-						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo esc_html( $value['name'] ) ?></th>
+						<th scope="row" class="titledesc"><?php echo $tip; ?><?php echo $value['name']; ?></th>
 						<td class="forminp forminp-box_shadow">
                             <input
                                     name="<?php echo $name_attribute; ?>[enable]"
-                                    id="<?php echo $id_attribute; ?>"
+                                    id="<?php echo esc_attr( $id_attribute ); ?>"
                                     class="a3rev-ui-box_shadow-enable a3rev-ui-onoff_checkbox <?php echo esc_attr( $value['class'] ); ?>"
                                     checked_label="<?php _e( 'ON', 'woocommerce-product-sort-and-display' ); ?>"
                                     unchecked_label="<?php _e( 'OFF', 'woocommerce-product-sort-and-display' ); ?>"
@@ -3049,7 +3206,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                         	<!-- Box Horizontal Shadow Size -->
 							<select
 								name="<?php echo $name_attribute; ?>[h_shadow]"
-                                id="<?php echo $id_attribute; ?>-h_shadow"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-h_shadow"
 								class="a3rev-ui-box_shadow-h_shadow chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
                                 data-placeholder="<?php _e( 'Horizontal Shadow', 'woocommerce-product-sort-and-display' ); ?>"
 								>
@@ -3067,7 +3224,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                         	<!-- Box Vertical Shadow Size -->
 							<select
 								name="<?php echo $name_attribute; ?>[v_shadow]"
-                                id="<?php echo $id_attribute; ?>-v_shadow"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-v_shadow"
 								class="a3rev-ui-box_shadow-v_shadow chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
                                 data-placeholder="<?php _e( 'Vertical Shadow', 'woocommerce-product-sort-and-display' ); ?>"
 								>
@@ -3085,7 +3242,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Box Blur Distance -->
 							<select
 								name="<?php echo $name_attribute; ?>[blur]"
-                                id="<?php echo $id_attribute; ?>-blur"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-blur"
 								class="a3rev-ui-box_shadow-blur chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
                                 data-placeholder="<?php _e( 'Blur Distance', 'woocommerce-product-sort-and-display' ); ?>"
 								>
@@ -3103,7 +3260,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Box Spread -->
 							<select
 								name="<?php echo $name_attribute; ?>[spread]"
-                                id="<?php echo $id_attribute; ?>-spread"
+                                id="<?php echo esc_attr( $id_attribute ); ?>-spread"
 								class="a3rev-ui-box_shadow-spread chzn-select <?php if ( is_rtl() ) { echo 'chzn-rtl'; } ?>"
                                 data-placeholder="<?php _e( 'Spread Size', 'woocommerce-product-sort-and-display' ); ?>"
 								>
@@ -3121,7 +3278,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Box Shadow Inset -->
                                 <input
                                     name="<?php echo $name_attribute; ?>[inset]"
-                                    id="<?php echo $id_attribute; ?>"
+                                    id="<?php echo esc_attr( $id_attribute ); ?>"
                                     class="a3rev-ui-box_shadow-inset a3rev-ui-onoff_checkbox"
                                     checked_label="<?php _e( 'INNER', 'woocommerce-product-sort-and-display' ); ?>"
                                     unchecked_label="<?php _e( 'OUTER', 'woocommerce-product-sort-and-display' ); ?>"
@@ -3134,7 +3291,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
                            <!-- Box Shadow Color -->
                            <input
 								name="<?php echo $name_attribute; ?>[color]"
-								id="<?php echo $id_attribute; ?>-color"
+								id="<?php echo esc_attr( $id_attribute ); ?>-color"
 								type="text"
 								value="<?php echo esc_attr( $color ); ?>"
 								class="a3rev-ui-box_shadow-color a3rev-color-picker"
@@ -3163,18 +3320,18 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
                         <div class="a3rev-ui-slide-container">
                             <div class="a3rev-ui-slide-container-start"><div class="a3rev-ui-slide-container-end">
-                                <div class="a3rev-ui-slide" id="<?php echo $id_attribute; ?>_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
+                                <div class="a3rev-ui-slide" id="<?php echo esc_attr( $id_attribute ); ?>_div" min="<?php echo esc_attr( $value['min'] ); ?>" max="<?php echo esc_attr( $value['max'] ); ?>" inc="<?php echo esc_attr( $value['increment'] ); ?>"></div>
                             </div></div>
                             <div class="a3rev-ui-slide-result-container">
                                 <input
                                     readonly="readonly"
                                     name="<?php echo $name_attribute; ?>"
-                                    id="<?php echo $id_attribute; ?>"
+                                    id="<?php echo esc_attr( $id_attribute ); ?>"
                                     type="text"
                                     value="<?php echo esc_attr( $option_value ); ?>"
                                     class="a3rev-ui-slider"
@@ -3207,11 +3364,11 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
                         	<?php echo $description; ?>
-                        	<?php echo $wc_psad_uploader->upload_input( $name_attribute, $id_attribute, $option_value, $attachment_id, $value['default'], esc_html( $value['name'] ), $class, esc_attr( $value['css'] ) , '', $strip_methods );?>
+                        	<?php echo $wc_psad_uploader->upload_input( $name_attribute, $id_attribute, $option_value, $attachment_id, $value['default'], $value['name'], $class, esc_attr( $value['css'] ) , '', $strip_methods );?>
 						</td>
 					</tr><?php
 									
@@ -3225,9 +3382,9 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
                         	<?php echo $description; ?>
                             <?php remove_all_filters('mce_external_plugins'); ?>
                         	<?php wp_editor( 	$option_value, 
@@ -3249,9 +3406,9 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
                         	<?php echo $description; ?>
                         	<div class="a3rev-ui-array_textfields-container">
                            	<?php
@@ -3310,12 +3467,12 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 							?>
                                 <label><input
                                     name="<?php echo $name_attribute; ?>"
-                                    id="<?php echo $id_attribute; ?>"
+                                    id="<?php echo esc_attr( $id_attribute ); ?>"
                                     type="text"
                                     style="<?php echo esc_attr( $text_field['css'] ); ?>"
                                     value="<?php echo esc_attr( $option_value ); ?>"
-                                    class="a3rev-ui-<?php echo sanitize_title( $value['type'] ) ?> <?php echo esc_attr( $text_field['class'] ); ?>"
-                                    /> <span><?php echo esc_html( $text_field['name'] ); ?></span></label> 
+                                    class="a3rev-ui-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?> <?php echo esc_attr( $text_field['class'] ); ?>"
+                                    /> <span><?php echo $text_field['name']; ?></span></label> 
 							<?php
 							}
 							?>
@@ -3334,13 +3491,13 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 					?><tr valign="top">
 						<th scope="row" class="titledesc">
                         	<?php echo $tip; ?>
-							<label for="<?php echo $id_attribute; ?>"><?php echo esc_html( $value['name'] ); ?></label>
+							<label for="<?php echo esc_attr( $id_attribute ); ?>"><?php echo $value['name']; ?></label>
 						</th>
-						<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+						<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
                         	<input
                         		readonly="readonly"
 								name="<?php echo $name_attribute; ?>"
-								id="<?php echo $id_attribute; ?>"
+								id="<?php echo esc_attr( $id_attribute ); ?>"
 								type="text"
 								value="<?php echo esc_attr( $option_value ); ?>"
 								class="<?php echo $class; ?>"
@@ -3533,7 +3690,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 			// open box handle
 			echo '<div data-form-key="custom-boxes" data-box-id="'. esc_attr( $heading_box_id ) .'" class="a3rev_panel_box_handle" >' . "\n\n";
 
-			echo ( ! empty( $options['name'] ) ) ? '<h3 class="a3-plugin-ui-panel-box '. $toggle_box_class . ' ' . $opened_class . '">'. esc_html( $options['name'] ) .' '. $view_doc .'</h3>' : '';
+			echo ( ! empty( $options['name'] ) ) ? '<h3 class="a3-plugin-ui-panel-box '. $toggle_box_class . ' ' . $opened_class . '">'. $options['name'] .' '. $view_doc .'</h3>' : '';
 
 			if ( stristr( $options['class'], 'pro_feature_fields' ) !== false && ! empty( $options['id'] ) ) $this->upgrade_top_message( true, sanitize_title( $options['id'] ) );
 			elseif ( stristr( $options['class'], 'pro_feature_fields' ) !== false ) $this->upgrade_top_message( true );
@@ -3551,7 +3708,7 @@ class WC_PSAD_Admin_Interface extends WC_PSAD_Admin_UI
 			if ( stristr( $options['class'], 'pro_feature_fields' ) !== false && ! empty( $options['id'] ) ) $this->upgrade_top_message( true, sanitize_title( $options['id'] ) );
 			elseif ( stristr( $options['class'], 'pro_feature_fields' ) !== false ) $this->upgrade_top_message( true );
 
-			echo ( ! empty( $options['name'] ) ) ? '<h3>'. esc_html( $options['name'] ) .' '. $view_doc .'</h3>' : '';
+			echo ( ! empty( $options['name'] ) ) ? '<h3>'. $options['name'] .' '. $view_doc .'</h3>' : '';
 		}
 
 		if ( ! empty( $options['desc'] ) ) {

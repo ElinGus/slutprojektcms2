@@ -2,6 +2,9 @@
 
 namespace WPGMZA;
 
+if(!defined('ABSPATH'))
+	return;
+
 if(class_exists('WPGMZA\\GoogleMapsAPILoader'))
 	return;
 
@@ -12,7 +15,6 @@ if(class_exists('WPGMZA\\GoogleMapsAPILoader'))
 class GoogleMapsAPILoader
 {
 	private static $googleAPILoadCalled = false;
-	private static $settings;
 	
 	/**
 	 * @const Status code when the user has selected "Do not load Google Maps API"
@@ -59,22 +61,41 @@ class GoogleMapsAPILoader
 	 */
 	const ENQUEUED						= 'ENQUEUED';
 	
+	private static $apiWillNotLoadWarningDisplayed = false;
+	
 	/**
 	 * Constructor
 	 */
 	public function __construct()
 	{
-		if(empty(GoogleMapsAPILoader::$settings))
-		{
-			global $wpgmza;
-			GoogleMapsAPILoader::$settings = (array)$wpgmza->settings;
-		}
+		global $wpgmza;
 		
 		$include_allowed = $this->isIncludeAllowed($status);
 		$isAllowed = $this->isIncludeAllowed($status);
 		
 		wp_enqueue_script('wpgmza_data', plugin_dir_url(__DIR__) . 'wpgmza_data.js');
 		wp_localize_script('wpgmza_data', 'wpgmza_google_api_status', (array)$status);
+		
+		if($wpgmza->settings->engine == "google-maps" && !$isAllowed && !GoogleMapsAPILoader::$apiWillNotLoadWarningDisplayed)
+		{
+			GoogleMapsAPILoader::$apiWillNotLoadWarningDisplayed = true;
+			
+			add_action('admin_notices', function() use ($status) {
+				?>
+				<div class="notice notice-warning is-dismissable">
+					<p>
+						<?php
+						_e( sprintf(
+							'WP Google Maps: You have selected the Google Maps engine, but the Google Maps API is not being loaded for the following reason: %s.<br/>We recommend you uncheck "Do not load Google Maps API" and set "Load Maps Engine API" to "Where Required" in your <a href="%s">maps settings page</a>', 
+							$status->message,
+							admin_url('admin.php?page=wp-google-maps-menu-settings')
+						));
+						?>
+					</p>
+				</div>
+				<?php
+			});
+		}
 	}
 	
 	/**
@@ -83,6 +104,8 @@ class GoogleMapsAPILoader
 	 */
 	protected function getGoogleMapsAPIParams()
 	{
+		global $wpgmza;
+		
 		// Locale
 		$locale = get_locale();
 		$suffix = '.com';
@@ -118,10 +141,6 @@ class GoogleMapsAPILoader
 		else if(is_admin())
 			$params['key'] = get_option('wpgmza_temp_api');
 		
-		// API Version
-		// NB: Fixed to "montly" as of 7.10.46
-		$settings['wpgmza_api_version'] = 'quarterly';
-		
 		// Libraries
 		$libraries = array('geometry', 'places', 'visualization');
 		$params['libraries'] = implode(',', $libraries);
@@ -137,9 +156,10 @@ class GoogleMapsAPILoader
 	 */
 	public function registerGoogleMaps()
 	{
+		global $wpgmza;
 		global $post;
 		
-		$settings = (array)GoogleMapsAPILoader::$settings;
+		$settings = (array)$wpgmza->settings;
 		
 		if(GoogleMapsAPILoader::$googleAPILoadCalled)
 			return;
@@ -169,6 +189,8 @@ class GoogleMapsAPILoader
 		// Block other plugins from including the API
 		if(!empty($settings['wpgmza_prevent_other_plugins_and_theme_loading_api']))
 			add_filter('script_loader_tag', array($this, 'preventOtherGoogleMapsTag'), 9999999, 3);
+		
+		add_filter('script_loader_tag', array($this, 'onScriptLoaderTag'), 10, 3);
 	}
 	
 	/**
@@ -190,8 +212,10 @@ class GoogleMapsAPILoader
 	 */
 	public function isPageIncluded($page_id)
 	{
+		global $wpgmza;
 		global $post;
-		$settings = (array)GoogleMapsAPILoader::$settings;
+		
+		$settings = $wpgmza->settings;
 		
 		if(empty($settings['wpgmza_always_include_engine_api_on_pages']))
 			return false;
@@ -214,7 +238,9 @@ class GoogleMapsAPILoader
 	 */
 	public function isPageExcluded($page_id)
 	{
-		$settings = (array)GoogleMapsAPILoader::$settings;
+		global $wpgmza;
+		
+		$settings = $wpgmza->settings;
 		
 		if(empty($settings['wpgmza_always_exclude_engine_api_on_pages']))
 			return false;
@@ -240,16 +266,16 @@ class GoogleMapsAPILoader
 		global $wpgmza;
 		global $post;
 		
+		$settings = $wpgmza->settings;
+		
 		$status = (object)array(
 			'message' => null,
 			'code' => null
 		);
-		
-		$settings = (array)$wpgmza->settings;
-		
+			
 		// Correction for Pro <= 7.10.04
-		if(!empty($settings['wpgmza_maps_engine']) && $settings['wpgmza_maps_engine'] == 'open-street-map')
-			$settings['wpgmza_maps_engine'] = 'open-layers';
+		if(isset($wpgmza->settings->wpgmza_maps_engine) && $wpgmza->settings->wpgmza_maps_engine == 'open-street-map')
+			$wpgmza->settings->wpgmza_maps_engine = 'open-layers';
 		
 		if(!empty($settings['wpgmza_settings_remove_api']))
 		{
@@ -354,12 +380,23 @@ class GoogleMapsAPILoader
 		return $tag;
 	}
 	
+	public function onScriptLoaderTag($tag, $handle, $src)
+	{
+		// Add UserCentrics tag
+		if($handle == 'wpgmza_api_call')
+			return preg_replace('#></script>#', ' data-usercentrics="Google Maps"></script>', $tag);
+		
+		return $tag;
+	}
+	
 	/**
 	 * Gets the HTML for the settings panel for this module, which appears in the general settings tab.
 	 * @return string The HTML string for the settings panel
 	 */
 	public function getSettingsHTML()
 	{
+		global $wpgmza;
+		
 		// Load our subclass of PHPs DOMDocument, for the populate function
 		require_once(plugin_dir_path(__FILE__) . 'class.dom-document.php');
 		
@@ -368,7 +405,7 @@ class GoogleMapsAPILoader
 		$document->loadPHPFile(plugin_dir_path(__DIR__) . 'html/google-maps-api-settings.html.php');
 		
 		// Populate options. This is a quick way to put key => value array/object values into elements with "name" matching "key"
-		$document->populate(GoogleMapsAPILoader::$settings);
+		$document->populate($wpgmza->settings);
 		
 		return $document->saveInnerBody();
 	}

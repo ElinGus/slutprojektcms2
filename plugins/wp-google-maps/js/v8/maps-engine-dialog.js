@@ -51,7 +51,8 @@ jQuery(function($) {
 			method: "POST",
 			data: {
 				action: "wpgmza_maps_engine_dialog_set_engine",
-				engine: $("[name='wpgmza_maps_engine']:checked").val()
+				engine: $("[name='wpgmza_maps_engine']:checked").val(),
+				nonce: $("#wpgmza-maps-engine-dialog").attr("data-ajax-nonce")
 			},
 			success: function(response, status, xhr) {
 				window.location.reload();
@@ -67,6 +68,9 @@ jQuery(function($) {
 			return;
 		
 		if(WPGMZA.settings.wpgmza_maps_engine_dialog_done)
+			return;
+		
+		if(WPGMZA.settings.wpgmza_google_maps_api_key && WPGMZA.settings.wpgmza_google_maps_api_key.length)
 			return;
 		
 		WPGMZA.mapsEngineDialog = new WPGMZA.MapsEngineDialog(element);

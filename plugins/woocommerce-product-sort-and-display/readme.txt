@@ -1,10 +1,10 @@
-=== WooCommerce Product Sort and Display ===
+=== Product Sort and Display for WooCommerce ===
 
 Contributors: a3rev, nguyencongtuan
 Tags: WooCommerce, WooCommerce Shop Page, WooCommerce Products, WooCommerce Product Display, WooCommerce Product sort.
 Requires at least: 4.5
-Tested up to: 4.9.6
-Stable tag: 1.8.4
+Tested up to: 5.3
+Stable tag: 1.9.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -16,7 +16,7 @@ Walk into any shop, Supermarket or Department store and what do you see - produc
 
 That has always seemed crazy to us. What shop owner would just keep stacking new stock at the front of all the other stock in their shop in any order. None is the answer! So why is that exactly what all of our virtual WooCommerce stores do?
 
-We decided to build a plugin that would fix that. With WooCommerce Product Sort and Display installed you can do the following:
+We decided to build a plugin that would fix that. With Product Sort and Display for WooCommerce installed you can do the following:
 
 * Sort products to show by category on shop page.
 * Sort category order on shop page by drag and drop.
@@ -64,9 +64,9 @@ View details here on the [a3rev.com](http://a3rev.com/shop/woocommerce-product-s
 
 = CONTRIBUTE =
 
-When you download WooCommerce Product Sort and Display, you join our the a3rev Software community. Regardless of if you are a WordPress beginner or experienced developer if you are interested in contributing to the future development of WooCommerce Product Sort and Display or any of our other plugins on Github head over to the WooCommerce Product Sort and Display[GitHub Repository](https://github.com/a3rev/woocommerce-product-sort-and-display) to find out how you can contribute.
+When you download Product Sort and Display for WooCommerce, you join our the a3rev Software community. Regardless of if you are a WordPress beginner or experienced developer if you are interested in contributing to the future development of Product Sort and Display or any of our other plugins on Github head over to the Product Sort and Display[GitHub Repository](https://github.com/a3rev/woocommerce-product-sort-and-display) to find out how you can contribute.
 
-Want to add a new language to WooCommerce Product Sort and Display! You can contribute via [translate.wordpress.org](https://translate.wordpress.org/projects/wp-plugins/woocommerce-product-sort-and-display)
+Want to add a new language? You can contribute via [translate.wordpress.org](https://translate.wordpress.org/projects/wp-plugins/woocommerce-product-sort-and-display)
 
 == Installation ==
 
@@ -74,12 +74,12 @@ Want to add a new language to WooCommerce Product Sort and Display! You can cont
 
 * WordPress 4.5
 * WooCommerce 2.7 and later.
-* PHP version 5.5 or greater
+* PHP version 5.6.20 or greater
 * MySQL version 5.5 or greater
 
 = Automatic installation =
 
-Automatic installation is the easiest option as WordPress handles the file transfers itself and you don't even need to leave your web browser. To do an automatic install of WooCommerce Product Sort and Display, log in to your WordPress admin panel, navigate to the Plugins menu and click Add New. Search WooCommerce Product Sort and Display. Click install.
+Automatic installation is the easiest option as WordPress handles the file transfers itself and you don't even need to leave your web browser. To do an automatic install of Product Sort and Display, log in to your WordPress admin panel, navigate to the Plugins menu and click Add New. Search Product Sort and Display for WooCommerce. Click install.
 
 = Manual installation =
 
@@ -123,6 +123,48 @@ On any WordPress install that has the WooCommerce plugin installed and activated
 
 == Changelog ==
 
+= 1.9.0 - 2019/11/14 =
+* This feature release has a lot including compatibility with WooCommerce 3.8.0, WordPress 5.3.0, PHP upgrade to Composer PHP Dependency Manger and a full security review and update.
+* Feature - Plugin fully refactored to Composer for cleaner code and faster PHP code
+* Tweak - Test for compatibility with WordPress 5.3.0
+* Tweak - Test for compatibility with WooCommerce 3.8.0
+* Tweak - Remove the hard coded PHP error_reporting display errors false from compile sass to css
+* Dev - Replace file_get_contents with HTTP API wp_remote_get
+* Dev - Ensure that all inputs are sanitized and all outputs are escaped.
+* Fix - Update style for endless scroll page loading spinner show center.
+
+= 1.8.8 - 2019/06/29 =
+* This is a maintenance upgrade to fix a potentially fatal error conflict with sites running PHP 7.3 plus compatibility with WordPress v 5.2.2 and WooCommerce 3.6.4
+* Tweak - Test for compatibility with WooCommerce 3.6.4
+* Tweak - Test for compatibility with WordPress 5.2.2
+* Fix - PHP warning continue targeting switch is equivalent to break for compatibility on PHP 7.3
+
+= 1.8.7 - 2019/05/01 =
+* Maintenance update. Please run this now to resolve a PHP Fatal Error when updating products.
+* Fix - Update $this to self to resolve Fatal Error when updating a product.
+
+= 1.8.6 - 2019/04/26 =
+* This maintenance update is tweaks for compatibility with WordPress 5.2.0 and WooCommerce 3.6.0 major new versions whilst maintaining backward compatibility  
+* Tweak - Test for compatibility with WordPress 5.2.0
+* Tweak - Test for compatibility with WooCommerce 3.6.2
+* Tweak - Add filter to post_clauses for sort type On Sale with connect to new lookup table database of WC 3.6.0
+* Tweak - Update get_woocommerce_term_meta to get_term_meta to work with WooCommerce 3.6.0
+* Tweak - Update update_woocommerce_term_meta  to update_term_meta to work with WooCommerce 3.6.0
+* Tweak - Maintain backward compatibility to WooCommerce version 3.5.0
+
+= 1.8.5 - 2018/12/26 =
+* This maintenance update is for compatibility with WordPress 5.0.2, WooCommerce 3.5.3 and PHP 7.3. It also includes performance updates to the plugin framework.
+* Tweak - Test for compatibility with WordPress 5.0.2 and WordPress 4.9.9
+* Tweak - Test for compatibility with WooCommerce 3.5.3
+* Tweak - Create new structure for future development of Gutenberg Blocks
+* Framework - Performance improvement.  Replace wp_remote_fopen  with file_get_contents for get web fonts
+* Framework - Performance improvement. Define new variable `is_load_google_fonts` if admin does not require to load google fonts
+* Credit - Props to Derek for alerting us to the framework google fonts performance issue
+* Framework - Register style name for dynamic style of plugin for use with Gutenberg block
+* Framework - Update Modal script and style to version 4.1.1
+* Framework - Update a3rev Plugin Framework to version 2.1.0
+* Framework - Test and update for compatibility with PHP 7.3
+
 = 1.8.4 - 2018/05/26 =
 * This maintenance update is for compatibility with WordPress 4.9.6 and WooCommerce 3.4.0 and the new GDPR compliance requirements for users in the EU 
 * Tweak - Test for compatibility with WooCommerce 3.4.0
@@ -136,7 +178,7 @@ On any WordPress install that has the WooCommerce plugin installed and activated
 * Framework - Add Framework version for all style and script files
 * Tweak - Update for full compatibility with a3rev Dashboard plugin
 * Tweak - Update WooCommerce Display Settings URL the new WooCommerce Customizer menu URL
-* Tweak  Change h1 tag for category names to h2 tags from theme. Using h1 tags not good for SEO
+* Tweak - Change h1 tag for category names to h2 tags from theme. Using h1 tags not good for SEO
 * Fixed - Update frontend so that shop and category pages can show properly on WC 3.3.0
 * Tweak - Test for compatibility with WordPress 4.9.4
 * Tweak - Test for compatibility with WooCommerce 3.3.1
@@ -461,6 +503,21 @@ On any WordPress install that has the WooCommerce plugin installed and activated
 
 
 == Upgrade Notice ==
+
+= 1.9.0 =
+This feature release has a lot including compatibility with WooCommerce 3.8.0, WordPress 5.3.0, PHP upgrade to Composer PHP Dependency Manger and a full security review and update.
+
+= 1.8.8 =
+This is a maintenance upgrade to fix a potentially fatal error conflict with sites running PHP 7.3 plus compatibility with WordPress v 5.2.2 and WooCommerce 3.6.4
+
+= 1.8.7 =
+Maintenance update. Please run this now to resolve a PHP Fatal Error when updating products.
+
+= 1.8.6 =
+This maintenance update is tweaks for compatibility with WordPress 5.2.0 and WooCommerce 3.6.0 major new versions whilst maintaining backward compatibility.
+
+= 1.8.5 =
+This maintenance update is for compatibility with WordPress 5.0.2, WooCommerce 3.5.3 and PHP 7.3. It also includes performance updates to the plugin framework.
 
 = 1.8.4 =
 Maintenance Update. Compatibility with WooCommerce 3.4.0, WordPress 4.9.6 and the new GDPR compliance requirements for users in the EU

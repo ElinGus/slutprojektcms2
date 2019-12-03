@@ -22,16 +22,15 @@ class FMControllerUninstall_fm extends FMAdminController {
     $this->model = new FMModelUninstall_fm();
     require_once WDFMInstance(self::PLUGIN)->plugin_dir . "/admin/views/Uninstall_fm.php";
     $this->view = new FMViewUninstall_fm();
-
     if ( WDFMInstance(self::PLUGIN)->is_free ) {
       global $fm_options;
       global $cfm_options;
-      if (!class_exists("DoradoWebConfig")) {
+      if ( !class_exists("TenWebNewLibConfig") ) {
         include_once(WDFMInstance(self::PLUGIN)->plugin_dir . "/wd/config.php");
       }
-      $config = new DoradoWebConfig();
+      $config = new TenWebNewLibConfig();
       $config->set_options(WDFMInstance(self::PLUGIN)->is_free == 1 ? $fm_options : $cfm_options);
-      $deactivate_reasons = new DoradoWebDeactivate($config);
+      $deactivate_reasons = new TenWebNewLibDeactivate($config);
       $deactivate_reasons->submit_and_deactivate();
     }
   }
@@ -47,12 +46,23 @@ class FMControllerUninstall_fm extends FMAdminController {
     }
   }
 
-  public function display() {	
+  public function display() {
     $params = array();
     $params['addons'] = $this->addons;
     $params['page_title'] = sprintf(__('Uninstall %s', WDFMInstance(self::PLUGIN)->prefix), WDFMInstance(self::PLUGIN)->nicename);
     $params['tables'] = $this->get_tables();
-
+    global $wpdb;
+    foreach ( $params['addons'] as $addon => $addon_name ) {
+      if ( is_array($addon_name) ) {
+        // If there are more than one db tables in an extension.
+        foreach ( $addon_name as $ad_name ) {
+          array_push($params['tables'], $wpdb->prefix . 'formmaker_' . $ad_name);
+        }
+      }
+      else {
+        array_push($params['tables'], $wpdb->prefix . 'formmaker_' . $addon_name);
+      }
+    }
     $this->view->display($params);
   }
 
@@ -82,15 +92,11 @@ class FMControllerUninstall_fm extends FMAdminController {
   public function uninstall() {
     $params['tables'] = $this->get_tables();
     $this->model->delete_db_tables();
-    global $wpdb;
-    $params = array();
-    $params['prefix'] = $wpdb->prefix;
-    $params['addons'] = $this->addons;
-    // Deactivate all addons
-    WDW_FM_Library(self::PLUGIN)->deactivate_all_addons();
-    $params['page_title'] = sprintf(__('Uninstall %s', WDFMInstance(self::PLUGIN)->prefix), WDFMInstance(self::PLUGIN)->nicename);
-    $params['deactivate'] = TRUE;
 
-    $this->view->display($params);
+    // Deactivate all extensions and form maker.
+    WDW_FM_Library(self::PLUGIN)->deactivate_all_addons(WDFMInstance(self::PLUGIN)->main_file);
+
+    wp_redirect(admin_url('plugins.php'));
+    exit();
   }
 }

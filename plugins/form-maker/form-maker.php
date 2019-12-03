@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Form Maker
- * Plugin URI: https://web-dorado.com/products/form-maker-wordpress.html
+ * Plugin URI: https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin
  * Description: This plugin is a modern and advanced tool for easy and fast creating of a WordPress Form. The backend interface is intuitive and user friendly which allows users far from scripting and programming to create WordPress Forms.
- * Version: 1.12.39
- * Author: WebDorado Form Builder Team
- * Author URI: https://web-dorado.com/wordpress-plugins-bundle.html
+ * Version: 1.13.24
+ * Author: 10Web Form Builder Team
+ * Author URI: https://10web.io/plugins/?utm_source=form_maker&utm_medium=free_plugin
  * License: GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -53,13 +53,16 @@ final class WDFM {
    * Plugin menu slug.
    */
   public $prefix = '';
+  public $handle_prefix = '';
   public $css_prefix = '';
   public $js_prefix = '';
 
   public $nicename = '';
   public $nonce = 'nonce_fm';
+  public $fm_form_nonce = 'fm_form_nonce%d';
   public $is_free = 1;
   public $is_demo = false;
+  public $fm_settings = array();
 
   /**
    * Main WDFM Instance.
@@ -91,12 +94,12 @@ final class WDFM {
    * Define Constants.
    */
   private function define_constants() {
-	$this->plugin_dir = WP_PLUGIN_DIR . "/" . plugin_basename(dirname(__FILE__));
+  	$this->plugin_dir = WP_PLUGIN_DIR . "/" . plugin_basename(dirname(__FILE__));
     $this->plugin_url = plugins_url(plugin_basename(dirname(__FILE__)));
     $this->front_urls = $this->get_front_urls();
     $this->main_file = plugin_basename(__FILE__);
-    $this->plugin_version = '1.12.39';
-    $this->db_version = '2.12.38';
+    $this->plugin_version = '1.13.24';
+    $this->db_version = '2.13.24';
     $this->menu_postfix = ($this->is_free == 2 ? '_fmc' : '_fm');
     $this->plugin_postfix = ($this->is_free == 2 ? '_fmc' : '');
     $this->menu_slug = 'manage' . $this->menu_postfix;
@@ -106,6 +109,16 @@ final class WDFM {
     $this->handle_prefix  = ($this->is_free == 2 ? 'fmc' : 'fm');
     $this->nicename = ($this->is_free == 2 ? __('Contact Form', $this->prefix) : __('Form Maker', $this->prefix));
     $this->slug = ($this->is_free == 2 ? 'contact-form-maker' : 'form-maker');
+    $this->fm_settings = get_option( $this->handle_prefix . '_settings' );
+    if ( empty($this->fm_settings['fm_advanced_layout']) ) {
+      $this->fm_settings['fm_advanced_layout'] = 0;
+    }
+    if ( empty($this->fm_settings['fm_antispam']) ) {
+      $this->fm_settings['fm_antispam'] = 0;
+    }
+	  if ( empty($this->fm_settings['fm_developer_mode']) ) {
+      $this->fm_settings['fm_developer_mode'] = 0;
+    }
   }
 
   /**
@@ -154,7 +167,10 @@ final class WDFM {
       add_action('wp_ajax_frontend_generate_xml', array($this, 'form_maker_ajax_frontend')); //generate xml frontend
       add_action('wp_ajax_nopriv_frontend_generate_xml', array($this, 'form_maker_ajax_frontend')); //generate xml frontend
     }
-
+    add_action('wp_ajax_fm_reload_input', array($this, 'form_maker_ajax_frontend'));
+    add_action('wp_ajax_nopriv_fm_reload_input', array($this, 'form_maker_ajax_frontend'));
+    add_action('wp_ajax_fm_submit_form', array($this, 'FM_front_end_main')); //Show statistics
+    add_action( 'wp_ajax_nopriv_fm_submit_form', array($this, 'FM_front_end_main') );
     // Add media button to WP editor.
     add_action('wp_ajax_FMShortocde' . $this->plugin_postfix, array($this, 'form_maker_ajax'));
     add_filter('media_buttons_context', array($this, 'media_button'));
@@ -174,7 +190,8 @@ final class WDFM {
       add_shortcode('email_verification' . $this->plugin_postfix, array($this, 'fm_email_verification_shortcode'));
     }
     // Action to display not emedded type forms.
-    if (!is_admin() && !in_array($GLOBALS['pagenow'], array('wp-login.php', 'wp-register.php'))) {
+    global $pagenow;
+    if (!is_admin() || !in_array($pagenow, array('wp-login.php', 'wp-register.php'))) {
       add_action('wp_footer', array($this, 'FM_front_end_main'));
     }
 
@@ -183,8 +200,12 @@ final class WDFM {
       add_action('widgets_init',  array($this, 'register_widgets'));
     }
 
-    // Form maker activation.
-    register_activation_hook(__FILE__, array($this, 'form_maker_on_activate'));
+    // Plugin activation.
+    register_activation_hook(__FILE__, array($this, 'global_activate'));
+	  // Plugin deactivate.
+    register_deactivation_hook( __FILE__, array($this, 'global_deactivate'));
+    add_action('wpmu_new_blog', array($this, 'new_blog_added'), 10, 6);
+
     if ( (!isset($_GET['action']) || $_GET['action'] != 'deactivate')
       && (!isset($_GET['page']) || $_GET['page'] != 'uninstall' . $this->menu_postfix) ) {
       add_action('admin_init', array($this, 'form_maker_activate'));
@@ -197,7 +218,7 @@ final class WDFM {
     // Set per_page option for submissions.
     add_filter('set-screen-option', array($this, 'set_option_submissions'), 10, 3);
 
-    // Check add-ons versions.
+    // Check extensions versions.
     if ( $this->is_free != 2 && isset( $_GET[ 'page' ] ) && strpos( esc_html( $_GET[ 'page' ] ), '_' . $this->handle_prefix ) !== FALSE ) {
       add_action('admin_notices', array($this, 'fm_check_addons_compatibility'));
     }
@@ -208,6 +229,7 @@ final class WDFM {
 
     // Enqueue block editor assets for Gutenberg.
     add_filter('tw_get_block_editor_assets', array($this, 'register_block_editor_assets'));
+    add_filter('tw_get_plugin_blocks', array($this, 'register_plugin_block'));
     add_action( 'enqueue_block_editor_assets', array($this, 'enqueue_block_editor_assets') );
 
     // Privacy policy.
@@ -224,10 +246,45 @@ final class WDFM {
     add_action('elementor/elements/categories_registered', array($this, 'register_widget_category'), 1, 1);
     //fires after elementor editor styles and scripts are enqueued.
     add_action('elementor/editor/after_enqueue_styles', array($this, 'enqueue_editor_styles'), 11);
+    add_action('elementor/editor/after_enqueue_scripts', array($this, 'enqueue_elementor_widget_scripts'));
+
+    // Divi frontend builder assets.
+    add_action('et_fb_enqueue_assets', array($this, 'enqueue_divi_bulder_assets'));
+    add_action('et_fb_enqueue_assets', array($this, 'form_maker_admin_ajax'));
+
+    if ( $this->is_free == 1 ) {
+      /* Add wordpress.org support custom link in plugin page */
+      add_filter('plugin_action_links_' . plugin_basename(__FILE__), array( $this, 'add_ask_question_links' ));
+    }
+  }
+
+  public function enqueue_divi_bulder_assets() {
+	  wp_enqueue_style('thickbox');
+	  wp_enqueue_script('thickbox');
+  }
+
+  /**
+   * Add plugin action links.
+   *
+   * Add a link to the settings page on the plugins.php page.
+   *
+   * @since 1.0.0
+   *
+   * @param  array  $links List of existing plugin action links.
+   * @return array         List of modified plugin action links.
+   */
+  function add_ask_question_links ( $links ) {
+    $url = 'https://wordpress.org/support/plugin/' . (WDFMInstance(self::PLUGIN)->is_free == 2 ? 'contact-form-maker' : 'form-maker') . '/#new-post';
+    $fm_ask_question_link = array('<a href="' . $url . '" target="_blank">' . __('Help', $this->prefix) . '</a>');
+    return array_merge( $links, $fm_ask_question_link );
   }
 
   public function enqueue_editor_styles() {
-    wp_enqueue_style('twbb-editor-styles', $this->plugin_url . '/css/fm_elementor_icon/fm_elementor_icon.css', array(), '1.0.0');
+    wp_enqueue_style($this->handle_prefix . '-icons', $this->plugin_url . '/css/fonts.css', array(), '1.0.1');
+  }
+
+  public function enqueue_elementor_widget_scripts(){
+    wp_enqueue_script($this->handle_prefix  . 'elementor_widget_js', $this->plugin_url.'/js/fm_elementor_widget.js', array('jquery'));
   }
 
   /**
@@ -245,8 +302,8 @@ final class WDFM {
    * @param $elements_manager
    */
   public function register_widget_category( $elements_manager ) {
-    $elements_manager->add_category('tenweb-widgets', array(
-      'title' => __('10WEB', 'tenweb-builder'),
+    $elements_manager->add_category('tenweb-plugins-widgets', array(
+      'title' => __('10WEB Plugins', 'tenweb-builder'),
       'icon' => 'fa fa-plug',
     ));
   }
@@ -258,10 +315,10 @@ final class WDFM {
 
     $content = __( 'When you leave a comment on this site, we send your name, email
         address, IP address and comment text to example.com. Example.com does
-        not retain your personal data.', WDFMInstance(self::PLUGIN)->prefix );
+        not retain your personal data.', $this->prefix );
 
     wp_add_privacy_policy_content(
-      WDFMInstance(self::PLUGIN)->nicename,
+      $this->nicename,
       wp_kses_post( wpautop( $content, false ) )
     );
   }
@@ -283,7 +340,7 @@ final class WDFM {
   }
 
   public function register_block_editor_assets($assets) {
-    $version = '2.0.0';
+    $version = '2.0.3';
     $js_path = $this->plugin_url . '/js/tw-gb/block.js';
     $css_path = $this->plugin_url . '/css/tw-gb/block.css';
     if (!isset($assets['version']) || version_compare($assets['version'], $version) === -1) {
@@ -294,7 +351,7 @@ final class WDFM {
     return $assets;
   }
 
-  public function enqueue_block_editor_assets() {
+  public function register_plugin_block($blocks) {
     if ($this->is_free == 2) {
       $key = 'tw/contact-form-maker';
       $key_submissions = 'tw/cfm-submissions';
@@ -303,50 +360,34 @@ final class WDFM {
       $key = 'tw/form-maker';
       $key_submissions = 'tw/fm-submissions';
     }
+    $fm_nonce = wp_create_nonce('fm_ajax_nonce');
     $plugin_name = $this->nicename;
-    $plugin_name_submissions = __('Submissions', WDFMInstance(self::PLUGIN)->prefix);
+    $plugin_name_submissions = __('Submissions', $this->prefix);
     $icon_url = $this->plugin_url . '/images/tw-gb/icon_colored.svg';
     $icon_svg = $this->plugin_url . '/images/tw-gb/icon.svg';
-    $url = add_query_arg(array('action' => 'FMShortocde' . $this->plugin_postfix, 'task' => 'submissions'), admin_url('admin-ajax.php'));
+    $url = add_query_arg(array('action' => 'FMShortocde' . $this->plugin_postfix, 'task' => 'submissions', 'nonce' => $fm_nonce), admin_url('admin-ajax.php'));
     $data = WDW_FM_Library(self::PLUGIN)->get_shortcode_data();
-    ?>
-    <script>
-      if ( !window['tw_gb'] ) {
-        window['tw_gb'] = {};
-      }
-      if ( !window['tw_gb']['<?php echo $key; ?>'] ) {
-        window['tw_gb']['<?php echo $key; ?>'] = {
-          title: '<?php echo $plugin_name; ?>',
-          titleSelect: '<?php echo sprintf(__('Select %s', $this->prefix), $plugin_name); ?>',
-          iconUrl: '<?php echo $icon_url; ?>',
-          iconSvg: {
-            width: '20',
-            height: '20',
-            src: '<?php echo $icon_svg; ?>'
-          },
-          isPopup: false,
-          data: '<?php echo $data; ?>'
-        }
-      }
-      if ( !window['tw_gb']['<?php echo $key_submissions; ?>'] ) {
-        window['tw_gb']['<?php echo $key_submissions; ?>'] = {
-          title: '<?php echo $plugin_name_submissions; ?>',
-          titleSelect: '<?php echo sprintf(__('Select %s', $this->prefix), $plugin_name); ?>',
-          iconUrl: '<?php echo $icon_url; ?>',
-          iconSvg: {
-            width: '20',
-            height: '20',
-            src: '<?php echo $icon_svg; ?>'
-          },
-          isPopup: true,
-          containerClass: 'tw-container-wrap-520-400',
-          data: {
-            shortcodeUrl: '<?php echo $url; ?>'
-          }
-        }
-      }
-    </script>
-    <?php
+    $blocks[$key] = array(
+      'title' => $plugin_name,
+      'titleSelect' => sprintf(__('Select %s', $this->prefix), $plugin_name),
+      'iconUrl' => $icon_url,
+      'iconSvg' => array('width' => 20, 'height' => 20, 'src' => $icon_svg),
+      'isPopup' => false,
+      'data' => $data,
+    );
+    $blocks[$key_submissions] = array(
+      'title' => $plugin_name_submissions,
+      'titleSelect' => sprintf(__('Select %s', $this->prefix), $plugin_name),
+      'iconUrl' => $icon_url,
+      'iconSvg' => array('width' => 20, 'height' => 20, 'src' => $icon_svg),
+      'isPopup' => true,
+      'containerClass' => 'tw-container-wrap-520-400',
+      'data' => array('shortcodeUrl' => $url),
+    );
+    return $blocks;
+  }
+
+  public function enqueue_block_editor_assets() {
     // Remove previously registered or enqueued versions
     $wp_scripts = wp_scripts();
     foreach ($wp_scripts->registered as $key => $value) {
@@ -356,13 +397,16 @@ final class WDFM {
         wp_deregister_style( $key );
       }
     }
+    // Get plugin blocks from all 10Web plugins.
+    $blocks = apply_filters('tw_get_plugin_blocks', array());
     // Get the last version from all 10Web plugins.
     $assets = apply_filters('tw_get_block_editor_assets', array());
     // Not performing unregister or unenqueue as in old versions all are with prefixes.
     wp_enqueue_script('tw-gb-block', $assets['js_path'], array( 'wp-blocks', 'wp-element' ), $assets['version']);
-    wp_localize_script('tw-gb-block', 'tw_obj', array(
+    wp_localize_script('tw-gb-block', 'tw_obj_translate', array(
       'nothing_selected' => __('Nothing selected.', $this->prefix),
       'empty_item' => __('- Select -', $this->prefix),
+      'blocks' => json_encode($blocks)
     ));
     wp_enqueue_style('tw-gb-block', $assets['css_path'], array( 'wp-edit-blocks' ), $assets['version']);
   }
@@ -392,12 +436,12 @@ final class WDFM {
       require_once($this->plugin_dir . '/WDFM.php');
     }
 
-    // Initialize add-ons.
+    // Initialize extensions.
     if ($this->is_free != 2) {
       do_action('fm_init_addons');
     }
-	// Prevent adding shortcode conflict with some builders.
-	$this->before_shortcode_add_builder_editor();
+    // Prevent adding shortcode conflict with some builders.
+    $this->before_shortcode_add_builder_editor();
   }
 
   /**
@@ -416,11 +460,18 @@ final class WDFM {
     add_submenu_page(null, __('Blocked IPs', $this->prefix), __('Blocked IPs', $this->prefix), 'manage_options', 'blocked_ips' . $this->menu_postfix, array($this, 'form_maker'));
     add_submenu_page($parent_slug, __('Themes', $this->prefix), __('Themes', $this->prefix), 'manage_options', 'themes' . $this->menu_postfix, array($this, 'form_maker'));
     add_submenu_page($parent_slug, __('Options', $this->prefix), __('Options', $this->prefix), 'manage_options', 'options' . $this->menu_postfix, array($this, 'form_maker'));
-    if ( $this->is_free ) {
-      add_submenu_page($parent_slug, __('Premium Version', $this->prefix), __('Premium Version', $this->prefix), 'manage_options', 'pricing' . $this->menu_postfix, array($this, 'form_maker'));
-    }
     add_submenu_page(null, __('Uninstall', $this->prefix), __('Uninstall', $this->prefix), 'manage_options', 'uninstall' . $this->menu_postfix, array($this, 'form_maker'));
-	  add_submenu_page($parent_slug, __('Add-ons', $this->prefix), __('Add-ons', $this->prefix), 'manage_options', 'addons' . $this->menu_postfix, array($this , 'form_maker'));
+
+    if ( $this->is_free ) {
+      /* Custom link to wordpress.org*/
+      global $submenu;
+      $url = 'https://wordpress.org/support/plugin/' . (WDFMInstance(self::PLUGIN)->is_free == 2 ? 'contact-form-maker' : 'form-maker') . '/#new-post';
+      $submenu[$parent_slug][] = array(
+        '<div id="fm_ask_question">' . __('Ask a question', $this->prefix) . '</div>',
+        'manage_options',
+        $url
+      );
+    }
   }
 
   /**
@@ -503,17 +554,22 @@ final class WDFM {
       die('Access Denied');
     }
     $page = WDW_FM_Library(self::PLUGIN)->get('page');
-    if (($page != '') && (($page == 'manage' . $this->menu_postfix) || ($page == 'options' . $this->menu_postfix) || ($page == 'submissions' . $this->menu_postfix) || ($page == 'blocked_ips' . $this->menu_postfix) || ($page == 'themes' . $this->menu_postfix) || ($page == 'uninstall' . $this->menu_postfix) || ($page == 'addons' . $this->menu_postfix) || ($this->is_free && $page == 'pricing' . $this->menu_postfix))) {
+    if (($page != '') && (($page == 'manage' . $this->menu_postfix) || ($page == 'options' . $this->menu_postfix) || ($page == 'submissions' . $this->menu_postfix) || ($page == 'blocked_ips' . $this->menu_postfix) || ($page == 'themes' . $this->menu_postfix) || ($page == 'uninstall' . $this->menu_postfix))) {
+
       $page = ucfirst(substr($page, 0, strlen($page) - strlen($this->menu_postfix)));
-      // This ugly span is here to hide admin output while css files are not loaded. Temporary.
-      // todo: Remove span somehow.
       echo '<div id="fm_loading"></div>';
-      echo '<span id="fm_admin_container" class="fm-form-container hidden">';
-      require_once ($this->plugin_dir . '/admin/controllers/' . $page . '_fm.php');
-      $controller_class = 'FMController' . $page . $this->menu_postfix;
-      $controller = new $controller_class();
-      $controller->execute();
-      echo '</span>';
+      echo '<div id="fm_admin_container" class="fm-form-container" style="display: none;">';
+      try {
+        require_once ($this->plugin_dir . '/admin/controllers/' . $page . '_fm.php');
+        $controller_class = 'FMController' . $page . $this->menu_postfix;
+        $controller = new $controller_class();
+        $controller->execute();
+      } catch (Exception $e) {
+        ob_start();
+        debug_print_backtrace();
+        error_log(ob_get_clean());
+      }
+      echo '</div>';
     }
   }
 
@@ -529,6 +585,11 @@ final class WDFM {
    * Register Admin styles/scripts.
    */
   public function register_admin_scripts() {
+    $current_screen = get_current_screen();
+    if ( $this->is_free && !empty($current_screen->id) && $current_screen->id == "toplevel_page_fm_subscribe" ) {
+      wp_enqueue_style($this->handle_prefix . '_subscribe', $this->plugin_url . '/css/fm_subscribe.css', array(), $this->plugin_version);
+    }
+    $fm_settings = $this->fm_settings;
     // Admin styles.
     wp_register_style($this->handle_prefix . '-tables', $this->plugin_url . '/css/form_maker_tables.css', array(), $this->plugin_version);
     wp_register_style($this->handle_prefix . '-phone_field_css', $this->plugin_url . '/css/intlTelInput.css', array(), $this->plugin_version);
@@ -540,33 +601,78 @@ final class WDFM {
     // Roboto font for top bar.
     wp_register_style($this->handle_prefix . '-roboto', 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700');
 
-    if (!$this->is_free) {
+    if ( !$this->is_free ) {
       wp_register_style('jquery.fancybox', $this->plugin_url . '/js/fancybox/jquery.fancybox.css', array(), '2.1.5');
     }
     // Admin scripts.
-    $fm_settings = get_option($this->is_free == 2 ? 'fmc_settings' : 'fm_settings');
-    $google_map_key = !empty($fm_settings['map_key']) ? '&key=' . $fm_settings['map_key'] : '';
+    $localize_key_all = $this->handle_prefix . '-admin';
+    $localize_key_manage = $this->handle_prefix . '-manage';
+    $localize_key_add_fields = $this->handle_prefix . '-add-fields';
+    $localize_key_formmaker_div = $this->handle_prefix . '-formmaker_div';
 
+    if (!$fm_settings['fm_developer_mode']) {
+      $localize_key_all = $this->handle_prefix . '-scripts';
+      if (WDW_FM_Library(self::PLUGIN)->get('page') == 'submissions_' . $this->handle_prefix) {
+        $localize_key_all = $this->handle_prefix . '-submission';
+      }
+      if (WDW_FM_Library(self::PLUGIN)->get('page') == 'manage_' . $this->handle_prefix) {
+        $localize_key_all = $this->handle_prefix . '-manage';
+      }
+      $localize_key_manage .= '-edit';
+      $localize_key_add_fields = $localize_key_manage;
+      $localize_key_formmaker_div = $localize_key_manage;
+      wp_register_style($this->handle_prefix . '-styles', $this->plugin_url . '/css/fm-styles.min.css', array(), $this->plugin_version);
+      wp_register_script($this->handle_prefix . '-scripts', $this->plugin_url . '/js/fm-scripts.min.js', array(), $this->plugin_version);
+
+      wp_register_style($this->handle_prefix . '-manage', $this->plugin_url . '/css/manage-styles.min.css', array(), $this->plugin_version);
+      wp_register_script($this->handle_prefix . '-manage', $this->plugin_url . '/js/manage-scripts.min.js', array(), $this->plugin_version);
+
+      wp_register_style($this->handle_prefix . '-manage-edit', $this->plugin_url . '/css/manage-edit-styles.min.css', array(), $this->plugin_version);
+      wp_register_script($this->handle_prefix . '-manage-edit', $this->plugin_url . '/js/manage-edit-scripts.min.js', array(), $this->plugin_version);
+
+      wp_register_style($this->handle_prefix . '-submission', $this->plugin_url . '/css/submission-styles.min.css', array(), $this->plugin_version);
+      wp_register_script($this->handle_prefix . '-submission', $this->plugin_url . '/js/submission-scripts.min.js', array(), $this->plugin_version);
+
+      wp_register_style($this->handle_prefix . '-theme-edit', $this->plugin_url . '/css/theme-edit-styles.min.css', array(), $this->plugin_version);
+      wp_register_script($this->handle_prefix . '-theme-edit', $this->plugin_url . '/js/theme-edit-scripts.min.js', array(), $this->plugin_version);
+    }
+
+    $google_map_key = !empty($fm_settings['map_key']) ? '&key=' . $fm_settings['map_key'] : '';
     wp_register_script('google-maps', 'https://maps.google.com/maps/api/js?v=3.exp' . $google_map_key);
     wp_register_script($this->handle_prefix . '-gmap_form', $this->plugin_url . '/js/if_gmap_back_end.js', array(), $this->plugin_version);
 
     wp_register_script($this->handle_prefix . '-phone_field', $this->plugin_url . '/js/intlTelInput.js', array(), '11.0.0');
 
+    // For drag and drop on mobiles.
+    wp_register_script($this->handle_prefix . '_jquery.ui.touch-punch.min', $this->plugin_url . '/js/jquery.ui.touch-punch.min.js', array('jquery'), '0.2.3');
+
     wp_register_script($this->handle_prefix . '-admin', $this->plugin_url . '/js/form_maker_admin.js', array(), $this->plugin_version);
-    wp_register_script($this->handle_prefix . '-manage', $this->plugin_url . '/js/form_maker_manage.js', array(), $this->plugin_version);
+    wp_register_script($localize_key_manage, $this->plugin_url . '/js/form_maker_manage.js', array(), $this->plugin_version);
     wp_register_script($this->handle_prefix . '-manage-edit', $this->plugin_url . '/js/form_maker_manage_edit.js', array(), $this->plugin_version);
-    wp_register_script($this->handle_prefix . '-formmaker_div', $this->plugin_url . '/js/formmaker_div.js', array(), $this->plugin_version);
+    wp_register_script($localize_key_formmaker_div, $this->plugin_url . '/js/formmaker_div.js', array(), $this->plugin_version);
     wp_register_script($this->handle_prefix . '-form-options', $this->plugin_url . '/js/form_maker_form_options.js', array(), $this->plugin_version);
-    wp_localize_script($this->handle_prefix . '-form-options', 'form_maker', array(
-      'not_valid_value' => __('Enter a valid value.', $this->prefix),
+    wp_register_script($this->handle_prefix . '-form-advanced-layout', $this->plugin_url . '/js/form_maker_form_advanced_layout.js', array(), $this->plugin_version);
+    wp_register_script($localize_key_add_fields, $this->plugin_url . '/js/add_field.js', array($this->handle_prefix . '-formmaker_div'), $this->plugin_version);
+
+    wp_localize_script($localize_key_manage, 'form_maker_manage', array(
+      'add_new_field' => __('Add Field', $this->prefix),
+      'add_column' => __('Add Column', $this->prefix),
       'required_field' => __('Field is required.', $this->prefix),
+      'not_valid_value' => __('Enter a valid value.', $this->prefix),
       'not_valid_email' => __('Enter a valid email address.', $this->prefix),
     ));
-    wp_register_script($this->handle_prefix . '-form-advanced-layout', $this->plugin_url . '/js/form_maker_form_advanced_layout.js', array(), $this->plugin_version);
-    wp_register_script($this->handle_prefix . '-add-fields', $this->plugin_url . '/js/add_field.js', array($this->handle_prefix . '-formmaker_div'), $this->plugin_version);
-    wp_localize_script($this->handle_prefix . '-add-fields', 'form_maker', array(
+
+    wp_localize_script($localize_key_all, 'form_maker', array(
+      'countries' => WDW_FM_Library(self::PLUGIN)->get_countries(),
+      'delete_confirmation' => __('Do you want to delete selected items?', $this->prefix),
+      'select_at_least_one_item' => __('You must select at least one item.', $this->prefix),
+      'add_placeholder' => __('Add placeholder', $this->prefix),
+    ));
+
+    wp_localize_script($localize_key_add_fields, 'form_maker', array(
       'countries' => WDW_FM_Library(self::PLUGIN)->get_countries(),
       'states' => WDW_FM_Library(self::PLUGIN)->get_states(),
+      'provinces' => WDW_FM_Library(self::PLUGIN)->get_provinces_canada(),
       'plugin_url' => $this->plugin_url,
       'nothing_found' => __('Nothing found.', $this->prefix),
       'captcha_created' => __('The captcha already has been created.', $this->prefix),
@@ -574,7 +680,7 @@ final class WDFM {
       'add' => __('Add', $this->prefix),
       'add_field' => __('Add Field', $this->prefix),
       'edit_field' => __('Edit Field', $this->prefix),
-      'stripe3' => __('To use this feature, please go to Form Options > Payment Options and select "Stripe" as the Payment Method.', $this->prefix),
+      'stripe3' => __('To use this feature, please go to Settings > Payment Options and select "Stripe" as the Payment Method.', $this->prefix),
       'sunday' => __('Sunday', $this->prefix),
       'monday' => __('Monday', $this->prefix),
       'tuesday' => __('Tuesday', $this->prefix),
@@ -586,46 +692,46 @@ final class WDFM {
       'is_demo' => $this->is_demo,
       'important_message' => __('The free version is limited up to 7 fields to add. If you need this functionality, you need to buy the commercial version.', $this->prefix),
       'no_preview' => __('No preview available for reCAPTCHA.', $this->prefix),
-      'invisible_recaptcha_error' => sprintf( __('%s Old reCAPTCHA keys will not work for %s. Please make sure to enable the API keys for Invisible reCAPTCHA.', $this->prefix), '<b>'. __('Note:',  $this->prefix) .'</b>', '<b>'. __('Invisible reCAPTCHA',  $this->prefix) .'</b>' ),
-      'type_text_description' => __('This field is a single line text input.', $this->prefix).'<br><br>'.__('To set a default value, just fill the field above.', $this->prefix).'<br><br>'.__('You can set the text input as Required, making sure the submitter provides a value for it.',  $this->prefix).'<br><br>'.__('Validation (RegExp.) option in Advanced options lets you configure Regular Expression for your Single Line Text field. Use Common Regular Expressions select box to use built-in validation patterns. For instance, in case you can add a validation for decimal number, IP address or zip code by selecting corresponding options of Common Regular Expressions drop-down.',  $this->prefix) .'<br><br>'.__('Additionally, you can add HTML attributes to your form fields with Additional Attributes.', $this->prefix),
-      'type_textarea_description' => __('This field adds a textarea box to your form. Users can write alphanumeric text, special characters and line breaks.', $this->prefix).'<br><br>'.__('You can set the text input as Required, making sure the submitter provides a value for it.', $this->prefix).'<br><br>'.__('Set the width and height of the textarea box using Size(px) option.', $this->prefix),
-      'type_number_description' => __('This is an input text that accepts only numbers. Users can type a number directly, or use the spinner arrows to specify it.', $this->prefix).'<br><br>'.__('Step option defines the number to increment/decrement the spinner value, when the users press up or down arrows.', $this->prefix).'<br><br>'.__('Use Min Value and Max Value options to set lower and upper limitation for the value of this Number field.', $this->prefix).'<br><br>'.__('To set a default value, just fill the field above.', $this->prefix),
-      'type_select_description' => __('This field allows the submitter to choose values from select box. Just click (+) Option button and fill in all options you will need or click  (+) From Database to fill the options from a database table.',  $this->prefix) .'<br><br>'.__('In case you need to have option values to be different from option names, mark Enable option\'s value from Advanced options as checked.', $this->prefix),
-      'type_radio_description' => __('Using this field you can add a list of Radio buttons to your form. Just click (+) Option button and fill in all options you will need or click  (+) From Database to fill the options from a database table.', $this->prefix).'<br><br>'.__('Relative Position lets you choose the position of options in relation to each other. Whereas Option Label Position lets you select the position of radio button label.', $this->prefix).'<br><br>'.__('In case you need to have option values to be different from option names, mark Enable option\'s value from Advanced options as checked.', $this->prefix).'<br><br>'.__('And by enabling Allow other, you can let the user to write their own specific value.', $this->prefix),
-      'type_checkbox_description' => __('Multiple Choice field lets you have a list of Checkboxes. This field allows the submitter to choose more than one values.', $this->prefix).'<br><br>'.__('Just click (+) Option button and fill in all options you will need or click  (+) From Database to fill the options from a database table.', $this->prefix).'<br><br>'.__('Relative Position lets you choose the position of options in relation to each other. Whereas Option Label Position lets you select the position of radio button label.', $this->prefix).'<br><br>'.__('In case you need to have option values to be different from option names, mark Enable option\'s value from Advanced options as checked.', $this->prefix).'<br><br>'.__('And by enabling Allow other, you can let the user to write their own specific value.', $this->prefix),
-      'type_recaptcha_description' => sprintf(__('Form Maker is integrated with Google ReCaptcha, which protects your forms from spam bots. Before adding ReCaptcha to your form, you need to configure Site and Secret Keys by registering your website on %s', $this->prefix),'<a href="https://www.google.com/recaptcha/intro/" target="_blank">'. __('Google ReCaptcha website',  $this->prefix) .'</a>').'<br><br>'.__('After registering and creating the keys, copy them to Form Maker > Options page.', $this->prefix),
+      'invisible_recaptcha_error' => sprintf(__('%s Old reCAPTCHA keys will not work for %s. Please make sure to enable the API keys for Invisible reCAPTCHA.', $this->prefix), '<b>' . __('Note:', $this->prefix) . '</b>', '<b>' . __('Invisible reCAPTCHA', $this->prefix) . '</b>'),
+      'type_text_description' => __('This field is a single line text input.', $this->prefix) . '<br><br>' . __('To set a default value, just fill the field above.', $this->prefix) . '<br><br>' . __('You can set the text input as Required, making sure the submitter provides a value for it.', $this->prefix) . '<br><br>' . __('Validation (RegExp.) option in Advanced options lets you configure Regular Expression for your Single Line Text field. Use Common Regular Expressions select box to use built-in validation patterns. For instance, in case you can add a validation for decimal number, IP address or zip code by selecting corresponding options of Common Regular Expressions drop-down.', $this->prefix) . '<br><br>' . __('Additionally, you can add HTML attributes to your form fields with Additional Attributes.', $this->prefix),
+      'type_textarea_description' => __('This field adds a textarea box to your form. Users can write alphanumeric text, special characters and line breaks.', $this->prefix) . '<br><br>' . __('You can set the text input as Required, making sure the submitter provides a value for it.', $this->prefix) . '<br><br>' . __('Set the width and height of the textarea box using Size(px) option.', $this->prefix),
+      'type_number_description' => __('This is an input text that accepts only numbers. Users can type a number directly, or use the spinner arrows to specify it.', $this->prefix) . '<br><br>' . __('Step option defines the number to increment/decrement the spinner value, when the users press up or down arrows.', $this->prefix) . '<br><br>' . __('Use Min Value and Max Value options to set lower and upper limitation for the value of this Number field.', $this->prefix) . '<br><br>' . __('To set a default value, just fill the field above.', $this->prefix),
+      'type_select_description' => __('This field allows the submitter to choose values from select box. Just click (+) Option button and fill in all options you will need or click  (+) From Database to fill the options from a database table.', $this->prefix) . '<br><br>' . __('In case you need to have option values to be different from option names, mark Enable option\'s value from Advanced options as checked.', $this->prefix),
+      'type_radio_description' => __('Using this field you can add a list of Radio buttons to your form. Just click (+) Option button and fill in all options you will need or click  (+) From Database to fill the options from a database table.', $this->prefix) . '<br><br>' . __('Relative Position lets you choose the position of options in relation to each other. Whereas Option Label Position lets you select the position of radio button label.', $this->prefix) . '<br><br>' . __('In case you need to have option values to be different from option names, mark Enable option\'s value from Advanced options as checked.', $this->prefix) . '<br><br>' . __('And by enabling Allow other, you can let the user to write their own specific value.', $this->prefix),
+      'type_checkbox_description' => __('Multiple Choice field lets you have a list of Checkboxes. This field allows the submitter to choose more than one values.', $this->prefix) . '<br><br>' . __('Just click (+) Option button and fill in all options you will need or click  (+) From Database to fill the options from a database table.', $this->prefix) . '<br><br>' . __('Relative Position lets you choose the position of options in relation to each other. Whereas Option Label Position lets you select the position of radio button label.', $this->prefix) . '<br><br>' . __('In case you need to have option values to be different from option names, mark Enable option\'s value from Advanced options as checked.', $this->prefix) . '<br><br>' . __('And by enabling Allow other, you can let the user to write their own specific value.', $this->prefix),
+      'type_recaptcha_description' => sprintf(__('Form Maker is integrated with Google ReCaptcha, which protects your forms from spam bots. Before adding ReCaptcha to your form, you need to configure Site and Secret Keys by registering your website on %s', $this->prefix), '<a href="https://www.google.com/recaptcha/intro/" target="_blank">' . __('Google ReCaptcha website', $this->prefix) . '</a>') . '<br><br>' . __('After registering and creating the keys, copy them to Form Maker > Options page.', $this->prefix),
       'type_submit_description' => __('The Submit button validates all form field values, saves them on MySQL database of your website, sends emails and performs other actions configured in Form Options. You can have more than one submit button in your form.', $this->prefix),
-      'type_captcha_description' => __('You can use this field as an alternative to ReCaptcha to protect your forms against spambots. It’s a random combination of numbers and letters, and users need to type them in correctly to submit the form.', $this->prefix).'<br><br>'.__('You can specify the number of symbols in Simple Captcha using Symbols (3 - 9) option.', $this->prefix),
-      'type_name_description' => __('This field lets the user write their name.', $this->prefix).'<br><br>'.__('To set a default value, just fill the field above.', $this->prefix).'<br><br>'.__('Enabling Autofill with user name setting will automatically fill in Name field with the name of the logged in user.', $this->prefix).'<br><br>'.__('In case you do not wish to receive the same data for the same Name field twice, activate Allow only unique values option.', $this->prefix),
-      'type_email_description' => __('This field is an input field that accepts an email address.', $this->prefix).'<br><br>'.__('To set a default value, just fill the field above.', $this->prefix).'<br><br>'.__('Using Confirmation Email setting in Advanced Options you can require the submitter to re-type their email address.', $this->prefix).'<br><br>'.__('Autofill with user email will autofill Email field with the email address of the logged in user.', $this->prefix).'<br><br>'.__('Upon successful submission of the Form, you have the option to send the submitted data (or just a confirmation message) to the email address entered here. To do this you need to set the corresponding options on Form Options > Email Options page.', $this->prefix),
-      'type_phone_description' => __('This field is an input for a phone number. It provides a list of country flags, which users can select and have their country code automatically added to the phone number.', $this->prefix).'<br><br>'.__('In case you do not wish to receive the same data for the same Phone field more than once, activate Allow only unique values setting from Advanced options.', $this->prefix),
-      'type_address_description' => __('This field lets you skip a few steps and quickly add one set for requesting the address of the submitter. Use Overall size(px) option to set the width of Address field.', $this->prefix).'<br><br>'.__('You can enable or disable elements of Address field using Disable Field(s) setting in Advanced Options.', $this->prefix).'<br><br>'.__('You can turn State/Province/Region field into a list of US states by activating Use list for US states setting from Advanced Options. Note: This only works in case United States is selected for Country select box.', $this->prefix),
-      'type_mark_on_map_description' => __('Mark on Map field lets users to drag the map pin and drop it on their selected location. You can specify a default address for the location pin with Address option.', $this->prefix).'<br><br>'.__('In addition, Marker Info setting allows you to provide additional details about the location. It will appear after users click on the location pin.', $this->prefix),
-      'type_country_list_description' => __('Country List is a select box which provides a list of all countries in alphabetical order.', $this->prefix).'<br><br>'.__('You can include/exclude specific countries from the list using the Edit country list setting in Advanced Options.', $this->prefix),
-      'type_date_of_birth_description' => __('Users can specify their birthday or any date with this field.', $this->prefix).'<br><br>'.__('Use Fields separator setting in Advanced options to change the divider between day, month and year boxes.', $this->prefix).'<br><br>'.__('You can set the fields to be text inputs or select boxes using Day field type, Month field type and Year field type options.', $this->prefix).'<br><br>'.__('In addition, you can specify the width of day, month and year fields using Day field size(px), Month field size(px) and Year field size(px) settings.', $this->prefix),
-      'type_file_upload_description' => __('You can allow users to upload single or multiple documents, images and various files through your form.', $this->prefix).'<br><br>'.__('Use Allowed file extensions option to specify all acceptable file formats. Make sure to separate them with commas.', $this->prefix).'<br><br>'.__('Mark Allow Uploading Multiple Files option in Advanced Options to allow users to select and upload multiple files.', $this->prefix),
-      'type_map_description' => __('Map field can be used for pinning one or more locations on Google Map and displaying them on your form.', $this->prefix).'<br><br>'.__('Press the small Plus icon to add a location pin.', $this->prefix),
+      'type_captcha_description' => __('You can use this field as an alternative to ReCaptcha to protect your forms against spambots. It’s a random combination of numbers and letters, and users need to type them in correctly to submit the form.', $this->prefix) . '<br><br>' . __('You can specify the number of symbols in Simple Captcha using Symbols (3 - 9) option.', $this->prefix),
+      'type_name_description' => __('This field lets the user write their name.', $this->prefix) . '<br><br>' . __('To set a default value, just fill the field above.', $this->prefix) . '<br><br>' . __('Enabling Autofill with user name setting will automatically fill in Name field with the name of the logged in user.', $this->prefix) . '<br><br>' . __('In case you do not wish to receive the same data for the same Name field twice, activate Allow only unique values option.', $this->prefix),
+      'type_email_description' => __('This field is an input field that accepts an email address.', $this->prefix) . '<br><br>' . __('To set a default value, just fill the field above.', $this->prefix) . '<br><br>' . __('Using Confirmation Email setting in Advanced Options you can require the submitter to re-type their email address.', $this->prefix) . '<br><br>' . __('Autofill with user email will autofill Email field with the email address of the logged in user.', $this->prefix) . '<br><br>' . __('Upon successful submission of the Form, you have the option to send the submitted data (or just a confirmation message) to the email address entered here. To do this you need to set the corresponding options on Form Options > Email Options page.', $this->prefix),
+      'type_phone_description' => __('This field is an input for a phone number. It provides a list of country flags, which users can select and have their country code automatically added to the phone number.', $this->prefix) . '<br><br>' . __('In case you do not wish to receive the same data for the same Phone field more than once, activate Allow only unique values setting from Advanced options.', $this->prefix),
+      'type_address_description' => __('This field lets you skip a few steps and quickly add one set for requesting the address of the submitter. Use Overall size(px) option to set the width of Address field.', $this->prefix) . '<br><br>' . __('You can enable or disable elements of Address field using Disable Field(s) setting in Advanced Options.', $this->prefix) . '<br><br>' . __('You can turn State/Province/Region field into a list of US states by activating Use list for US states setting from Advanced Options. Note: This only works in case United States is selected for Country select box.', $this->prefix),
+      'type_mark_on_map_description' => __('Mark on Map field lets users to drag the map pin and drop it on their selected location. You can specify a default address for the location pin with Address option.', $this->prefix) . '<br><br>' . __('In addition, Marker Info setting allows you to provide additional details about the location. It will appear after users click on the location pin.', $this->prefix),
+      'type_country_list_description' => __('Country List is a select box which provides a list of all countries in alphabetical order.', $this->prefix) . '<br><br>' . __('You can include/exclude specific countries from the list using the Edit country list setting in Advanced Options.', $this->prefix),
+      'type_date_of_birth_description' => __('Users can specify their birthday or any date with this field.', $this->prefix) . '<br><br>' . __('Use Fields separator setting in Advanced options to change the divider between day, month and year boxes.', $this->prefix) . '<br><br>' . __('You can set the fields to be text inputs or select boxes using Day field type, Month field type and Year field type options.', $this->prefix) . '<br><br>' . __('In addition, you can specify the width of day, month and year fields using Day field size(px), Month field size(px) and Year field size(px) settings.', $this->prefix),
+      'type_file_upload_description' => __('You can allow users to upload single or multiple documents, images and various files through your form.', $this->prefix) . '<br><br>' . __('Use Allowed file extensions option to specify all acceptable file formats. Make sure to separate them with commas.', $this->prefix) . '<br><br>' . __('Mark Allow Uploading Multiple Files option in Advanced Options to allow users to select and upload multiple files.', $this->prefix),
+      'type_map_description' => __('Map field can be used for pinning one or more locations on Google Map and displaying them on your form.', $this->prefix) . '<br><br>' . __('Press the small Plus icon to add a location pin.', $this->prefix),
       'type_time_description' => __('Time field of Form Maker plugin will allow users to specify time value. Set the time format of the field to 24-hour or 12-hour using Time Format option.', $this->prefix),
-      'type_send_copy_description' => __('When users fill in an email address using Email Field, this checkbox will allow them to choose if they wish to receive a copy of the submission email.', $this->prefix).'<br><br>'.__('Note: Make sure to configure Form Options > Email Options of your form.', $this->prefix),
+      'type_send_copy_description' => __('When users fill in an email address using Email Field, this checkbox will allow them to choose if they wish to receive a copy of the submission email.', $this->prefix) . '<br><br>' . __('Note: Make sure to configure Form Options > Email Options of your form.', $this->prefix),
       'type_stars_description' => __('Add Star rating field to your form with this field. You can display as many stars, as you will need, set the number using Number of Stars option.', $this->prefix),
       'type_rating_description' => __('Place Rating field on your form to have radio buttons, which indicate rating from worst to best. You can set many radio buttons to display using Scale Range option.', $this->prefix),
       'type_slider_description' => __('Slider field lets users specify the field value by dragging its handle from Min Value to Max Value.', $this->prefix),
       'type_range_description' => __('You can use this field to let users choose a numeric range by providing values for 2 number inputs. Its Step option allows to set the increment/decrement of spinners’ values, when users click on up or down arrows.', $this->prefix),
-      'type_grades_description' => __('Users will be able to grade specified items with this field. The sum of all values will appear below the field with Total parameter.', $this->prefix).'<br><br>'.__('Items option allows you to add multiple options to your Grades field.', $this->prefix),
-      'type_matrix_description' => __('Table of Fields lets you place a matrix on your form, which will let the submitter to answer a few questions with one field.', $this->prefix).'<br><br>'.__('It allows you to configure the matrix with radio buttons, checkboxes, text boxes or drop-downs. Use Input Type option to set this.', $this->prefix),
-      'type_hidden_description' => __('Hidden Input field is similar to Single Line Text field, but it is not visible to users. Hidden Fields are handy, in case you need to run a custom Javascript and submit the result with the info on your form.', $this->prefix).'<br><br>'.__('Name option of this field is mandatory. Note: we highly recommend you to avoid using spaces or special characters in Hidden Input name. You can write the custom Javascript code using the editor on Form Options > Javascript page.', $this->prefix),
-      'type_button_description' => __('In case you wish to run custom Javascript on your form, you can place Custom Button on your form. Its lets you call the script with its OnClick function.', $this->prefix).'<br><br>'.__('You can write the custom Javascript code using the editor on Form Options > Javascript page.', $this->prefix),
-      'type_password_description' => __('Password input can be used to allow users provide secret text, such as passwords. All symbols written in this field are replaced with dots.', $this->prefix).'<br><br>'.__('You can activate Password Confirmation option to ask users to repeat the password.', $this->prefix),
+      'type_grades_description' => __('Users will be able to grade specified items with this field. The sum of all values will appear below the field with Total parameter.', $this->prefix) . '<br><br>' . __('Items option allows you to add multiple options to your Grades field.', $this->prefix),
+      'type_matrix_description' => __('Table of Fields lets you place a matrix on your form, which will let the submitter to answer a few questions with one field.', $this->prefix) . '<br><br>' . __('It allows you to configure the matrix with radio buttons, checkboxes, text boxes or drop-downs. Use Input Type option to set this.', $this->prefix),
+      'type_hidden_description' => __('Hidden Input field is similar to Single Line Text field, but it is not visible to users. Hidden Fields are handy, in case you need to run a custom Javascript and submit the result with the info on your form.', $this->prefix) . '<br><br>' . __('Name option of this field is mandatory. Note: we highly recommend you to avoid using spaces or special characters in Hidden Input name. You can write the custom Javascript code using the editor on Form Options > Javascript page.', $this->prefix),
+      'type_button_description' => __('In case you wish to run custom Javascript on your form, you can place Custom Button on your form. Its lets you call the script with its OnClick function.', $this->prefix) . '<br><br>' . __('You can write the custom Javascript code using the editor on Form Options > Javascript page.', $this->prefix),
+      'type_password_description' => __('Password input can be used to allow users provide secret text, such as passwords. All symbols written in this field are replaced with dots.', $this->prefix) . '<br><br>' . __('You can activate Password Confirmation option to ask users to repeat the password.', $this->prefix),
       'type_phone_area_code_description' => __('Phone-Area Code is a Phone type field, which allows users to write Area Code and Phone Number into separate inputs.', $this->prefix),
-      'type_arithmetic_captcha_description' => __('Arithmetic Captcha is quite similar to Simple Captcha. However, instead of showing random symbols, it displays arithmetic operations.', $this->prefix).'<br><br>'.__('You can set the operations using Operations option. The field can use addition (+), subtraction (-), multiplication (*) and division (/).', $this->prefix).'<br><br>'.__('Make sure to separate the operations with commas.', $this->prefix),
-      'type_price_description' => __('Users can set a payment amount of their choice with Price field. Assigns minimum and maximum limits on its value using Range option.', $this->prefix).'<br><br>'.__('To set a default value, just fill the field above.', $this->prefix).'<br><br>'.__('Additionally, you can activate Readonly attribute. This way, users will not be able to edit the value of Price.', $this->prefix).'<br><br>'.__('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
-      'type_payment_select_description' => __('Payment Select field lets you create lists of products, one of which the submitter can choose to buy through your form. Add or edit list items using Options setting of the fields.', $this->prefix).'<br><br>'.__('Enable Quantity property from Advanced Options, in case you would like the users to mention the quantity of items they purchase.', $this->prefix).'<br><br>'.__('Also, you can configure custom or built-in Product Properties for your products, such as Color, T-Shirt Size or Print Size.', $this->prefix).'<br><br>'.__('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
-      'type_payment_radio_description' => __('Payment Single Choice field lets you create lists of products, one of which the submitter can choose to buy through your form. Add or edit list items using Options setting of the fields.', $this->prefix).'<br><br>'.__('Enable Quantity property from Advanced Options, in case you would like the users to mention the quantity of items they purchase.', $this->prefix).'<br><br>'.__('Also, you can configure custom or built-in Product Properties for your products, such as Color, T-Shirt Size or Print Size.', $this->prefix).'<br><br>'.__('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
-      'type_payment_checkbox_description' => __('Payment Multiple Choice field lets you create lists of products, which the submitter can choose to buy through your form. Add or edit list items using Options setting of the fields.', $this->prefix).'<br><br>'.__('Enable Quantity property from Advanced Options, in case you would like the users to mention the quantity of items they purchase.', $this->prefix).'<br><br>'.__('Also, you can configure custom or built-in Product Properties for your products, such as Color, T-Shirt Size or Print Size.', $this->prefix).'<br><br>'.__('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
+      'type_arithmetic_captcha_description' => __('Arithmetic Captcha is quite similar to Simple Captcha. However, instead of showing random symbols, it displays arithmetic operations.', $this->prefix) . '<br><br>' . __('You can set the operations using Operations option. The field can use addition (+), subtraction (-), multiplication (*) and division (/).', $this->prefix) . '<br><br>' . __('Make sure to separate the operations with commas.', $this->prefix),
+      'type_price_description' => __('Users can set a payment amount of their choice with Price field. Assigns minimum and maximum limits on its value using Range option.', $this->prefix) . '<br><br>' . __('To set a default value, just fill the field above.', $this->prefix) . '<br><br>' . __('Additionally, you can activate Readonly attribute. This way, users will not be able to edit the value of Price.', $this->prefix) . '<br><br>' . __('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
+      'type_payment_select_description' => __('Payment Select field lets you create lists of products, one of which the submitter can choose to buy through your form. Add or edit list items using Options setting of the fields.', $this->prefix) . '<br><br>' . __('Enable Quantity property from Advanced Options, in case you would like the users to mention the quantity of items they purchase.', $this->prefix) . '<br><br>' . __('Also, you can configure custom or built-in Product Properties for your products, such as Color, T-Shirt Size or Print Size.', $this->prefix) . '<br><br>' . __('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
+      'type_payment_radio_description' => __('Payment Single Choice field lets you create lists of products, one of which the submitter can choose to buy through your form. Add or edit list items using Options setting of the fields.', $this->prefix) . '<br><br>' . __('Enable Quantity property from Advanced Options, in case you would like the users to mention the quantity of items they purchase.', $this->prefix) . '<br><br>' . __('Also, you can configure custom or built-in Product Properties for your products, such as Color, T-Shirt Size or Print Size.', $this->prefix) . '<br><br>' . __('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
+      'type_payment_checkbox_description' => __('Payment Multiple Choice field lets you create lists of products, which the submitter can choose to buy through your form. Add or edit list items using Options setting of the fields.', $this->prefix) . '<br><br>' . __('Enable Quantity property from Advanced Options, in case you would like the users to mention the quantity of items they purchase.', $this->prefix) . '<br><br>' . __('Also, you can configure custom or built-in Product Properties for your products, such as Color, T-Shirt Size or Print Size.', $this->prefix) . '<br><br>' . __('Note: Make sure to configure Form Options > Payment Options of your form.', $this->prefix),
       'type_shipping_description' => __('Shipping allows you to configure shipping types, set price for each of them and display them on your form as radio buttons.', $this->prefix),
       'type_total_description' => __('Please Total field to your payment form to sum up the values of Payment fields. ', $this->prefix),
       'type_stripe_description' => __('This field adds the credit card details inputs (card number, expiration date, etc.) and allows you to accept direct payments made by credit cards.', $this->prefix),
-     ));
+    ));
 
     wp_register_script($this->handle_prefix . '-codemirror', $this->plugin_url . '/js/layout/codemirror.js', array(), '2.3');
     wp_register_script($this->handle_prefix . '-clike', $this->plugin_url . '/js/layout/clike.js', array(), '1.0.0');
@@ -635,47 +741,48 @@ final class WDFM {
     wp_register_script($this->handle_prefix . '-xml', $this->plugin_url . '/js/layout/xml.js', array(), '1.0.0');
     wp_register_script($this->handle_prefix . '-php', $this->plugin_url . '/js/layout/php.js', array(), '1.0.0');
     wp_register_script($this->handle_prefix . '-htmlmixed', $this->plugin_url . '/js/layout/htmlmixed.js', array(), '1.0.0');
-
     wp_register_script($this->handle_prefix . '-colorpicker', $this->plugin_url . '/js/spectrum.js', array(), $this->plugin_version);
-
     wp_register_script($this->handle_prefix . '-themes', $this->plugin_url . '/js/themes.js', array(), $this->plugin_version);
-
     wp_register_script($this->handle_prefix . '-submissions', $this->plugin_url . '/js/form_maker_submissions.js', array(), $this->plugin_version);
     wp_register_script($this->handle_prefix . '-ng-js', 'https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js', array(), '1.5.0');
+    wp_register_script($this->handle_prefix . '-theme-edit-ng', $this->plugin_url . '/js/fm-theme-edit-ng.js', array(), $this->plugin_version);
 
-    wp_localize_script($this->handle_prefix . '-admin', 'form_maker', array(
-      'countries' => WDW_FM_Library(self::PLUGIN)->get_countries(),
-      'delete_confirmation' => __('Do you want to delete selected items?', $this->prefix),
-      'select_at_least_one_item' => __('You must select at least one item.', $this->prefix),
-      'add_placeholder' => __('Add placeholder', $this->prefix),
-      ));
     if (!$this->is_free) {
       wp_register_script('jquery.fancybox.pack', $this->plugin_url . '/js/fancybox/jquery.fancybox.pack.js', array(), '2.1.5');
-    }
-    else {
-      wp_register_style($this->handle_prefix . '-deactivate-css',  $this->plugin_url . '/wd/assets/css/deactivate_popup.css', array(), $this->plugin_version);
-      wp_register_script($this->handle_prefix . '-deactivate-popup', $this->plugin_url . '/wd/assets/js/deactivate_popup.js', array(), $this->plugin_version, true );
+    } else {
+      wp_register_style($this->handle_prefix . '-deactivate-css', $this->plugin_url . '/wd/assets/css/deactivate_popup.css', array(), $this->plugin_version);
+      wp_register_script($this->handle_prefix . '-deactivate-popup', $this->plugin_url . '/wd/assets/js/deactivate_popup.js', array(), $this->plugin_version, true);
       $admin_data = wp_get_current_user();
-      wp_localize_script( $this->handle_prefix . '-deactivate-popup', ($this->is_free == 2 ? 'cfmWDDeactivateVars' : 'fmWDDeactivateVars'), array(
-        "prefix" => "fm" ,
+      wp_localize_script($this->handle_prefix . '-deactivate-popup', ($this->is_free == 2 ? 'cfmWDDeactivateVars' : 'fmWDDeactivateVars'), array(
+        "prefix" => "fm",
         "deactivate_class" => 'fm_deactivate_link',
         "email" => $admin_data->data->user_email,
-        "plugin_wd_url" => "https://web-dorado.com/files/fromFormMaker.php",
+        "plugin_wd_url" => "https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin",
       ));
     }
-    wp_register_style($this->handle_prefix . '-pricing', $this->plugin_url . '/css/pricing.css', array(), $this->plugin_version);
+    wp_register_style($this->handle_prefix . '-topbar', $this->plugin_url . '/css/topbar.css', array(), $this->plugin_version);
+    wp_register_style($this->handle_prefix . '-icons', $this->plugin_url . '/css/fonts.css', array(), '1.0.1');
+
+    wp_localize_script($localize_key_all, 'fm_ajax', array(
+      'ajaxnonce' => wp_create_nonce('fm_ajax_nonce'),
+    ));
+    wp_localize_script($localize_key_add_fields, 'fm_ajax', array(
+      'ajaxnonce' => wp_create_nonce('fm_ajax_nonce'),
+    ));
+    wp_localize_script($localize_key_formmaker_div, 'fm_ajax', array(
+      'ajaxnonce' => wp_create_nonce('fm_ajax_nonce'),
+    ));
   }
 
   /**
    * Admin ajax scripts.
    */
   public function register_admin_ajax_scripts() {
+    $fm_settings = $this->fm_settings;
     wp_register_style($this->handle_prefix . '-tables', $this->plugin_url . '/css/form_maker_tables.css', array(), $this->plugin_version);
     wp_register_style($this->handle_prefix . '-jquery-ui', $this->plugin_url . '/css/jquery-ui.custom.css', array(), $this->plugin_version);
 
     wp_register_script($this->handle_prefix . '-shortcode' . $this->menu_postfix, $this->plugin_url . '/js/shortcode.js', array('jquery'), $this->plugin_version);
-
-    $fm_settings = get_option($this->is_free == 2 ? 'fmc_settings' : 'fm_settings');
     $google_map_key = !empty($fm_settings['map_key']) ? '&key=' . $fm_settings['map_key'] : '';
 
     wp_register_script('google-maps', 'https://maps.google.com/maps/api/js?v=3.exp' . $google_map_key);
@@ -685,7 +792,7 @@ final class WDFM {
       'insert_form' => __('You must select a form', $this->prefix),
       'update' => __('Update', $this->prefix),
     ));
-    wp_register_style($this->handle_prefix . '-pricing', $this->plugin_url . '/css/pricing.css', array(), $this->plugin_version);
+    wp_register_style($this->handle_prefix . '-topbar', $this->plugin_url . '/css/topbar.css', array(), $this->plugin_version);
     // Roboto font for submissions shortcode.
     wp_register_style($this->handle_prefix . '-roboto', 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700');
   }
@@ -695,17 +802,50 @@ final class WDFM {
    */
   public function form_maker_ajax() {
     $page = WDW_FM_Library(self::PLUGIN)->get('action');
-    if ( $page != 'formmakerwdcaptcha' . $this->plugin_postfix && $page != 'formmakerwdmathcaptcha' . $this->plugin_postfix && $page != 'checkpaypal' . $this->plugin_postfix ) {
-      if ( function_exists('current_user_can') ) {
-        if ( !current_user_can('manage_options') ) {
+    $ajax_nonce = WDW_FM_Library(self::PLUGIN)->get('nonce');
+
+    $allowed_pages = array(
+      'manage' . $this->menu_postfix,
+      'manage' . $this->plugin_postfix,
+      'generete_csv' . $this->plugin_postfix,
+      'generete_xml' . $this->plugin_postfix,
+      'formmakerwdcaptcha' . $this->plugin_postfix,
+      'formmakerwdmathcaptcha' . $this->plugin_postfix,
+      'product_option' . $this->plugin_postfix,
+      'FormMakerEditCountryinPopup' . $this->plugin_postfix,
+      'FormMakerMapEditinPopup' . $this->plugin_postfix,
+      'FormMakerIpinfoinPopup' . $this->plugin_postfix,
+      'show_matrix' . $this->plugin_postfix,
+      'FormMakerSubmits' . $this->plugin_postfix,
+      'FMShortocde' . $this->plugin_postfix,
+    );
+    if ( !$this->is_demo ) {
+      $allowed_pages[] = 'FormMakerSQLMapping' . $this->plugin_postfix;
+      $allowed_pages[] = 'select_data_from_db' . $this->plugin_postfix;
+    }
+    if ( !$this->is_free ) {
+      $allowed_pages[] = 'paypal_info';
+      $allowed_pages[] = 'checkpaypal';
+    }
+    $allowed_nonce_pages = array('checkpaypal');
+
+    if ( !in_array($page, $allowed_nonce_pages) && wp_verify_nonce($ajax_nonce , 'fm_ajax_nonce') == FALSE ) {
+      die(-1);
+    }
+
+    if ( !empty($page) && in_array($page, $allowed_pages) ) {
+      if ( $page != 'formmakerwdcaptcha' . $this->plugin_postfix
+        && $page != 'formmakerwdmathcaptcha' . $this->plugin_postfix
+        && $page != 'checkpaypal' ) {
+        if ( function_exists('current_user_can') ) {
+          if ( !current_user_can('manage_options') ) {
+            die('Access Denied');
+          }
+        }
+        else {
           die('Access Denied');
         }
       }
-      else {
-        die('Access Denied');
-      }
-    }
-    if ( $page != '' ) {
       $page = ucfirst(substr($page, 0, strlen($page) - strlen($this->plugin_postfix)));
       $this->register_admin_ajax_scripts();
       require_once($this->plugin_dir . '/admin/controllers/' . $page . '.php');
@@ -719,8 +859,13 @@ final class WDFM {
    * admin-ajax actions for site.
    */
   public function form_maker_ajax_frontend() {
+    $page = WDW_FM_Library(self::PLUGIN)->get('page');
+    $action = WDW_FM_Library(self::PLUGIN)->get('action');
+	  $ajax_nonce = WDW_FM_Library(self::PLUGIN)->get('nonce');
+
     $allowed_pages = array(
       'form_submissions',
+	    'form_maker',
     );
     $allowed_actions = array(
       'frontend_generate_xml',
@@ -729,15 +874,17 @@ final class WDFM {
       'frontend_show_matrix',
       'frontend_show_map',
       'get_frontend_stats',
+	    'fm_reload_input',
     );
 
-    $action = WDW_FM_Library(self::PLUGIN)->get('action');
-    $page = WDW_FM_Library(self::PLUGIN)->get('page');
+    if ( wp_verify_nonce($ajax_nonce , 'fm_ajax_nonce') == FALSE ) {
+      die(-1);
+    }
     if ( !empty($page) && in_array($page, $allowed_pages)
       && !empty($action) &&  in_array($action, $allowed_actions) ) {
       $this->register_frontend_ajax_scripts();
       require_once ($this->plugin_dir . '/frontend/controllers/' . $page . '.php');
-      $controller_class = 'FMController' . ucfirst($page);
+      $controller_class = 'FMController' . ucfirst($page) . $this->plugin_postfix;
       $controller = new $controller_class();
       $controller->execute();
     }
@@ -786,7 +933,7 @@ final class WDFM {
     }
     else {
       $id = WDW_FM_Library(self::PLUGIN)->get('wdform_id', 0);
-	    $display_options = WDW_FM_Library(self::PLUGIN)->display_options( $id );
+	  $display_options = WDW_FM_Library(self::PLUGIN)->display_options( $id );
       $type = $display_options->type;
       $attrs = array( 'id' => $id );
       if ($type == "embedded") {
@@ -865,9 +1012,11 @@ final class WDFM {
    */
   public function register_fmemailverification_cpt() {
     $args = array(
+      'label' => 'FM Mail Verification',
       'public' => true,
-	    'exclude_from_search' => true,
+      'exclude_from_search' => true,
       'show_in_menu' => false,
+      'show_in_nav_menus' => false,
       'create_posts' => 'do_not_allow',
       'capabilities' => array(
         'create_posts' => FALSE,
@@ -885,15 +1034,17 @@ final class WDFM {
    */
   public function register_form_preview_cpt() {
     $args = array(
-        'public' => true,
-        'exclude_from_search' => true,
-        'show_in_menu' => false,
-        'create_posts' => 'do_not_allow',
-        'capabilities' => array(
-        'create_posts' => FALSE,
-        'edit_post' => 'edit_posts',
-        'read_post' => 'edit_posts',
-        'delete_posts' => FALSE,
+      'label' => 'FM Preview',
+      'public' => true,
+      'exclude_from_search' => true,
+      'show_in_menu' => false,
+      'show_in_nav_menus' => false,
+      'create_posts' => 'do_not_allow',
+      'capabilities' => array(
+      'create_posts' => FALSE,
+      'edit_post' => 'edit_posts',
+      'read_post' => 'edit_posts',
+      'delete_posts' => FALSE,
       )
     );
 
@@ -904,72 +1055,81 @@ final class WDFM {
    * Frontend scripts/styles.
    */
   public function register_frontend_scripts() {
+    $fm_settings = $this->fm_settings;
+	$front_plugin_url = $this->front_urls['plugin_url'];
+
     $required_scripts = array(
       'jquery',
       'jquery-ui-widget',
       'jquery-effects-shake',
     );
     $required_styles = array(
-      WDFMInstance(self::PLUGIN)->handle_prefix . '-jquery-ui',
-      WDFMInstance(self::PLUGIN)->handle_prefix . '-googlefonts',
-      WDFMInstance(self::PLUGIN)->handle_prefix . '-animate',
-      'dashicons',
+      $this->handle_prefix . '-googlefonts'
     );
-	  $front_plugin_url = $this->front_urls['plugin_url'];
-    wp_register_style($this->handle_prefix . '-jquery-ui', $front_plugin_url . '/css/jquery-ui.custom.css', array(), $this->plugin_version);
+    if ($fm_settings['fm_developer_mode']) {
+      array_push($required_styles, $this->handle_prefix . '-jquery-ui', $this->handle_prefix . '-animate');
+    }
 
-    $fm_settings = get_option($this->is_free == 2 ? 'fmc_settings' : 'fm_settings');
+    wp_register_style($this->handle_prefix . '-jquery-ui', $front_plugin_url . '/css/jquery-ui.custom.css', array(), $this->plugin_version);
+    wp_register_style($this->handle_prefix . '-animate', $front_plugin_url . '/css/fm-animate.css', array(), $this->plugin_version);
+
     $google_map_key = !empty($fm_settings['map_key']) ? '&key=' . $fm_settings['map_key'] : '';
     wp_register_script('google-maps', 'https://maps.google.com/maps/api/js?v=3.exp' . $google_map_key);
 
     wp_register_script($this->handle_prefix . '-phone_field', $front_plugin_url . '/js/intlTelInput.js', array(), $this->plugin_version);
-
     wp_register_style($this->handle_prefix . '-phone_field_css', $front_plugin_url . '/css/intlTelInput.css', array(), $this->plugin_version);
 
     wp_register_script($this->handle_prefix . '-gmap_form', $front_plugin_url . '/js/if_gmap_front_end.js', array('google-maps'), $this->plugin_version);
-
-    $google_fonts = WDW_FM_Library(self::PLUGIN)->get_google_fonts();
-    $fonts = implode("|", str_replace(' ', '+', $google_fonts));
-    wp_register_style($this->handle_prefix . '-googlefonts', 'https://fonts.googleapis.com/css?family=' . $fonts . '&subset=greek,latin,greek-ext,vietnamese,cyrillic-ext,latin-ext,cyrillic', null, null);
-
-    wp_register_style($this->handle_prefix . '-animate', $front_plugin_url . '/css/fm-animate.css', array(), $this->plugin_version);
+	wp_register_style($this->handle_prefix . '-googlefonts', WDW_FM_Library(self::PLUGIN)->get_all_used_google_fonts(), null, null);
 
     wp_register_script($this->handle_prefix . '-g-recaptcha', 'https://www.google.com/recaptcha/api.js?onload=fmRecaptchaInit&render=explicit');
-
+    if ( isset($fm_settings['public_key']) ) {
+      wp_register_script($this->handle_prefix . '-g-recaptcha-v3', 'https://www.google.com/recaptcha/api.js?onload=fmRecaptchaInit&render=' . $fm_settings['public_key']);
+    }
     // Register admin styles to use in frontend submissions.
     wp_register_script('gmap_form_back', $front_plugin_url . '/js/if_gmap_back_end.js', array(), $this->plugin_version);
 
-    if ( !$this->is_free ) {
+    if (!$this->is_free) {
       wp_register_script($this->handle_prefix . '-file-upload', $front_plugin_url . '/js/file-upload.js', array(), $this->plugin_version);
       wp_register_style($this->handle_prefix . '-submissions_css', $front_plugin_url . '/css/style_submissions.css', array(), $this->plugin_version);
 
-      if ( WDW_FM_Library(self::PLUGIN)->elementor_is_active() ) {
-        array_push($required_scripts, $this->handle_prefix . '-file-upload', 'gmap_form_back');
+      if (WDW_FM_Library(self::PLUGIN)->elementor_is_active() && $fm_settings['fm_developer_mode']) {
         array_push($required_styles, $this->handle_prefix . '-submissions_css');
+        array_push($required_scripts, $this->handle_prefix . '-file-upload', 'gmap_form_back');
       }
     }
 
-    if ( WDW_FM_Library(self::PLUGIN)->elementor_is_active() ) {
+    if (WDW_FM_Library(self::PLUGIN)->elementor_is_active()) {
       array_push($required_scripts,
         'jquery-ui-spinner',
         'jquery-ui-datepicker',
-        'jquery-ui-slider',
-        $this->handle_prefix . '-phone_field',
-        WDFMInstance(self::PLUGIN)->handle_prefix . '-gmap_form'
+        'jquery-ui-slider'
       );
-      array_push($required_styles, WDFMInstance(self::PLUGIN)->handle_prefix . '-phone_field_css');
+
+      if ($fm_settings['fm_developer_mode']) {
+        array_push($required_scripts, $this->handle_prefix . '-phone_field', $this->handle_prefix . '-gmap_form');
+        array_push($required_styles, $this->handle_prefix . '-phone_field_css');
+      }
     }
 
-    wp_register_script($this->handle_prefix . '-frontend', $front_plugin_url . '/js/main_div_front_end.js', $required_scripts, $this->plugin_version);
-    wp_register_style($this->handle_prefix . '-frontend', $front_plugin_url . '/css/form_maker_frontend.css', $required_styles, $this->plugin_version);
+    $style_file = '/css/styles.min.css';
+    $script_file = '/js/scripts.min.js';
+    if ($fm_settings['fm_developer_mode']) {
+      $style_file = '/css/form_maker_frontend.css';
+      $script_file = '/js/main_div_front_end.js';
+    }
 
-    if ( WDW_FM_Library(self::PLUGIN)->elementor_is_active() ) {
-      wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-frontend');
-      wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-frontend');
+    wp_register_style($this->handle_prefix . '-frontend', $front_plugin_url . $style_file, $required_styles, $this->plugin_version);
+    wp_register_script($this->handle_prefix . '-frontend', $front_plugin_url . $script_file, $required_scripts, $this->plugin_version);
+
+    if (WDW_FM_Library(self::PLUGIN)->elementor_is_active()) {
+      wp_enqueue_style($this->handle_prefix . '-frontend');
+      wp_enqueue_script($this->handle_prefix . '-frontend');
     }
 
     wp_localize_script($this->handle_prefix . '-frontend', 'fm_objectL10n', array(
       'states' => WDW_FM_Library(self::PLUGIN)->get_states(),
+      'provinces' => WDW_FM_Library(self::PLUGIN)->get_provinces_canada(),
       'plugin_url' => $front_plugin_url,
       'form_maker_admin_ajax' => admin_url('admin-ajax.php'),
       'fm_file_type_error' => addslashes(__('Can not upload this type of file', $this->prefix)),
@@ -984,17 +1144,53 @@ final class WDFM {
       'date_validation' => addslashes(__('This is not a valid date value.', $this->prefix)),
       'year_validation' => addslashes(sprintf(__('The year must be between %s and %s', $this->prefix), '%%start%%', '%%end%%')),
     ));
+
+    wp_localize_script($this->handle_prefix . '-frontend', 'fm_ajax', array(
+      'ajaxnonce' => wp_create_nonce('fm_ajax_nonce'),
+    ));
   }
 
   /**
    * Frontend ajax scripts.
    */
   public function register_frontend_ajax_scripts() {
+	$fm_settings = $this->fm_settings;
     $front_plugin_url = $this->front_urls['plugin_url'];
-    $fm_settings = get_option($this->is_free == 2 ? 'fmc_settings' : 'fm_settings');
     $google_map_key = !empty($fm_settings['map_key']) ? '&key=' . $fm_settings['map_key'] : '';
     wp_register_script('google-maps', 'https://maps.google.com/maps/api/js?v=3.exp' . $google_map_key);
     wp_register_script($this->handle_prefix . '-gmap_form_back', $front_plugin_url . '/js/if_gmap_back_end.js', array(), $this->plugin_version);
+  }
+
+  /*
+  * Global activate.
+  *
+  * @param $networkwide
+  */
+  public function global_activate($networkwide) {
+    if ( function_exists('is_multisite') && is_multisite() ) {
+      // Check if it is a network activation - if so, run the activation function for each blog id.
+      if ( $networkwide ) {
+        global $wpdb;
+        // Get all blog ids.
+        $blogids = $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
+        foreach ( $blogids as $blog_id ) {
+          switch_to_blog($blog_id);
+          $this->form_maker_on_activate();
+          restore_current_blog();
+        }
+
+        return;
+      }
+    }
+    $this->form_maker_on_activate();
+  }
+
+  public function new_blog_added( $blog_id, $user_id, $domain, $path, $site_id, $meta ) {
+    if ( is_plugin_active_for_network( $this->main_file ) ) {
+      switch_to_blog($blog_id);
+      $this->form_maker_on_activate();
+      restore_current_blog();
+    }
   }
 
   /**
@@ -1009,7 +1205,44 @@ final class WDFM {
       WDFMInsert::install_demo_forms();
     }
     $this->init();
-    flush_rewrite_rules();
+	// Using this insted of flush_rewrite_rule() for better performance with multisite.
+    global $wp_rewrite;
+    $wp_rewrite->init();
+    $wp_rewrite->flush_rules();
+  }
+
+    /**
+   * Global deactivate.
+   *
+   * @param $networkwide
+   */
+  public function global_deactivate($networkwide) {
+    if ( function_exists('is_multisite') && is_multisite() ) {
+      if ( $networkwide ) {
+        global $wpdb;
+        // Check if it is a network activation - if so, run the activation function for each blog id.
+        // Get all blog ids.
+        $blogids = $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
+        foreach ( $blogids as $blog_id ) {
+          switch_to_blog($blog_id);
+          $this->deactivate();
+          restore_current_blog();
+        }
+
+        return;
+      }
+    }
+    $this->deactivate();
+  }
+
+  /**
+   * Deactivate.
+   */
+  public function deactivate() {
+    // Using this insted of flush_rewrite_rule() for better performance with multisite.
+    global $wp_rewrite;
+    $wp_rewrite->init();
+    $wp_rewrite->flush_rules();
   }
 
   /**
@@ -1023,12 +1256,12 @@ final class WDFM {
     }
     $version = get_option("wd_form_maker_version");
     $new_version = $this->db_version;
-	$option_key = ($this->is_free == 2 ? 'fmc_settings' : 'fm_settings');
+	  $option_key = ($this->is_free == 2 ? 'fmc_settings' : 'fm_settings');
     require_once $this->plugin_dir . "/form_maker_insert.php";
     if (!$version) {
       if ($wpdb->get_var("SHOW TABLES LIKE '" . $wpdb->prefix . "formmaker'") == $wpdb->prefix . "formmaker") {
         deactivate_plugins($this->main_file);
-        wp_die(__("Oops! Seems like you installed the update over a quite old version of Form Maker. Unfortunately, this version is deprecated.<br />Please contact Web-Dorado support team at support@web-dorado.com. We will take care of this issue as soon as possible.", $this->prefix));
+        wp_die(__("Oops! Seems like you installed the update over a quite old version of Form Maker. Unfortunately, this version is deprecated.<br />Please contact 10Web support team at support@10web.io. We will take care of this issue as soon as possible.", $this->prefix));
       }
       else {
         add_option("wd_form_maker_version", $new_version, '', 'no');
@@ -1079,11 +1312,20 @@ final class WDFM {
           $recaptcha_keys = $wpdb->get_row('SELECT `public_key`, `private_key` FROM ' . $wpdb->prefix . 'formmaker WHERE public_key!="" and private_key!=""', ARRAY_A);
           $public_key = isset($recaptcha_keys['public_key']) ? $recaptcha_keys['public_key'] : '';
           $private_key = isset($recaptcha_keys['private_key']) ? $recaptcha_keys['private_key'] : '';
-          add_option($option_key, array('public_key' => $public_key, 'private_key' => $private_key, 'csv_delimiter' => ',', 'map_key' => '', 'ajax_export_per_page' => 1000));
-      } elseif ( !isset($fm_settings['fm_enable_wp_editor']) ) {
+          add_option($option_key, array('public_key' => $public_key, 'private_key' => $private_key, 'csv_delimiter' => ',', 'map_key' => '', 'fm_advanced_layout' => 0, 'fm_enable_wp_editor' => 1, 'fm_antispam' => 0, 'fm_developer_mode' => 0, 'ajax_export_per_page' => 1000));
+	  }
+	  elseif ( !isset($fm_settings['fm_enable_wp_editor']) ) {
           $fm_settings['fm_enable_wp_editor'] = 1;
           update_option( $option_key, $fm_settings );
       }
+	  if ( !isset($fm_settings['fm_antispam']) ) {
+		  $fm_settings['fm_antispam'] = 0;
+          update_option( $option_key, $fm_settings );
+	  }
+	  if ( !isset($fm_settings['fm_developer_mode']) ) {
+		  $fm_settings['fm_developer_mode'] = 0;
+          update_option( $option_key, $fm_settings );
+	  }
     }
   }
 
@@ -1092,19 +1334,20 @@ final class WDFM {
    */
   public function fm_overview() {
     if (is_admin() && !isset($_REQUEST['ajax'])) {
-      if (!class_exists("DoradoWeb")) {
-        require_once($this->plugin_dir . '/wd/start.php');
+      if (!class_exists("TenWebLibNew")) {
+        $plugin_dir = apply_filters('tenweb_free_users_lib_path', array('version' => '1.1.1', 'path' => $this->plugin_dir));
+        require_once($plugin_dir['path'] . '/wd/start.php');
       }
       global $fm_options;
       $fm_options = array(
         "prefix" => ($this->is_free == 2 ? 'cfm' : 'fm'),
         "wd_plugin_id" => ($this->is_free == 2 ? 183 : 31),
+	      "plugin_id" => ($this->is_free == 2 ? 95 : 95),
         "plugin_title" => ($this->is_free == 2 ? 'Contact Form Maker' : 'Form Maker'),
         "plugin_wordpress_slug" => ($this->is_free == 2 ? 'contact-form-maker' : 'form-maker'),
         "plugin_dir" => $this->plugin_dir,
         "plugin_main_file" => __FILE__,
         "description" => ($this->is_free == 2 ? __('WordPress Contact Form Maker is a simple contact form builder, which allows the user with almost no knowledge of programming to create and edit different type of contact forms.', $this->prefix) : __('Form Maker plugin is a modern and advanced tool for easy and fast creating of a WordPress Form. The backend interface is intuitive and user friendly which allows users far from scripting and programming to create WordPress Forms.', $this->prefix)),
-        // from web-dorado.com
         "plugin_features" => array(
           0 => array(
             "title" => __("Easy to Use", $this->prefix),
@@ -1127,59 +1370,59 @@ final class WDFM {
             "description" => __("The WordPress Form Maker plugin comes with a wide range of customizable themes. You can choose from a list of existing themes or simply create the one that better fits your brand and website.", $this->prefix),
           )
         ),
-        // user guide from web-dorado.com
         "user_guide" => array(
           0 => array(
             "main_title" => __("Installing", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/introduction.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360015435831-Introducing-Form-Maker-Plugin?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
           1 => array(
             "main_title" => __("Creating a new Form", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/creating-form.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360015244232-Creating-a-Form-on-WordPress?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
           2 => array(
             "main_title" => __("Configuring Form Options", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/form-options/general-options.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360015862812-Settings-General-Options?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
           3 => array(
             "main_title" => __("Description of The Form Fields", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/form-fields/basic-fields.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360016081951-Form-Fields-Basic?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array(
               array(
                 "title" => __("Selecting Options from Database", $this->prefix),
-                "url" => "https://web-dorado.com/wordpress-form-maker/selecting-options-from-database.html",
+                "url" => "https://help.10web.io/hc/en-us/articles/360015862632-Selecting-Options-from-Database?utm_source=form_maker&utm_medium=free_plugin",
               ),
             )
           ),
           4 => array(
             "main_title" => __("Publishing the Created Form", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/creating-form.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360016083211-Additional-Publishing-Options?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
           5 => array(
             "main_title" => __("Blocking IPs", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/submissions.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360015863292-Managing-Form-Submissions?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
           6 => array(
             "main_title" => __("Managing Submissions", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/submissions.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360015863292-Managing-Form-Submissions?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
           7 => array(
             "main_title" => __("Publishing Submissions", $this->prefix),
-            "url" => "https://web-dorado.com/wordpress-form-maker/other-publishing-options.html",
+            "url" => "https://help.10web.io/hc/en-us/articles/360016083211-Additional-Publishing-Options?utm_source=form_maker&utm_medium=free_plugin",
             "titles" => array()
           ),
         ),
-        "video_youtube_id" => "tN3_c6MhqFk",  // e.g. https://www.youtube.com/watch?v=acaexefeP7o youtube id is the acaexefeP7o
-        "plugin_wd_url" => "https://web-dorado.com/files/fromFormMaker.php",
-        "plugin_wd_demo_link" => "http://wpdemo.web-dorado.com",
-        "plugin_wd_addons_link" => "https://web-dorado.com/products/wordpress-form/add-ons.html",
-        "after_subscribe" => admin_url('admin.php?page=overview_' . ($this->is_free == 2 ? 'cfm' : 'fm')), // this can be plagin overview page or set up page
+        "video_youtube_id" => "tN3_c6MhqFk",
+        "plugin_wd_url" => "https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin",
+        "plugin_wd_demo_link" => "https://demo.10web.io/form-maker?utm_source=form_maker&utm_medium=free_plugin",
+        "plugin_wd_addons_link" => "https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin#plugin_extensions",
+        "plugin_wd_docs_link" => "https://help.10web.io/hc/en-us/sections/360002133951-Form-Maker-Documentation/?utm_source=form_maker&utm_medium=free_plugin",
+        "after_subscribe" => admin_url('admin.php?page=manage_' . ($this->is_free == 2 ? 'cfm' : 'fm')), // this can be plagin overview page or set up page
         "plugin_wizard_link" => '',
         "plugin_menu_title" => $this->nicename,
         "plugin_menu_icon" => $this->plugin_url . '/images/FormMakerLogo-16.png',
@@ -1187,9 +1430,10 @@ final class WDFM {
         "subscribe" => ($this->is_free ? true : false),
         "custom_post" => 'manage' . $this->menu_postfix,
         "menu_position" => null,
+        "display_overview" => false,
       );
 
-      dorado_web_init($fm_options);
+      ten_web_new_lib_init($fm_options);
     }
   }
 
@@ -1201,18 +1445,19 @@ final class WDFM {
    * @return string
    */
   function media_button($context) {
+    $fm_nonce = wp_create_nonce('fm_ajax_nonce');
     ob_start();
-    $url = add_query_arg(array('action' => 'FMShortocde' . $this->plugin_postfix, 'task' => 'forms', 'TB_iframe' => '1'), admin_url('admin-ajax.php'));
+    $url = add_query_arg(array('action' => 'FMShortocde' . $this->plugin_postfix, 'task' => 'forms', 'nonce' => $fm_nonce, 'TB_iframe' => '1'), admin_url('admin-ajax.php'));
     ?>
     <a onclick="tb_click.call(this); fm_set_shortcode_popup_dimensions(400, 140); return false;" href="<?php echo $url; ?>" class="button" title="<?php _e('Insert Form', $this->prefix); ?>">
       <span class="wp-media-buttons-icon" style="background: url('<?php echo $this->plugin_url; ?>/images/fm-media-form-button.png') no-repeat scroll left top rgba(0, 0, 0, 0);"></span>
       <?php _e('Add Form', $this->prefix); ?>
     </a>
     <?php
-    $url = add_query_arg(array('action' => 'FMShortocde' . $this->plugin_postfix, 'task' => 'submissions', 'TB_iframe' => '1'), admin_url('admin-ajax.php'));
+    $url = add_query_arg(array('action' => 'FMShortocde' . $this->plugin_postfix, 'task' => 'submissions', 'nonce' => $fm_nonce, 'TB_iframe' => '1'), admin_url('admin-ajax.php'));
     ?>
     <a onclick="tb_click.call(this); fm_set_shortcode_popup_dimensions(520, 570); return false;" href="<?php echo $url; ?>" class="button" title="<?php _e('Insert submissions', $this->prefix); ?>">
-      <span class="wp-media-buttons-icon" style="background: url('<?php echo $this->plugin_url; ?>/images/fm-media-submissions-button.png') no-repeat scroll left top rgba(0, 0, 0, 0);"></span>
+      <span class="wp-media-buttons-icon" style="background: url(<?php echo $this->plugin_url; ?>/images/fm-media-submissions-button.png) no-repeat scroll left top rgba(0, 0, 0, 0);"></span>
       <?php _e('Add Submissions', $this->prefix); ?>
     </a>
     <?php
@@ -1223,41 +1468,42 @@ final class WDFM {
 
 
   /**
-   * Check add-ones version compatibility with FM.
+   * Check extensions version compatibility with FM.
    *
    */
   function  fm_check_addons_compatibility() {
-    // Last version not supported.
+    // Extension last version(version which is compatible with current version of form maker).
     $add_ons = array(
+      'form-maker-calculator' => array('version' => '1.1.2', 'file' => 'fm_calculator.php'),
+      'form-maker-conditional-emails' => array('version' => '1.1.6', 'file' => 'fm_conditional_emails.php'),
+      'form-maker-dropbox-integration' => array('version' => '1.2.5', 'file' => 'fm_dropbox_integration.php'),
       'form-maker-export-import' => array('version' => '2.0.7', 'file' => 'fm_exp_imp.php'),
-      'form-maker-save-progress' => array('version' => '1.0.1', 'file' => 'fm_save.php'),
-      'form-maker-conditional-emails' => array('version' => '1.1.4', 'file' => 'fm_conditional_emails.php'),
-      'form-maker-pushover' => array('version' => '1.0.2', 'file' => 'fm_pushover.php'),
-      'form-maker-mailchimp' => array('version' => '1.0.2', 'file' => 'fm_mailchimp.php'),
-      'form-maker-reg' => array('version' => '1.2.2', 'file' => 'fm_reg.php'),
-      'form-maker-post-generation' => array('version' => '1.1.2', 'file' => 'fm_post_generation.php'),
-      'form-maker-dropbox-integration' => array('version' => '1.1.1', 'file' => 'fm_dropbox_integration.php'),
-      'form-maker-gdrive-integration' => array('version' => '1.0.0', 'file' => 'fm_gdrive_integration.php'),
-      'form-maker-pdf-integration' => array('version' => '1.1.3', 'file' => 'fm_pdf_integration.php'),
-      'form-maker-stripe' => array('version' => '1.1.3', 'file' => 'fm_stripe.php'),
-      'form-maker-calculator' => array('version' => '1.0.3', 'file' => 'fm_calculator.php'),
+      'form-maker-gdrive-integration' => array('version' => '1.1.2', 'file' => 'fm_gdrive_integration.php'),
+      'form-maker-mailchimp' => array('version' => '1.1.6', 'file' => 'fm_mailchimp.php'),
+      'form-maker-pdf-integration' => array('version' => '1.1.7', 'file' => 'fm_pdf_integration.php'),
+      'form-maker-post-generation' => array('version' => '1.1.5', 'file' => 'fm_post_generation.php'),
+      'form-maker-pushover' => array('version' => '1.1.4', 'file' => 'fm_pushover.php'),
+      'form-maker-reg' => array('version' => '1.2.5', 'file' => 'fm_reg.php'),
+      'form-maker-save-progress' => array('version' => '1.1.6', 'file' => 'fm_save.php'),
+      'form-maker-stripe' => array('version' => '1.1.6', 'file' => 'fm_stripe.php'),
+      'form-maker-webhooks' => array('version' => '1.0.0', 'file' => 'fm_webhooks.php'),
     );
 
     $add_ons_notice = array();
     include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 
-    foreach ($add_ons as $add_on_key => $add_on_value) {
-      $addon_path = plugin_dir_path( dirname(__FILE__) ) . $add_on_key . '/' . $add_on_value['file'];
-      if (is_plugin_active($add_on_key . '/' . $add_on_value['file'])) {
+    foreach ( $add_ons as $add_on_key => $add_on_value ) {
+      $addon_path = plugin_dir_path(dirname(__FILE__)) . $add_on_key . '/' . $add_on_value['file'];
+      if ( is_plugin_active($add_on_key . '/' . $add_on_value['file']) ) {
         $addon = get_plugin_data($addon_path); // array
-        if (version_compare($addon['Version'], $add_on_value['version'], '<=')) {   //compare versions
-//          deactivate_plugins($addon_path);
+        if ( version_compare($addon['Version'], $add_on_value['version'], '<') ) {
+          // deactivate_plugins($addon_path);
           array_push($add_ons_notice, $addon['Name']);
         }
       }
     }
 
-    if (!empty($add_ons_notice)) {
+    if ( !empty($add_ons_notice) ) {
       $this->fm_addons_compatibility_notice($add_ons_notice);
     }
   }
@@ -1270,8 +1516,8 @@ final class WDFM {
   function fm_addons_compatibility_notice($add_ons_notice) {
     $addon_names = implode($add_ons_notice, ', ');
     $count = count($add_ons_notice);
-    $single = __('The current version of %s add-on is not compatible with Form Maker. Some functions may not work correctly. Please update the add-on to fully use its features.', $this->prefix);
-    $plural = __('The current version of %s add-ons are not compatible with Form Maker. Some functions may not work correctly. Please update the add-ons to fully use its features.', $this->prefix);
+    $single = __('The current version of %s extension is not compatible with Form Maker. Some functions may not work correctly. Please update the extension to fully use its features.', $this->prefix);
+    $plural = __('The current version of %s extensions are not compatible with Form Maker. Some functions may not work correctly. Please update the extensions to fully use its features.', $this->prefix);
     echo '<div class="error"><p>' . sprintf( _n($single, $plural, $count, $this->prefix), $addon_names ) .'</p></div>';
   }
 
@@ -1291,6 +1537,22 @@ final class WDFM {
 		  add_action('wp_enqueue_scripts', array( $this, 'form_maker_admin_ajax' ));
 		}
 	}
+
+  public function webinar_banner() {
+    // Webinar banner
+    if ( !class_exists( 'TWFMWebinar' ) ) {
+      require_once( $this->plugin_dir . '/framework/TWWebinar.php' );
+    }
+    new TWFMWebinar(array(
+      'menu_postfix' => $this->menu_postfix,
+      'title' => 'Join the Webinar',
+      'description' => 'How to Create a Fully Functional WP Website with Various Forms in Just an Hour + SPECIAL GIFT FOR WEBINAR ATTENDEES',
+      'preview_type' => 'youtube',
+      'preview_url' => 'Ry2hDk3LtPk',
+      'button_text' => 'SIGN UP',
+      'button_link' => 'https://my.demio.com/ref/qWIW655LXhVTdRoY',
+    ));
+  }
 }
 
 /**
@@ -1331,98 +1593,11 @@ function wd_form_maker($id, $type = 'embedded') {
   echo $form;
 }
 
-/**
- * Show notice to install backup plugin
- */
-function fm_bp_install_notice() {
-  // Remove old notice.
-  if ( get_option('wds_bk_notice_status') !== FALSE ) {
-    update_option('wds_bk_notice_status', '1', 'no');
-  }
-
-  // Show notice only on plugin pages.
-  if ( !isset($_GET['page']) || (strpos(esc_html($_GET['page']), '_fm') === FALSE || strpos(esc_html($_GET['page']), '_fmc') !== FALSE) ) {
-    return '';
-  }
-
-  $meta_value = get_option('wd_bk_notice_status');
-  if ( $meta_value === '' || $meta_value === FALSE ) {
-    ob_start();
-    $prefix = WDFMInstance(1)->prefix;
-    $nicename = WDFMInstance(1)->nicename;
-    $url = WDFMInstance(1)->plugin_url;
-    $dismiss_url = add_query_arg(array( 'action' => 'wd_bp_dismiss' ), admin_url('admin-ajax.php'));
-    $install_url = esc_url(wp_nonce_url(self_admin_url('update.php?action=install-plugin&plugin=backup-wd'), 'install-plugin_backup-wd'));
-    ?>
-    <div class="notice notice-info" id="wd_bp_notice_cont">
-      <p>
-        <img id="wd_bp_logo_notice" src="<?php echo $url . '/images/logo.png'; ?>" />
-        <?php echo sprintf(__("%s advises: Install brand new FREE %s plugin to keep your forms and website safe.", $prefix), $nicename, '<a href="https://wordpress.org/plugins/backup-wd/" title="' . __("More details", $prefix) . '" target="_blank">' .  __("Backup WD", $prefix) . '</a>'); ?>
-        <a class="button button-primary" href="<?php echo $install_url; ?>">
-          <span onclick="jQuery.post('<?php echo $dismiss_url; ?>');"><?php _e("Install", $prefix); ?></span>
-        </a>
-      </p>
-      <button type="button" class="wd_bp_notice_dissmiss notice-dismiss" onclick="jQuery('#wd_bp_notice_cont').hide(); jQuery.post('<?php echo $dismiss_url; ?>');"><span class="screen-reader-text"></span></button>
-    </div>
-    <style>
-      @media only screen and (max-width: 500px) {
-        body #wd_backup_logo {
-          max-width: 100%;
-        }
-        body #wd_bp_notice_cont p {
-          padding-right: 25px !important;
-        }
-      }
-      #wd_bp_logo_notice {
-        width: 40px;
-        float: left;
-        margin-right: 10px;
-      }
-      #wd_bp_notice_cont {
-        position: relative;
-      }
-      #wd_bp_notice_cont a {
-        margin: 0 5px;
-      }
-      #wd_bp_notice_cont .dashicons-dismiss:before {
-        content: "\f153";
-        background: 0 0;
-        color: #72777c;
-        display: block;
-        font: 400 16px/20px dashicons;
-        speak: none;
-        height: 20px;
-        text-align: center;
-        width: 20px;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      .wd_bp_notice_dissmiss {
-        margin-top: 5px;
-      }
-    </style>
-    <?php
-    echo ob_get_clean();
-  }
-}
-
-if ( !is_dir( plugin_dir_path( dirname(__FILE__) ) . 'backup-wd') ) {
-  add_action('admin_notices', 'fm_bp_install_notice');
-}
-
-if ( !function_exists('wd_bps_install_notice_status') ) {
-  // Add usermeta to db.
-  function wd_bps_install_notice_status() {
-    update_option('wd_bk_notice_status', '1', 'no');
-  }
-  add_action('wp_ajax_wd_bp_dismiss', 'wd_bps_install_notice_status');
-}
-
 function fm_add_plugin_meta_links($meta_fields, $file) {
   if ( plugin_basename(__FILE__) == $file ) {
     $plugin_url = "https://wordpress.org/support/plugin/form-maker";
     $prefix = WDFMInstance(1)->prefix;
-    $meta_fields[] = "<a href='" . $plugin_url . "' target='_blank'>" . __('Support Forum', $prefix) . "</a>";
+    $meta_fields[] = "<a href='" . $plugin_url . "/#new-post' target='_blank'>" . __('Ask a question', $prefix) . "</a>";
     $meta_fields[] = "<a href='" . $plugin_url . "/reviews#new-post' target='_blank' title='" . __('Rate', $prefix) . "'>
             <i class='wdi-rate-stars'>"
       . "<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-star'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>"
@@ -1447,4 +1622,27 @@ function fm_add_plugin_meta_links($meta_fields, $file) {
 
 if ( WDFMInstance(1)->is_free ) {
   add_filter("plugin_row_meta", 'fm_add_plugin_meta_links', 10, 2);
+}
+
+/**
+ * Show 10Web plugin's install or activate banner.
+ */
+if ( !class_exists ( 'TWBanner' ) ) {
+  require_once( WDFMInstance(1)->plugin_dir . '/banner_class.php' );
+}
+if ( WDFMInstance(1)->is_free ) {
+  $tw_banner_params = array(
+    'menu_postfix' =>  WDFMInstance(1)->menu_postfix, // To display on only current plugin pages.
+    'prefix' => WDFMInstance(1)->handle_prefix, // Current plugin prefix.
+    'logo' => '/images/tw-gb/icon_colored.svg', // Current plugin logo relative URL.
+    'plugin_slug' => 'form-maker', // Current plugin slug.
+    'plugin_url' => WDFMInstance(1)->plugin_url, // Current plugin URL.
+    'plugin_id' => 95, // Current plugin id.
+    'text' => sprintf(__("%s Form Maker advises:%s %sCheck your website’s performance, optimize images and improve the speed in just minutes.%s", WDFMInstance(1)->prefix), '<span>','</span>', '<span>','</span>'), // Banner text.
+    'slug' => '10web-manager', // Plugin slug to be installed.
+    'mu_plugin_slug' => '10web-manager', // Must use plugin slug.
+    'base_php' => '10web-manager.php', // Plugin base php filename to be installed.
+    'page_url' => admin_url('admin.php?page=tenweb_menu'), // Redirect to URL after activating the plugin.
+  );
+//  new TWBanner($tw_banner_params);
 }

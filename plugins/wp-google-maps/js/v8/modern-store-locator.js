@@ -2,6 +2,7 @@
  * @namespace WPGMZA
  * @module ModernStoreLocator
  * @requires WPGMZA
+ * @pro-requires WPGMZA.UseMyLocationButton
  */
 jQuery(function($) {
 	
@@ -16,11 +17,12 @@ jQuery(function($) {
 	{
 		var self = this;
 		var original;
+		var map = WPGMZA.getMapByID(map_id);
 		
 		WPGMZA.assertInstanceOf(this, "ModernStoreLocator");
 		
 		if(WPGMZA.isProVersion())
-			original = $(".wpgmza_sl_search_button[mid='" + map_id + "']").closest(".wpgmza_sl_main_div");
+			original = $(".wpgmza_sl_search_button[mid='" + map_id + "'], .wpgmza_sl_search_button_" + map_id).closest(".wpgmza_sl_main_div");
 		else
 			original = $(".wpgmza_sl_search_button").closest(".wpgmza_sl_main_div");
 		
@@ -52,10 +54,21 @@ jQuery(function($) {
 		
 		inner.append(addressInput);
 		
-		$(addressInput).on("keydown", function(event) {
+		var button;
+		if(button = $(original).find("button.wpgmza-use-my-location"))
+			inner.append(button);
+		
+		$(addressInput).on("keydown keypress", function(event) {
 			
-			if(event.keyCode == 13)
+			if(event.keyCode == 13 && self.searchButton.is(":visible"))
 				self.searchButton.trigger("click");
+			
+		});
+		
+		$(addressInput).on("input", function(event) {
+			
+			self.searchButton.show();
+			self.resetButton.hide();
 			
 		});
 		
@@ -63,7 +76,7 @@ jQuery(function($) {
 		// inner.append($(original).find(".wpgmza_filter_select_" + map_id));
 		
 		// Buttons
-		this.searchButton = $(original).find( ".wpgmza_sl_search_button" );
+		this.searchButton = $(original).find( ".wpgmza_sl_search_button, .wpgmza_sl_search_button_div" );
 		inner.append(this.searchButton);
 		
 		this.resetButton = $(original).find( ".wpgmza_sl_reset_button_div" );
@@ -83,10 +96,14 @@ jQuery(function($) {
 				
 				self.searchButton.hide();
 				self.resetButton.show();
+				
+				map.storeLocator.state = WPGMZA.StoreLocator.STATE_APPLIED;
 			});
 			this.resetButton.on("click", function(event) {
 				self.resetButton.hide();
 				self.searchButton.show();
+				
+				map.storeLocator.state = WPGMZA.StoreLocator.STATE_INITIAL;
 			});
 		}
 		
@@ -136,7 +153,7 @@ jQuery(function($) {
 
 		
 		if(numCategories) {
-			this.optionsButton = $('<span class="wpgmza_store_locator_options_button"><i class="fas fa-list"></i></span>');
+			this.optionsButton = $('<span class="wpgmza_store_locator_options_button"><i class="fa fa-list"></i></span>');
 			$(this.searchButton).before(this.optionsButton);
 		}
 		
@@ -172,6 +189,20 @@ jQuery(function($) {
 		$(this.element).find("input, select").on("blur", function() {
 			$(inner).removeClass("active");
 		});
+
+		//Grab the "Not Found" message
+		var show_not_found_message = $(this.element).find(".wpgmza-not-found-msg").children().text();
+		
+		//Run after search
+		$(self.map.markerFilter).on("filteringcomplete", function(event) {
+
+			//Show/hide not found message
+			if(!this.map.hasVisibleMarkers())
+			{
+				alert(show_not_found_message);
+			}
+
+		});	
 	}
 	
 	/**
@@ -183,10 +214,16 @@ jQuery(function($) {
 	 */
 	WPGMZA.ModernStoreLocator.createInstance = function(map_id)
 	{
-		if(WPGMZA.settings.engine == "google-maps")
-			return new WPGMZA.GoogleModernStoreLocator(map_id);
-		else
-			return new WPGMZA.OLModernStoreLocator(map_id);
+		switch(WPGMZA.settings.engine)
+		{
+			case "open-layers":
+				return new WPGMZA.OLModernStoreLocator(map_id);
+				break;
+			
+			default:
+				return new WPGMZA.GoogleModernStoreLocator(map_id);
+				break;
+		}
 	}
 	
 });

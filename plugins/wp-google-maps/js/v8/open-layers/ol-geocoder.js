@@ -26,12 +26,25 @@ jQuery(function($) {
 	 * @param {function} callback Where to send the results, as an array
 	 * @return {void}
 	 */
-	WPGMZA.OLGeocoder.prototype.getResponseFromCache = function(address, callback)
+	WPGMZA.OLGeocoder.prototype.getResponseFromCache = function(query, callback)
 	{
-		$.ajax(WPGMZA.ajaxurl, {
+		WPGMZA.restAPI.call("/geocode-cache", {
+			data: {
+				query: JSON.stringify(query)
+			},
+			success: function(response, xhr, status) {
+				// Legacy compatibility support
+				response.lng = response.lon;
+				
+				callback(response);
+			},
+			useCompressedPathVariable: true
+		});
+		
+		/*$.ajax(WPGMZA.ajaxurl, {
 			data: {
 				action: "wpgmza_query_nominatim_cache",
-				query: address
+				query: JSON.stringify(query)
 			},
 			success: function(response, xhr, status) {
 				// Legacy compatibility support
@@ -39,7 +52,7 @@ jQuery(function($) {
 				
 				callback(response);
 			}
-		});
+		});*/
 	}
 	
 	/**
@@ -56,8 +69,8 @@ jQuery(function($) {
 			format: "json"
 		};
 		
-		if(options.country)
-			data.countrycodes = options.country;
+		if(options.componentRestrictions && options.componentRestrictions.country)
+			data.countrycodes = options.componentRestrictions.country;
 		
 		$.ajax("https://nominatim.openstreetmap.org/search/", {
 			data: data,
@@ -78,15 +91,34 @@ jQuery(function($) {
 	 * @param {object|array} response The response to cache
 	 * @returns {void}
 	 */
-	WPGMZA.OLGeocoder.prototype.cacheResponse = function(address, response)
+	WPGMZA.OLGeocoder.prototype.cacheResponse = function(query, response)
 	{
 		$.ajax(WPGMZA.ajaxurl, {
 			data: {
 				action: "wpgmza_store_nominatim_cache",
-				query: address,
+				query: JSON.stringify(query),
 				response: JSON.stringify(response)
 			},
 			method: "POST"
+		});
+	}
+
+	/**
+	 * @function clearCache
+	 * @access protected
+	 * @summary Clears the Nomanatim geocode cache
+	 * @returns {void}
+	 */
+	WPGMZA.OLGeocoder.prototype.clearCache = function(callback)
+	{
+		$.ajax(WPGMZA.ajaxurl, {
+			data: {
+				action: "wpgmza_clear_nominatim_cache"
+			},
+			method: "POST",
+			success: function(response){
+				callback(response);
+			}
 		});
 	}
 	
@@ -132,6 +164,17 @@ jQuery(function($) {
 						lng: parseFloat(response[i].lon)
 					};
 					
+					response[i].bounds = new WPGMZA.LatLngBounds(
+						new WPGMZA.LatLng({
+							lat: response[i].boundingbox[1],
+							lng: response[i].boundingbox[2]
+						}),
+						new WPGMZA.LatLng({
+							lat: response[i].boundingbox[0],
+							lng: response[i].boundingbox[3]
+						})
+					);
+					
 					// Backward compatibility with old UGM
 					response[i].lng = response[i].lon;
 				}
@@ -152,7 +195,8 @@ jQuery(function($) {
 		else
 			throw new Error("You must supply either a latLng or address")
 		
-		this.getResponseFromCache(location, function(response) {
+		var query = {location: location, options: options};
+		this.getResponseFromCache(query, function(response) {
 			if(response.length)
 			{
 				finish(response, WPGMZA.Geocoder.SUCCESS);
@@ -174,7 +218,7 @@ jQuery(function($) {
 				
 				finish(response, WPGMZA.Geocoder.SUCCESS);
 				
-				self.cacheResponse(location, response);
+				self.cacheResponse(query, response);
 			});
 		});
 	}

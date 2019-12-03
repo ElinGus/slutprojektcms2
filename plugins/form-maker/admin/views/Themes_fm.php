@@ -4,9 +4,17 @@ class FMViewThemes_fm extends FMAdminView {
    * FMViewThemes_fm constructor.
    */
   public function __construct() {
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
-    wp_enqueue_script('jquery');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+	$fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+	if ( $fm_settings['fm_developer_mode'] ) {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+	}
+	else {
+		if ( WDW_FM_Library(self::PLUGIN)->get('task','','sanitize_text_field') != 'edit' ) {
+			wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-styles');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-scripts');
+		}
+	}
   }
 
   /**
@@ -174,12 +182,22 @@ class FMViewThemes_fm extends FMAdminView {
    * @return string edit body html.
    */
 	public function edit_body( $params = array() ) {
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-bootstrap');
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-colorpicker');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-colorpicker');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-ng-js');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-themes');
+		$fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+		if ( $fm_settings['fm_developer_mode'] ) {
+			wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-bootstrap');
+			wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
+			wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-colorpicker');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-ng-js');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-colorpicker');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-themes');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-theme-edit-ng');
+		}
+		else {
+			wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-theme-edit');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-ng-js');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-theme-edit');
+			wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-theme-edit-ng');
+		}
 
 		$row = $params['row'];
 		$param_values = $params['param_values'];
@@ -190,8 +208,8 @@ class FMViewThemes_fm extends FMAdminView {
 		$tabs = $params['tabs'];
 		$all_params = $params['all_params'];
 
-		$active_tab = WDW_FM_Library(self::PLUGIN)->get('active_tab', ($row->version == 1 ? 'custom_css' : 'global'));
-		$pagination = WDW_FM_Library(self::PLUGIN)->get('pagination', 'none');
+		$active_tab = WDW_FM_Library(self::PLUGIN)->get('active_tab', ($row->version == 1 ? 'custom_css' : 'global'), 'sanitize_text_field');
+		$pagination = WDW_FM_Library(self::PLUGIN)->get('pagination', 'none', 'sanitize_text_field');
 		?>
 		<div ng-app="ThemeParams" class="fm-table">
 			<div ng-controller="FMTheme">
@@ -427,7 +445,7 @@ class FMViewThemes_fm extends FMAdminView {
 
 							  </div>
 							  <div class="fm-close-icon" ng-class="{borderRight : CBPBorderRight, borderLeft : CBPBorderLeft, borderBottom : CBPBorderBottom, borderTop : CBPBorderTop, borderHoverRight : CBHPBorderRight, borderHoverLeft : CBHPBorderLeft, borderHoverBottom : CBHPBorderBottom, borderHoverTop : CBHPBorderTop}">
-								<span class="fm-close dashicons dashicons-no" ng-class="{borderRight : CBPBorderRight, borderLeft : CBPBorderLeft, borderBottom : CBPBorderBottom, borderTop : CBPBorderTop, borderHoverRight : CBHPBorderRight, borderHoverLeft : CBHPBorderLeft, borderHoverBottom : CBHPBorderBottom, borderHoverTop : CBHPBorderTop}"></span>
+								<span class="fm-close fm-ico-delete" ng-class="{borderRight : CBPBorderRight, borderLeft : CBPBorderLeft, borderBottom : CBPBorderBottom, borderTop : CBPBorderTop, borderHoverRight : CBHPBorderRight, borderHoverLeft : CBHPBorderLeft, borderHoverBottom : CBHPBorderBottom, borderHoverTop : CBHPBorderTop}"></span>
 							  </div>
 							  <div class="fm-footer" ng-show="pagination != 'none'">
 								<div style="width: 100%;">
@@ -472,124 +490,103 @@ class FMViewThemes_fm extends FMAdminView {
 			  </div>
                 <style>
                     .fm-form {
-                    background-color:{{GPBGColor}} !important;
-                    font-family:{{GPFontFamily}} !important;
-                    width:{{AGPWidth}}% !important;
-                    padding:{{AGPPadding}} !important;
-                    margin:{{AGPMargin}} !important;
-                    border-radius:{{AGPBorderRadius}}px !important;
-                    box-shadow:{{AGPBoxShadow}} !important;
-                    position: relative !important;
+						background-color:{{GPBGColor}} !important;
+						font-family:{{GPFontFamily}} !important;
+						width:{{AGPWidth}}% !important;
+						padding:{{AGPPadding}} !important;
+						margin:{{AGPMargin}} !important;
+						border-radius:{{AGPBorderRadius}}px !important;
+						box-shadow:{{AGPBoxShadow}} !important;
+						position: relative !important;
                     }
-
                     .fm-form-header.alignLeft,
                     .fm-form-content.alignLeft{
-                    border-radius:{{AGPBorderRadius}}px !important;
+						border-radius:{{AGPBorderRadius}}px !important;
                     }
-
                     .fm-form.borderRight{
-                    border-right:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
+						border-right:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
                     }
-
                     .fm-form.borderLeft{
-                    border-left:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
+						border-left:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
                     }
-
                     .fm-form.borderTop{
-                    border-top:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
+						border-top:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
                     }
-
                     .fm-form.borderBottom{
-                    border-bottom:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
+						border-bottom:{{AGPBorderWidth}}px {{AGPBorderType}} {{AGPBorderColor}} !important;
                     }
-
                     .fm-form-content{
-                    font-size:{{GPFontSize}}px !important;
-                    font-weight:{{GPFontWeight}} !important;
-                    width:{{GPWidth}}% !important;
-                    color:{{GPColor}} !important;
-                    padding:{{GPPadding}} !important;
-                    margin:{{GPMargin}} !important;
-                    border-radius:{{GPBorderRadius}}px !important;
+						font-size:{{GPFontSize}}px !important;
+						font-weight:{{GPFontWeight}} !important;
+						width:{{GPWidth}}% !important;
+						color:{{GPColor}} !important;
+						padding:{{GPPadding}} !important;
+						margin:{{GPMargin}} !important;
+						border-radius:{{GPBorderRadius}}px !important;
                     }
-
                     .fm-form-content.isBG{
-                    background:url(<?php echo WDFMInstance(self::PLUGIN)->plugin_url; ?>/{{GPBackground}}) {{GPBackgroundRepeat}} {{GPBGPosition1}} {{GPBGPosition2}} !important;
-                    background-size: {{GPBGSize1}} {{GPPBGSize2}} !important;
+						background:url(<?php echo WDFMInstance(self::PLUGIN)->plugin_url; ?>/{{GPBackground}}) {{GPBackgroundRepeat}} {{GPBGPosition1}} {{GPBGPosition2}} !important;
+						background-size: {{GPBGSize1}} {{GPPBGSize2}} !important;
                     }
-
                     .fm-form-content.borderRight{
-                    border-right:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
+						border-right:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
                     }
-
                     .fm-form-content.borderLeft{
-                    border-left:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
+						border-left:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
                     }
-
                     .fm-form-content.borderTop{
-                    border-top:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
+						border-top:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
                     }
-
                     .fm-form-content.borderBottom{
-                    border-bottom:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
+						border-bottom:{{GPBorderWidth}}px {{GPBorderType}} {{GPBorderColor}} !important;
                     }
-
                     .fm-form-content label{
-                    font-size:{{GPFontSize}}px !important;
+						font-size:{{GPFontSize}}px !important;
                     }
-
                     .fm-form-content .fm-section{
-                    background-color:{{SEPBGColor}} !important;
-                    padding:{{SEPPadding}} !important;
-                    margin:{{SEPMargin}} !important;
+						background-color:{{SEPBGColor}} !important;
+						padding:{{SEPPadding}} !important;
+						margin:{{SEPMargin}} !important;
                     }
-
-
                     .fm-form-content .fm-column{
-                    padding:{{COPPadding}} !important;
-                    margin:{{COPMargin}} !important;
+						padding:{{COPPadding}} !important;
+						margin:{{COPMargin}} !important;
                     }
-
                     .fm-form-content input[type="text"],
                     .fm-form-content input[type="number"],
-                    .fm-form-content select{
-                    font-size:{{IPFontSize}}px !important;
-                    font-weight:{{IPFontWeight}} !important;
-                    height:{{IPHeight}}px !important;
-                    line-height:{{IPHeight}}px !important;
-                    background-color:{{IPBGColor}} !important;
-                    color:{{IPColor}} !important;
-                    padding:{{IPPadding}} !important;
-                    margin:{{IPMargin}} !important;
-                    border-radius:{{IPBorderRadius}}px !important;
-                    box-shadow:{{IPBoxShadow}} !important;
+                    .fm-form-content select {
+						font-size:{{IPFontSize}}px !important;
+						font-weight:{{IPFontWeight}} !important;
+						height:{{IPHeight}}px !important;
+						line-height:{{IPHeight}}px !important;
+						background-color:{{IPBGColor}} !important;
+						color:{{IPColor}} !important;
+						padding:{{IPPadding}} !important;
+						margin:{{IPMargin}} !important;
+						border-radius:{{IPBorderRadius}}px !important;
+						box-shadow:{{IPBoxShadow}} !important;
                     }
-
                     .fm-form-content input[type="text"].borderRight,
                     .fm-form-content select.borderRight{
-                    border-right:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
+						border-right:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
                     }
-
                     .fm-form-content input[type="text"].borderLeft,
                     .fm-form-content select.borderLeft{
-                    border-left:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
+						border-left:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
                     }
-
                     .fm-form-content input[type="text"].borderTop,
                     .fm-form-content select.borderTop{
-                    border-top:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
+						border-top:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
                     }
-
                     .fm-form-content input[type="text"].borderBottom,
                     .fm-form-content select.borderBottom{
-                    border-bottom:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
+						border-bottom:{{IPBorderWidth}}px {{IPBorderType}} {{IPBorderColor}} !important;
                     }
-
                     .fm-form-content select{
-                    appearance: {{SBPAppearance}} !important;
-                    -moz-appearance: {{SBPAppearance}} !important;
-                    -webkit-appearance: {{SBPAppearance}} !important;
-                    background:{{IPBGColor}} !important;
+						appearance: {{SBPAppearance}} !important;
+						-moz-appearance: {{SBPAppearance}} !important;
+						-webkit-appearance: {{SBPAppearance}} !important;
+						background:{{IPBGColor}} !important;
                     }
 
                     .fm-form-content select.isBG{
@@ -597,14 +594,13 @@ class FMViewThemes_fm extends FMAdminView {
                       background-image: url(<?php echo WDFMInstance(self::PLUGIN)->plugin_url; ?>/{{SBPBackground}}) !important;
                       background-repeat: {{SBPBGRepeat}} !important;
                     }
-
                     .fm-form-example label.mini_label{
-                    font-size:{{GPMLFontSize}}px !important;
-                    font-weight:{{GPMLFontWeight}} !important;
-                    color:{{GPMLColor}} !important;
-                    padding:{{GPMLPadding}} !important;
-                    margin:{{GPMLMargin}} !important;
-                    width: initial !important;
+						font-size:{{GPMLFontSize}}px !important;
+						font-weight:{{GPMLFontWeight}} !important;
+						color:{{GPMLColor}} !important;
+						padding:{{GPMLPadding}} !important;
+						margin:{{GPMLMargin}} !important;
+						width: initial !important;
                     }
 
                     .fm-button-reset {

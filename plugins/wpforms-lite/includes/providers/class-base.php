@@ -75,7 +75,7 @@ abstract class WPForms_Provider {
 	public $type;
 
 	/**
-	 * Form data.
+	 * Form data and settings.
 	 *
 	 * @since 1.2.3
 	 *
@@ -90,7 +90,7 @@ abstract class WPForms_Provider {
 	 */
 	public function __construct() {
 
-		$this->type = esc_html__( 'Connection', 'wpforms' );
+		$this->type = esc_html__( 'Connection', 'wpforms-lite' );
 
 		$this->init();
 
@@ -160,23 +160,31 @@ abstract class WPForms_Provider {
 		if ( ! wpforms_current_user_can() ) {
 			wp_send_json_error(
 				array(
-					'error' => esc_html__( 'You do not have permission', 'wpforms' ),
+					'error' => esc_html__( 'You do not have permission', 'wpforms-lite' ),
 				)
 			);
 		}
+
+		$name          = ! empty( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+		$task          = ! empty( $_POST['task'] ) ? sanitize_text_field( wp_unslash( $_POST['task'] ) ) : '';
+		$id            = ! empty( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+		$connection_id = ! empty( $_POST['connection_id'] ) ? sanitize_text_field( wp_unslash( $_POST['connection_id'] ) ) : '';
+		$account_id    = ! empty( $_POST['account_id'] ) ? sanitize_text_field( wp_unslash( $_POST['account_id'] ) ) : '';
+		$list_id       = ! empty( $_POST['list_id'] ) ? sanitize_text_field( wp_unslash( $_POST['list_id'] ) ) : '';
+		$data          = ! empty( $_POST['data'] ) ? array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['data'] ) ) ) : array(); //phpcs:ignore
 
 		/*
 		 * Create new connection.
 		 */
 
-		if ( 'new_connection' === $_POST['task'] ) {
+		if ( 'new_connection' === $task ) {
 
 			$connection = $this->output_connection(
 				'',
 				array(
-					'connection_name' => stripslashes( $_POST['name'] ),
+					'connection_name' => $name,
 				),
-				$_POST['id']
+				$id
 			);
 			wp_send_json_success(
 				array(
@@ -189,9 +197,9 @@ abstract class WPForms_Provider {
 		 * Create new Provider account.
 		 */
 
-		if ( 'new_account' === $_POST['task'] ) {
+		if ( 'new_account' === $task ) {
 
-			$auth = $this->api_auth( stripslashes_deep( wp_parse_args( $_POST['data'], array() ) ), $_POST['id'] );
+			$auth = $this->api_auth( $data, $id );
 
 			if ( is_wp_error( $auth ) ) {
 
@@ -204,7 +212,7 @@ abstract class WPForms_Provider {
 			} else {
 
 				$accounts = $this->output_accounts(
-					$_POST['connection_id'],
+					$connection_id,
 					array(
 						'account_id' => $auth,
 					)
@@ -221,12 +229,12 @@ abstract class WPForms_Provider {
 		 * Select/Toggle Provider accounts.
 		 */
 
-		if ( 'select_account' === $_POST['task'] ) {
+		if ( 'select_account' === $task ) {
 
 			$lists = $this->output_lists(
-				$_POST['connection_id'],
+				$connection_id,
 				array(
-					'account_id' => $_POST['account_id'],
+					'account_id' => $account_id,
 				)
 			);
 
@@ -252,12 +260,16 @@ abstract class WPForms_Provider {
 		 * Select/Toggle Provider account lists.
 		 */
 
-		if ( 'select_list' === $_POST['task'] ) {
+		if ( 'select_list' === $task ) {
 
-			$fields = $this->output_fields( $_POST['connection_id'], array(
-				'account_id' => $_POST['account_id'],
-				'list_id'    => $_POST['list_id'],
-			), $_POST['id'] );
+			$fields = $this->output_fields(
+				$connection_id,
+				array(
+					'account_id' => $account_id,
+					'list_id'    => $list_id,
+				),
+				$id
+			);
 
 			if ( is_wp_error( $fields ) ) {
 
@@ -270,29 +282,29 @@ abstract class WPForms_Provider {
 			} else {
 
 				$groups = $this->output_groups(
-					$_POST['connection_id'],
+					$connection_id,
 					array(
-						'account_id' => $_POST['account_id'],
-						'list_id'    => $_POST['list_id'],
+						'account_id' => $account_id,
+						'list_id'    => $list_id,
 					)
 				);
 
 				$conditionals = $this->output_conditionals(
-					$_POST['connection_id'],
+					$connection_id,
 					array(
-						'account_id' => $_POST['account_id'],
-						'list_id'    => $_POST['list_id'],
+						'account_id' => $account_id,
+						'list_id'    => $list_id,
 					),
 					array(
-						'id' => absint( $_POST['form_id'] ),
+						'id' => absint( $_POST['form_id'] ), //phpcs:ignore
 					)
 				);
 
 				$options = $this->output_options(
-					$_POST['connection_id'],
+					$connection_id,
 					array(
-						'account_id' => $_POST['account_id'],
-						'list_id'    => $_POST['list_id'],
+						'account_id' => $account_id,
+						'list_id'    => $list_id,
 					)
 				);
 
@@ -312,10 +324,10 @@ abstract class WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $fields
-	 * @param array $entry
-	 * @param array $form_data
-	 * @param int $entry_id
+	 * @param array $fields    List of fields in a form.
+	 * @param array $entry     Submitted entry values.
+	 * @param array $form_data Form data and settings.
+	 * @param int   $entry_id  Saved entry ID.
 	 */
 	public function process_entry( $fields, $entry, $form_data, $entry_id ) {
 	}
@@ -325,10 +337,10 @@ abstract class WPForms_Provider {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $fields
-	 * @param array $entry
-	 * @param array $form_data
-	 * @param array $connection
+	 * @param array $fields     List of fields with their data and settings.
+	 * @param array $entry      Submitted entry values.
+	 * @param array $form_data  Form data and settings.
+	 * @param array $connection List of connection settings.
 	 *
 	 * @return bool
 	 */
@@ -466,7 +478,7 @@ abstract class WPForms_Provider {
 					'provider_type' => $form_field_type,
 					'label'         => sprintf(
 						/* translators: %s - Name field label. */
-						esc_html__( '%s (Full)', 'wpforms' ),
+						esc_html__( '%s (Full)', 'wpforms-lite' ),
 						$form_field['label']
 					),
 				);
@@ -481,7 +493,7 @@ abstract class WPForms_Provider {
 						'provider_type' => $form_field_type,
 						'label'         => sprintf(
 							/* translators: %s - Name field label. */
-							esc_html__( '%s (First)', 'wpforms' ),
+							esc_html__( '%s (First)', 'wpforms-lite' ),
 							$form_field['label']
 						),
 					);
@@ -497,7 +509,7 @@ abstract class WPForms_Provider {
 						'provider_type' => $form_field_type,
 						'label'         => sprintf(
 							/* translators: %s - Name field label. */
-							esc_html__( '%s (Middle)', 'wpforms' ),
+							esc_html__( '%s (Middle)', 'wpforms-lite' ),
 							$form_field['label']
 						),
 					);
@@ -513,7 +525,7 @@ abstract class WPForms_Provider {
 						'provider_type' => $form_field_type,
 						'label'         => sprintf(
 							/* translators: %s - Name field label. */
-							esc_html__( '%s (Last)', 'wpforms' ),
+							esc_html__( '%s (Last)', 'wpforms-lite' ),
 							$form_field['label']
 						),
 					);
@@ -719,7 +731,7 @@ abstract class WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-accounts wpforms-connection-block">';
 
-		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'Select Account', 'wpforms' ) );
+		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'Select Account', 'wpforms-lite' ) );
 
 		$output .= sprintf( '<select name="providers[%s][%s][account_id]">', $this->slug, $connection_id );
 		foreach ( $providers[ $this->slug ] as $key => $provider_details ) {
@@ -731,7 +743,7 @@ abstract class WPForms_Provider {
 				esc_html( $provider_details['label'] )
 			);
 		}
-		$output .= sprintf( '<option value="">%s</a>', esc_html__( 'Add New Account', 'wpforms' ) );
+		$output .= sprintf( '<option value="">%s</a>', esc_html__( 'Add New Account', 'wpforms-lite' ) );
 		$output .= '</select>';
 
 		$output .= '</div>';
@@ -764,7 +776,7 @@ abstract class WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-lists wpforms-connection-block">';
 
-		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'Select List', 'wpforms' ) );
+		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'Select List', 'wpforms-lite' ) );
 
 		$output .= sprintf( '<select name="providers[%s][%s][list_id]">', $this->slug, $connection_id );
 
@@ -810,9 +822,9 @@ abstract class WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-groups wpforms-connection-block">';
 
-		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'Select Groups', 'wpforms' ) );
+		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'Select Groups', 'wpforms-lite' ) );
 
-		$output .= sprintf( '<p>%s</p>', esc_html__( 'We also noticed that you have some segments in your list. You can select specific list segments below if needed. This is optional.', 'wpforms' ) );
+		$output .= sprintf( '<p>%s</p>', esc_html__( 'We also noticed that you have some segments in your list. You can select specific list segments below if needed. This is optional.', 'wpforms-lite' ) );
 
 		$output .= '<div class="wpforms-provider-groups-list">';
 
@@ -872,12 +884,12 @@ abstract class WPForms_Provider {
 
 		$output = '<div class="wpforms-provider-fields wpforms-connection-block">';
 
-		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'List Fields', 'wpforms' ) );
+		$output .= sprintf( '<h4>%s</h4>', esc_html__( 'List Fields', 'wpforms-lite' ) );
 
 		// Table with all the fields.
 		$output .= '<table>';
 
-		$output .= sprintf( '<thead><tr><th>%s</th><th>%s</th></thead>', esc_html__( 'List Fields', 'wpforms' ), esc_html__( 'Available Form Fields', 'wpforms' ) );
+		$output .= sprintf( '<thead><tr><th>%s</th><th>%s</th></thead>', esc_html__( 'List Fields', 'wpforms-lite' ), esc_html__( 'Available Form Fields', 'wpforms-lite' ) );
 
 		$output .= '<tbody>';
 
@@ -950,7 +962,7 @@ abstract class WPForms_Provider {
 				'panel'      => $this->slug,
 				'parent'     => 'providers',
 				'subsection' => $connection_id,
-				'reference'  => esc_html__( 'Marketing provider connection', 'wpforms' ),
+				'reference'  => esc_html__( 'Marketing provider connection', 'wpforms-lite' ),
 			),
 			false
 		);
@@ -1066,7 +1078,7 @@ abstract class WPForms_Provider {
 					<?php
 					printf(
 						/* translators: %s - Provider type. */
-						esc_html__( 'Add New %s', 'wpforms' ),
+						esc_html__( 'Add New %s', 'wpforms-lite' ),
 						esc_html( $this->type )
 					);
 					?>
@@ -1132,7 +1144,7 @@ abstract class WPForms_Provider {
 		if ( ! wpforms_current_user_can() ) {
 			wp_send_json_error(
 				array(
-					'error' => esc_html__( 'You do not have permission', 'wpforms' ),
+					'error' => esc_html__( 'You do not have permission', 'wpforms-lite' ),
 				)
 			);
 		}
@@ -1140,7 +1152,7 @@ abstract class WPForms_Provider {
 		if ( empty( $_POST['provider'] ) || empty( $_POST['key'] ) ) {
 			wp_send_json_error(
 				array(
-					'error' => esc_html__( 'Missing data', 'wpforms' ),
+					'error' => esc_html__( 'Missing data', 'wpforms-lite' ),
 				)
 			);
 		}
@@ -1156,7 +1168,7 @@ abstract class WPForms_Provider {
 		} else {
 			wp_send_json_error(
 				array(
-					'error' => esc_html__( 'Connection missing', 'wpforms' ),
+					'error' => esc_html__( 'Connection missing', 'wpforms-lite' ),
 				)
 			);
 		}
@@ -1180,7 +1192,7 @@ abstract class WPForms_Provider {
 		if ( ! wpforms_current_user_can() ) {
 			wp_send_json_error(
 				array(
-					'error' => esc_html__( 'You do not have permission', 'wpforms' ),
+					'error' => esc_html__( 'You do not have permission', 'wpforms-lite' ),
 				)
 			);
 		}
@@ -1188,7 +1200,7 @@ abstract class WPForms_Provider {
 		if ( empty( $_POST['data'] ) ) {
 			wp_send_json_error(
 				array(
-					'error' => esc_html__( 'Missing data', 'wpforms' ),
+					'error' => esc_html__( 'Missing data', 'wpforms-lite' ),
 				)
 			);
 		}
@@ -1200,18 +1212,18 @@ abstract class WPForms_Provider {
 
 			wp_send_json_error(
 				array(
-					'error'     => esc_html__( 'Could not connect to the provider.', 'wpforms' ),
+					'error'     => esc_html__( 'Could not connect to the provider.', 'wpforms-lite' ),
 					'error_msg' => $auth->get_error_message(),
 				)
 			);
 
 		} else {
 
-			$account  = '<li>';
+			$account  = '<li class="wpforms-clear">';
 			$account .= '<span class="label">' . sanitize_text_field( $data['label'] ) . '</span>';
 			/* translators: %s - Connection date. */
-			$account .= '<span class="date">' . sprintf( esc_html__( 'Connected on: %s', 'wpforms' ), date_i18n( get_option( 'date_format', time() ) ) ) . '</span>';
-			$account .= '<a href="#" data-provider="' . $this->slug . '" data-key="' . esc_attr( $auth ) . '">' . esc_html__( 'Disconnect', 'wpforms' ) . '</a>';
+			$account .= '<span class="date">' . sprintf( esc_html__( 'Connected on: %s', 'wpforms-lite' ), date_i18n( get_option( 'date_format', time() ) ) ) . '</span>';
+			$account .= '<span class="remove"><a href="#" data-provider="' . $this->slug . '" data-key="' . esc_attr( $auth ) . '">' . esc_html__( 'Disconnect', 'wpforms-lite' ) . '</a></span>';
 			$account .= '</li>';
 
 			wp_send_json_success(
@@ -1237,7 +1249,7 @@ abstract class WPForms_Provider {
 		$class     = $connected && $accounts ? 'connected' : '';
 		$arrow     = 'right';
 		/* translators: %s - provider name. */
-		$title_connect_to = sprintf( esc_html__( 'Connect to %s', 'wpforms' ), esc_html( $this->name ) );
+		$title_connect_to = sprintf( esc_html__( 'Connect to %s', 'wpforms-lite' ), esc_html( $this->name ) );
 
 		// This lets us highlight a specific service by a special link.
 		if ( ! empty( $_GET['wpforms-integration'] ) ) { //phpcs:ignore
@@ -1255,7 +1267,7 @@ abstract class WPForms_Provider {
 			<div class="wpforms-settings-provider-header wpforms-clear" data-provider="<?php echo esc_attr( $this->slug ); ?>">
 
 				<div class="wpforms-settings-provider-logo">
-					<i title="<?php esc_attr_e( 'Show Accounts', 'wpforms' ); ?>" class="fa fa-chevron-<?php echo esc_attr( $arrow ); ?>"></i>
+					<i title="<?php esc_attr_e( 'Show Accounts', 'wpforms-lite' ); ?>" class="fa fa-chevron-<?php echo esc_attr( $arrow ); ?>"></i>
 					<img src="<?php echo esc_url( $this->icon ); ?>">
 				</div>
 
@@ -1264,10 +1276,10 @@ abstract class WPForms_Provider {
 					<p>
 						<?php
 						/* translators: %s - provider name. */
-						printf( esc_html__( 'Integrate %s with WPForms', 'wpforms' ), esc_html( $this->name ) );
+						printf( esc_html__( 'Integrate %s with WPForms', 'wpforms-lite' ), esc_html( $this->name ) );
 						?>
 					</p>
-					<span class="connected-indicator green"><i class="fa fa-check-circle-o"></i>&nbsp;<?php esc_html_e( 'Connected', 'wpforms' ); ?></span>
+					<span class="connected-indicator green"><i class="fa fa-check-circle-o"></i>&nbsp;<?php esc_html_e( 'Connected', 'wpforms-lite' ); ?></span>
 				</div>
 
 			</div>
@@ -1282,8 +1294,8 @@ abstract class WPForms_Provider {
 								echo '<li class="wpforms-clear">';
 								echo '<span class="label">' . esc_html( $account['label'] ) . '</span>';
 								/* translators: %s - Connection date. */
-								echo '<span class="date">' . sprintf( esc_html__( 'Connected on: %s', 'wpforms' ), date_i18n( get_option( 'date_format' ), intval( $account['date'] ) ) ) . '</span>';
-								echo '<span class="remove"><a href="#" data-provider="' . esc_attr( $this->slug ) . '" data-key="' . esc_attr( $key ) . '">' . esc_html__( 'Disconnect', 'wpforms' ) . '</a></span>';
+								echo '<span class="date">' . sprintf( esc_html__( 'Connected on: %s', 'wpforms-lite' ), date_i18n( get_option( 'date_format' ), intval( $account['date'] ) ) ) . '</span>';
+								echo '<span class="remove"><a href="#" data-provider="' . esc_attr( $this->slug ) . '" data-key="' . esc_attr( $key ) . '">' . esc_html__( 'Disconnect', 'wpforms-lite' ) . '</a></span>';
 								echo '</li>';
 							}
 						}
@@ -1293,14 +1305,14 @@ abstract class WPForms_Provider {
 
 				<p class="wpforms-settings-provider-accounts-toggle">
 					<a class="wpforms-btn wpforms-btn-md wpforms-btn-light-grey" href="#" data-provider="<?php echo esc_attr( $this->slug ); ?>">
-						<i class="fa fa-plus"></i> <?php esc_html_e( 'Add New Account', 'wpforms' ); ?>
+						<i class="fa fa-plus"></i> <?php esc_html_e( 'Add New Account', 'wpforms-lite' ); ?>
 					</a>
 				</p>
 
 				<div class="wpforms-settings-provider-accounts-connect">
 
 					<form>
-						<p><?php esc_html_e( 'Please fill out all of the fields below to add your new provider account.', 'wpforms' ); ?></span></p>
+						<p><?php esc_html_e( 'Please fill out all of the fields below to add your new provider account.', 'wpforms-lite' ); ?></span></p>
 
 						<p class="wpforms-settings-provider-accounts-connect-fields">
 							<?php $this->integrations_tab_new_form(); ?>

@@ -3,6 +3,7 @@
 namespace DeliciousBrains\WPMDB\Common\Filesystem;
 
 use DeliciousBrains\WPMDB\Common\Util\Singleton;
+use DeliciousBrains\WPMDB\Common\Util\Util;
 use DeliciousBrains\WPMDB\Container;
 
 class Filesystem {
@@ -38,12 +39,7 @@ class Filesystem {
 	 *
 	 * @param bool $force_no_fs
 	 */
-	public function __construct( $force_no_fs = false ) {
-		if ( ! $force_no_fs && function_exists( 'request_filesystem_credentials' ) ) {
-			if ( ( defined( 'WPMDB_WP_FILESYSTEM' ) && WPMDB_WP_FILESYSTEM ) || ! defined( 'WPMDB_WP_FILESYSTEM' ) ) {
-				$this->maybe_init_wp_filesystem();
-			}
-		}
+	public function __construct() {
 
 		// Set default permissions
 		if ( defined( 'FS_CHMOD_DIR' ) ) {
@@ -59,6 +55,25 @@ class Filesystem {
 		}
 
 		$this->container = Container::getInstance();
+	}
+
+	public function register() {
+		add_action( 'tools_page_wp-migrate-db-pro', [ $this, 'check_for_wp_filesystem' ] ); // Single sites
+		add_action( 'tools_page_wp-migrate-db', [ $this, 'check_for_wp_filesystem' ] );
+		add_action( 'settings_page_wp-migrate-db-pro', [ $this, 'check_for_wp_filesystem' ] ); // Multisites
+		add_action( 'settings_page_wp-migrate-db', [ $this, 'check_for_wp_filesystem' ] );
+
+		if ( Util::is_wpmdb_ajax_call() ) {
+			add_action( 'admin_init', [ $this, 'check_for_wp_filesystem' ] );
+		}
+	}
+
+	public function check_for_wp_filesystem() {
+		if ( function_exists( 'request_filesystem_credentials' ) ) {
+			if ( ( defined( 'WPMDB_WP_FILESYSTEM' ) && WPMDB_WP_FILESYSTEM ) || ! defined( 'WPMDB_WP_FILESYSTEM' ) ) {
+				$this->maybe_init_wp_filesystem();
+			}
+		}
 	}
 
 	/**
@@ -110,7 +125,7 @@ class Filesystem {
 	 */
 	public function maybe_init_wp_filesystem() {
 		ob_start();
-		$this->credentials = request_filesystem_credentials( '', '', false, false, null );
+		$this->credentials = \request_filesystem_credentials( '', '', false, false, null );
 		$ob_contents       = ob_get_contents();
 		ob_end_clean();
 

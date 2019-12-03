@@ -1,32 +1,37 @@
 <?php
 
 // Create a helper function for easy SDK access.
-function dgora_asfw_fs() {
-	global $dgora_asfw_fs;
-
-	if ( ! isset( $dgora_asfw_fs ) ) {
-		// Include Freemius SDK.
-		require_once dirname(__FILE__) . '/lib/start.php';
-
-		$dgora_asfw_fs = fs_dynamic_init( array(
-			'id'                  => '700',
-			'slug'                => 'ajax-search-for-woocommerce',
-			'type'                => 'plugin',
-			'public_key'          => 'pk_f4f2a51dbe0aee43de0692db77a3e',
-			'is_premium'          => false,
-			'has_addons'          => false,
-			'has_paid_plans'      => false,
-            'menu'                => array(
-                'slug'           => 'dgwt_wcas_settings',
-                'support'        => false,
-            )
-		) );
-	}
-
-	return $dgora_asfw_fs;
+function dgoraAsfwFs()
+{
+    global  $dgoraAsfwFs ;
+    
+    if ( !isset( $dgoraAsfwFs ) ) {
+        // Include Freemius SDK.
+        require_once dirname( __FILE__ ) . '/lib/start.php';
+        $dgoraAsfwFs = fs_dynamic_init( array(
+            'id'             => '700',
+            'slug'           => 'ajax-search-for-woocommerce',
+            'type'           => 'plugin',
+            'public_key'     => 'pk_f4f2a51dbe0aee43de0692db77a3e',
+            'is_premium'     => false,
+            'premium_suffix' => 'Pro',
+            'has_addons'     => false,
+            'has_paid_plans' => true,
+            'menu'           => array(
+            'slug'    => 'dgwt_wcas_settings',
+            'support' => false,
+        ),
+            'is_live'        => true,
+        ) );
+    }
+    
+    return $dgoraAsfwFs;
 }
 
 // Init Freemius.
-dgora_asfw_fs();
+dgoraAsfwFs();
 // Signal that SDK was initiated.
-do_action( 'dgora_asfw_fs_loaded' );
+do_action( 'dgoraAsfwFs_loaded' );
+dgoraAsfwFs()->add_filter( 'plugin_icon', function () {
+    return dirname( dirname( __FILE__ ) ) . '/assets/img/logo-128.png';
+} );

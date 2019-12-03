@@ -87,12 +87,16 @@ jQuery(function($) {
 				lat: parseFloat(parts[0]),
 				lng: parseFloat(parts[1])
 			});
+			
+			// NB: Quick fix, solves issue with right click marker. Solve this there by making behaviour consistent
+			latLng.latLng = latLng;
+			
 			callback([latLng], WPGMZA.Geocoder.SUCCESS);
 		}
 	}
 	
 	/**
-	 * Attempts to convert latitud eand longitude coordinates into a street address. By default this will simply return the coordinates wrapped in an array.
+	 * Attempts to convert latitude eand longitude coordinates into a street address. By default this will simply return the coordinates wrapped in an array.
 	 * @method
 	 * @memberof WPGMZA.Geocoder
 	 * @param {object} options The options to geocode, latLng is mandatory.

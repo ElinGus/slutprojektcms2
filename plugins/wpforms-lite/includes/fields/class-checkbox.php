@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Checkbox field.
  *
@@ -18,25 +19,25 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	public function init() {
 
 		// Define field type information.
-		$this->name     = esc_html__( 'Checkboxes', 'wpforms' );
+		$this->name     = esc_html__( 'Checkboxes', 'wpforms-lite' );
 		$this->type     = 'checkbox';
 		$this->icon     = 'fa-check-square-o';
-		$this->order    = 11;
+		$this->order    = 110;
 		$this->defaults = array(
 			1 => array(
-				'label'   => esc_html__( 'First Choice', 'wpforms' ),
+				'label'   => esc_html__( 'First Choice', 'wpforms-lite' ),
 				'value'   => '',
 				'image'   => '',
 				'default' => '',
 			),
 			2 => array(
-				'label'   => esc_html__( 'Second Choice', 'wpforms' ),
+				'label'   => esc_html__( 'Second Choice', 'wpforms-lite' ),
 				'value'   => '',
 				'image'   => '',
 				'default' => '',
 			),
 			3 => array(
-				'label'   => esc_html__( 'Third Choice', 'wpforms' ),
+				'label'   => esc_html__( 'Third Choice', 'wpforms-lite' ),
 				'value'   => '',
 				'image'   => '',
 				'default' => '',
@@ -57,7 +58,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	 *
 	 * @param string $value     Field value.
 	 * @param array  $field     Field settings.
-	 * @param array  $form_data Form data.
+	 * @param array  $form_data Form data and settings.
 	 * @param string $context   Value display context.
 	 *
 	 * @return string
@@ -69,7 +70,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		// filter to disable fancy display.
 		if (
 			! empty( $field['value'] ) &&
-			'checkbox' === $field['type'] &&
+			$this->type === $field['type'] &&
 			! empty( $field['images'] ) &&
 			'entry-table' !== $context &&
 			apply_filters( 'wpforms_checkbox_field_html_value_images', true, $context )
@@ -81,7 +82,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 			foreach ( $values as $key => $val ) {
 
 				if ( ! empty( $field['images'][ $key ] ) ) {
-					$items[] = sprintf( '<span style="max-width:200px;display:block;margin:0 0 5px 0;"><img src="%s" style="max-width:100%%;display:block;margin:0;"></span>%s',
+					$items[] = sprintf(
+						'<span style="max-width:200px;display:block;margin:0 0 5px 0;"><img src="%s" style="max-width:100%%;display:block;margin:0;"></span>%s',
 						esc_url( $field['images'][ $key ] ),
 						$val
 					);
@@ -103,7 +105,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	 *
 	 * @param array $properties Field properties.
 	 * @param array $field      Field settings.
-	 * @param array $form_data  Form data.
+	 * @param array $form_data  Form data and settings.
 	 *
 	 * @return array
 	 */
@@ -127,13 +129,32 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		$properties['input_container'] = array(
 			'class' => array( ! empty( $field['random'] ) ? 'wpforms-randomize' : '' ),
 			'data'  => array(),
+			'attr'  => array(),
 			'id'    => "wpforms-{$form_id}-field_{$field_id}",
 		);
+
+		$field['choice_limit'] = empty( $field['choice_limit'] ) ? 0 : (int) $field['choice_limit'];
+		if ( $field['choice_limit'] > 0 ) {
+			$properties['input_container']['data']['choice-limit'] = $field['choice_limit'];
+		}
 
 		// Set input properties.
 		foreach ( $choices as $key => $choice ) {
 
+			// Used for dynamic choices.
 			$depth = isset( $choice['depth'] ) ? absint( $choice['depth'] ) : 1;
+
+			// Choice labels should not be left blank, but if they are we
+			// provide a basic value.
+			$value = isset( $field['show_values'] ) ? $choice['value'] : $choice['label'];
+			if ( '' === $value ) {
+				if ( 1 === count( $choices ) ) {
+					$value = esc_html__( 'Checked', 'wpforms-lite' );
+				} else {
+					/* translators: %s - choice number. */
+					$value = sprintf( esc_html__( 'Choice %s', 'wpforms-lite' ), $key );
+				}
+			}
 
 			$properties['inputs'][ $key ] = array(
 				'container' => array(
@@ -153,7 +174,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 				),
 				'attr'      => array(
 					'name'  => "wpforms[fields][{$field_id}][]",
-					'value' => isset( $field['show_values'] ) ? $choice['value'] : $choice['label'],
+					'value' => $value,
 				),
 				'class'     => array(),
 				'data'      => array(),
@@ -162,6 +183,11 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 				'required'  => ! empty( $field['required'] ) ? 'required' : '',
 				'default'   => isset( $choice['default'] ),
 			);
+
+			// Rule for validator only if needed.
+			if ( $field['choice_limit'] > 0 ) {
+				$properties['inputs'][ $key ]['data']['rule-check-limit'] = 'true';
+			}
 		}
 
 		// Required class for pagebreak validation.
@@ -209,15 +235,18 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	 * @param array $field Field settings.
 	 */
 	public function field_options( $field ) {
-
-		// -------------------------------------------------------------------//
-		// Basic field options
-		// -------------------------------------------------------------------//
+		/*
+		 * Basic field options.
+		 */
 
 		// Options open markup.
-		$this->field_option( 'basic-options', $field, array(
-			'markup' => 'open',
-		) );
+		$this->field_option(
+			'basic-options',
+			$field,
+			array(
+				'markup' => 'open',
+			)
+		);
 
 		// Label.
 		$this->field_option( 'label', $field );
@@ -235,18 +264,26 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		$this->field_option( 'required', $field );
 
 		// Options close markup.
-		$this->field_option( 'basic-options', $field, array(
-			'markup' => 'close',
-		) );
+		$this->field_option(
+			'basic-options',
+			$field,
+			array(
+				'markup' => 'close',
+			)
+		);
 
-		// -------------------------------------------------------------------//
-		// Advanced field options
-		// -------------------------------------------------------------------//
+		/*
+		 * Advanced field options
+		 */
 
 		// Options open markup.
-		$this->field_option( 'advanced-options', $field, array(
-			'markup' => 'open',
-		) );
+		$this->field_option(
+			'advanced-options',
+			$field,
+			array(
+				'markup' => 'open',
+			)
+		);
 
 		// Randomize order of choices.
 		$this->field_element(
@@ -260,8 +297,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 					array(
 						'slug'    => 'random',
 						'value'   => isset( $field['random'] ) ? '1' : '0',
-						'desc'    => esc_html__( 'Randomize Choices', 'wpforms' ),
-						'tooltip' => esc_html__( 'Check this option to randomize the order of the choices.', 'wpforms' ),
+						'desc'    => esc_html__( 'Randomize Choices', 'wpforms-lite' ),
+						'tooltip' => esc_html__( 'Check this option to randomize the order of the choices.', 'wpforms-lite' ),
 					),
 					false
 				),
@@ -270,21 +307,25 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 
 		// Show Values toggle option. This option will only show if already used
 		// or if manually enabled by a filter.
-		if ( ! empty( $field['show_values'] ) || apply_filters( 'wpforms_fields_show_options_setting', false ) ) {
-			$this->field_element( 'row', $field, array(
-				'slug'    => 'show_values',
-				'content' => $this->field_element(
-					'checkbox',
-					$field,
-					array(
-						'slug'    => 'show_values',
-						'value'   => isset( $field['show_values'] ) ? $field['show_values'] : '0',
-						'desc'    => esc_html__( 'Show Values', 'wpforms' ),
-						'tooltip' => esc_html__( 'Check this to manually set form field values.', 'wpforms' ),
+		if ( ! empty( $field['show_values'] ) || wpforms_show_fields_options_setting() ) {
+			$this->field_element(
+				'row',
+				$field,
+				array(
+					'slug'    => 'show_values',
+					'content' => $this->field_element(
+						'checkbox',
+						$field,
+						array(
+							'slug'    => 'show_values',
+							'value'   => isset( $field['show_values'] ) ? $field['show_values'] : '0',
+							'desc'    => esc_html__( 'Show Values', 'wpforms-lite' ),
+							'tooltip' => esc_html__( 'Check this to manually set form field values.', 'wpforms-lite' ),
+						),
+						false
 					),
-					false
-				),
-			) );
+				)
+			);
 		}
 
 		// Choices Images Style (theme).
@@ -292,6 +333,36 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 
 		// Display format.
 		$this->field_option( 'input_columns', $field );
+
+		// Choice Limit.
+		$field['choice_limit'] = empty( $field['choice_limit'] ) ? 0 : (int) $field['choice_limit'];
+		$this->field_element(
+			'row',
+			$field,
+			array(
+				'slug'    => 'choice_limit',
+				'content' =>
+					$this->field_element(
+						'label',
+						$field,
+						array(
+							'slug'    => 'choice_limit',
+							'value'   => esc_html__( 'Choice Limit', 'wpforms-lite' ),
+							'tooltip' => esc_html__( 'Limit the number of checkboxes a user can select. Leave empty for unlimited.', 'wpforms-lite' ),
+						),
+						false
+					) . $this->field_element(
+						'text',
+						$field,
+						array(
+							'slug'  => 'choice_limit',
+							'value' => $field['choice_limit'] > 0 ? $field['choice_limit'] : '',
+							'type'  => 'number',
+						),
+						false
+					),
+			)
+		);
 
 		// Hide label.
 		$this->field_option( 'label_hide', $field );
@@ -305,7 +376,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		// Dynamic choice source.
 		$this->field_option( 'dynamic_choices_source', $field );
 
-		// Enable Disclaimer formating.
+		// Enable Disclaimer formatting.
 		$this->field_element(
 			'row',
 			$field,
@@ -317,8 +388,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 					array(
 						'slug'    => 'disclaimer_format',
 						'value'   => isset( $field['disclaimer_format'] ) ? '1' : '0',
-						'desc'    => esc_html__( 'Enable Disclaimer / Terms of Service Display', 'wpforms' ),
-						'tooltip' => esc_html__( 'Check this option to adjust the field styling to support Disclaimers and Terms of Service type agreements.', 'wpforms' ),
+						'desc'    => esc_html__( 'Enable Disclaimer / Terms of Service Display', 'wpforms-lite' ),
+						'tooltip' => esc_html__( 'Check this option to adjust the field styling to support Disclaimers and Terms of Service type agreements.', 'wpforms-lite' ),
 					),
 					false
 				),
@@ -326,9 +397,13 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		);
 
 		// Options close markup.
-		$this->field_option( 'advanced-options', $field, array(
-			'markup' => 'close',
-		) );
+		$this->field_option(
+			'advanced-options',
+			$field,
+			array(
+				'markup' => 'close',
+			)
+		);
 	}
 
 	/**
@@ -347,9 +422,13 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		$this->field_preview_option( 'choices', $field );
 
 		// Description.
-		$this->field_preview_option( 'description', $field, array(
-			'class' => ! empty( $field['disclaimer_format'] ) ? 'disclaimer nl2br' : false,
-		) );
+		$this->field_preview_option(
+			'description',
+			$field,
+			array(
+				'class' => ! empty( $field['disclaimer_format'] ) ? 'disclaimer nl2br' : false,
+			)
+		);
 	}
 
 	/**
@@ -359,19 +438,44 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	 *
 	 * @param array $field      Field settings.
 	 * @param array $deprecated Deprecated array.
-	 * @param array $form_data  Form data.
+	 * @param array $form_data  Form data and settings.
 	 */
 	public function field_display( $field, $deprecated, $form_data ) {
+		$using_image_choices = empty( $field['dynamic_choices'] ) && ! empty( $field['choices_images'] );
 
 		// Define data.
 		$container = $field['properties']['input_container'];
 		$choices   = $field['properties']['inputs'];
 
-		printf( '<ul %s>',
-			wpforms_html_attributes( $container['id'], $container['class'], $container['data'] )
+		$amp_state_id = '';
+		if ( wpforms_is_amp() && $using_image_choices ) {
+			$amp_state_id = str_replace( '-', '_', sanitize_key( $container['id'] ) ) . '_state';
+			$state        = array();
+			foreach ( $choices as $key => $choice ) {
+				$state[ $choice['id'] ] = ! empty( $choice['default'] );
+			}
+			printf(
+				'<amp-state id="%s"><script type="application/json">%s</script></amp-state>',
+				esc_attr( $amp_state_id ),
+				wp_json_encode( $state )
+			);
+		}
+
+		printf(
+			'<ul %s>',
+			wpforms_html_attributes( $container['id'], $container['class'], $container['data'], $container['attr'] )
 		);
 
 			foreach ( $choices as $key => $choice ) {
+
+				if ( wpforms_is_amp() && $using_image_choices ) {
+					$choice['container']['attr']['[class]'] = sprintf(
+						'%s + ( %s[%s] ? " wpforms-selected" : "")',
+						wp_json_encode( implode( ' ', $choice['container']['class'] ) ),
+						$amp_state_id,
+						wp_json_encode( $choice['id'] )
+					);
+				}
 
 				// If the field is required, has the label hidden, and has
 				// disclaimer mode enabled, so the required status in choice
@@ -381,19 +485,39 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 					$required = wpforms_get_field_required_label();
 				}
 
-				printf( '<li %s>',
+				printf(
+					'<li %s>',
 					wpforms_html_attributes( $choice['container']['id'], $choice['container']['class'], $choice['container']['data'], $choice['container']['attr'] )
 				);
 
-					if ( empty( $field['dynamic_choices'] ) && ! empty( $field['choices_images'] ) ) {
+					// The required constraint in HTML5 form validation does not work with checkbox groups, so omit in AMP.
+					$required_attr = wpforms_is_amp() && count( $choices ) > 1 ? '' : $choice['required'];
+
+					if ( $using_image_choices ) {
+
+						// Make sure the image choices are keyboard-accessible.
+						$choice['label']['attr']['tabindex'] = 0;
+
+						if ( wpforms_is_amp() ) {
+							$choice['label']['attr']['on']   = sprintf(
+								'tap:AMP.setState({ %s: { %s: ! %s[%s] } })',
+								wp_json_encode( $amp_state_id ),
+								wp_json_encode( $choice['id'] ),
+								$amp_state_id,
+								wp_json_encode( $choice['id'] )
+							);
+							$choice['label']['attr']['role'] = 'button';
+						}
 
 						// Image choices.
-						printf( '<label %s>',
+						printf(
+							'<label %s>',
 							wpforms_html_attributes( $choice['label']['id'], $choice['label']['class'], $choice['label']['data'], $choice['label']['attr'] )
 						);
 
 							if ( ! empty( $choice['image'] ) ) {
-								printf( '<span class="wpforms-image-choices-image"><img src="%s" alt="%s"%s></span>',
+								printf(
+									'<span class="wpforms-image-choices-image"><img src="%s" alt="%s"%s></span>',
 									esc_url( $choice['image'] ),
 									esc_attr( $choice['label']['text'] ),
 									! empty( $choice['label']['text'] ) ? ' title="' . esc_attr( $choice['label']['text'] ) . '"' : ''
@@ -404,9 +528,20 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 								echo '<br>';
 							}
 
-							printf( '<input type="checkbox" %s %s %s>',
+							$choice['attr']['tabindex'] = '-1';
+
+							if ( wpforms_is_amp() ) {
+								$choice['attr']['[checked]'] = sprintf(
+									'%s[%s]',
+									$amp_state_id,
+									wp_json_encode( $choice['id'] )
+								);
+							}
+
+							printf(
+								'<input type="checkbox" %s %s %s>',
 								wpforms_html_attributes( $choice['id'], $choice['class'], $choice['data'], $choice['attr'] ),
-								esc_attr( $choice['required'] ),
+								esc_attr( $required_attr ),
 								checked( '1', $choice['default'], false )
 							);
 
@@ -417,17 +552,19 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 					} else {
 
 						// Normal display.
-						printf( '<input type="checkbox" %s %s %s>',
+						printf(
+							'<input type="checkbox" %s %s %s>',
 							wpforms_html_attributes( $choice['id'], $choice['class'], $choice['data'], $choice['attr'] ),
-							esc_attr( $choice['required'] ),
+							esc_attr( $required_attr ),
 							checked( '1', $choice['default'], false )
 						);
 
-						printf( '<label %s>%s%s</label>',
+						printf(
+							'<label %s>%s%s</label>',
 							wpforms_html_attributes( $choice['label']['id'], $choice['label']['class'], $choice['label']['data'], $choice['label']['attr'] ),
 							wp_kses_post( $choice['label']['text'] ),
 							$required
-						); // WPCS: XSS ok.
+						); // phpcs:ignore
 					}
 
 				echo '</li>';
@@ -437,13 +574,47 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	}
 
 	/**
+	 * Validates field on form submit.
+	 *
+	 * @since 1.5.2
+	 *
+	 * @param int   $field_id       field ID.
+	 * @param array $field_submit   submitted data.
+	 * @param array $form_data      form data.
+	 */
+	public function validate( $field_id, $field_submit, $form_data ) {
+
+		$field_submit  = (array) $field_submit;
+		$choice_limit  = empty( $form_data['fields'][ $field_id ]['choice_limit'] ) ? 0 : (int) $form_data['fields'][ $field_id ]['choice_limit'];
+		$count_choices = count( $field_submit );
+
+		if ( $choice_limit > 0 && $count_choices > $choice_limit ) {
+			// Generating the error.
+			$error = wpforms_setting( 'validation-check-limit', esc_html__( 'You have exceeded the number of allowed selections: {#}.', 'wpforms-lite' ) );
+			$error = str_replace( '{#}', $choice_limit, $error );
+		}
+
+		// Basic required check - If field is marked as required, check for entry data.
+		if (
+			! empty( $form_data['fields'][ $field_id ]['required'] ) &&
+			( empty( $field_submit ) || ( 1 === count( $field_submit ) && empty( $field_submit[0] ) ) )
+		) {
+			$error = wpforms_get_required_label();
+		}
+
+		if ( ! empty( $error ) ) {
+			wpforms()->process->errors[ $form_data['id'] ][ $field_id ] = $error;
+		}
+	}
+
+	/**
 	 * Formats and sanitizes field.
 	 *
 	 * @since 1.0.2
 	 *
 	 * @param int   $field_id     Field ID.
 	 * @param array $field_submit Submitted form data.
-	 * @param array $form_data    Form data.
+	 * @param array $form_data    Form data and settings.
 	 */
 	public function format( $field_id, $field_submit, $form_data ) {
 
@@ -481,7 +652,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 
 			$data['value'] = ! empty( $posts ) ? wpforms_sanitize_array_combine( $posts ) : '';
 
-		} elseif ( 'taxonomy' === $dynamic && ! empty( $field['dynamic_taxonomy'] ) ) {
+		}
+		elseif ( 'taxonomy' === $dynamic && ! empty( $field['dynamic_taxonomy'] ) ) {
 
 			// Dynamic population is enabled using taxonomy.
 			$value_raw                = implode( ',', array_map( 'absint', $field_submit ) );
@@ -501,7 +673,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 
 			$data['value'] = ! empty( $terms ) ? wpforms_sanitize_array_combine( $terms ) : '';
 
-		} else {
+		}
+		else {
 
 			// Normal processing, dynamic population is off.
 			$choice_keys = array();
@@ -513,7 +686,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 
 				foreach ( $field_submit as $item ) {
 					foreach ( $field['choices'] as $key => $choice ) {
-						if ( $item == $choice['value'] ) {
+						if ( $item === $choice['value'] || ( empty( $choice['value'] ) && (int) str_replace( 'Choice ', '', $item ) === $key ) ) {
 							$value[]       = $choice['label'];
 							$choice_keys[] = $key;
 							break;
@@ -539,7 +712,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 			}
 
 			// Images choices are enabled, lookup and store image URLs.
-			if ( ! empty( $field['choices_images'] ) && ! empty( $choice_keys ) ) {
+			if ( ! empty( $choice_keys ) && ! empty( $field['choices_images'] ) ) {
 
 				$data['images'] = array();
 
@@ -553,4 +726,5 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		wpforms()->process->fields[ $field_id ] = $data;
 	}
 }
+
 new WPForms_Field_Checkbox();

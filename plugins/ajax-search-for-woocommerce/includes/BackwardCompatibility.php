@@ -467,7 +467,7 @@ class BackwardCompatibility
                 <br/>
                 <br/>
                 <p>
-                    <?php _e('If you have any questions, do not hesitate contact our support <a href="mailto:support@dgora.zendesk.com">support@dgora.zendesk.com</a> or <a href="https://wordpress.org/support/plugin/ajax-search-for-woocommerce" target="_blank">write on the WordPress.org Support</a>.', 'ajax-search-for-woocommerce'); ?>
+                    <?php _e('If you have any questions, do not hesitate contact <a href="mailto:dgoraplugins@gmail.com?subject=Ajax Search for WooCommerce - Update problem">our support </a> or <a href="https://wordpress.org/support/plugin/ajax-search-for-woocommerce" target="_blank">write on the WordPress.org Support</a>.', 'ajax-search-for-woocommerce'); ?>
                 </p>
 
             </div>

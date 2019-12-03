@@ -32,6 +32,13 @@
             "wpgmza"
         ]
     },
+    "wpgmza-elias-fano": {
+        "src": "js\/v8\/elias-fano.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
     "wpgmza-event-dispatcher": {
         "src": "js\/v8\/event-dispatcher.js",
         "pro": false,
@@ -41,6 +48,13 @@
     },
     "wpgmza-event": {
         "src": "js\/v8\/event.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
+    "wpgmza-fancy-controls": {
+        "src": "js\/v8\/fancy-controls.js",
         "pro": false,
         "dependencies": [
             "wpgmza"
@@ -88,6 +102,13 @@
             "wpgmza"
         ]
     },
+    "wpgmza-map-edit-page": {
+        "src": "js\/v8\/map-edit-page.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
     "wpgmza-map-object": {
         "src": "js\/v8\/map-object.js",
         "pro": false,
@@ -123,6 +144,13 @@
             "wpgmza"
         ]
     },
+    "wpgmza-marker-filter": {
+        "src": "js\/v8\/marker-filter.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-event-dispatcher"
+        ]
+    },
     "wpgmza-marker": {
         "src": "js\/v8\/marker.js",
         "pro": false,
@@ -146,6 +174,13 @@
     },
     "wpgmza-native-maps-app-icon": {
         "src": "js\/v8\/native-maps-icon.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
+    "wpgmza-polyfills": {
+        "src": "js\/v8\/polyfills.js",
         "pro": false,
         "dependencies": [
             "wpgmza"
@@ -179,6 +214,41 @@
             "wpgmza"
         ]
     },
+    "wpgmza-settings-page": {
+        "src": "js\/v8\/settings-page.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
+    "wpgmza-store-locator": {
+        "src": "js\/v8\/store-locator.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-event-dispatcher"
+        ]
+    },
+    "wpgmza-text": {
+        "src": "js\/v8\/text.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
+    "wpgmza-theme-editor": {
+        "src": "js\/v8\/theme-editor.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-event-dispatcher"
+        ]
+    },
+    "wpgmza-theme-panel": {
+        "src": "js\/v8\/theme-panel.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
     "wpgmza-version": {
         "src": "js\/v8\/version.js",
         "pro": false,
@@ -204,6 +274,13 @@
             "wp-components"
         ]
     },
+    "wpgmza-astra-theme-compatiblity": {
+        "src": "js\/v8\/compatibility\/astra-theme-compatibility.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
+        ]
+    },
     "wpgmza-google-ui-compatibility": {
         "src": "js\/v8\/compatibility\/google-ui-compatibility.js",
         "pro": false,
@@ -223,6 +300,13 @@
         "pro": false,
         "dependencies": [
             "wpgmza-geocoder"
+        ]
+    },
+    "wpgmza-google-html-overlay": {
+        "src": "js\/v8\/google-maps\/google-html-overlay.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
         ]
     },
     "wpgmza-google-info-window": {
@@ -272,6 +356,20 @@
         "pro": false,
         "dependencies": [
             "wpgmza-polyline"
+        ]
+    },
+    "wpgmza-google-text-overlay": {
+        "src": "js\/v8\/google-maps\/google-text-overlay.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-google-text"
+        ]
+    },
+    "wpgmza-google-text": {
+        "src": "js\/v8\/google-maps\/google-text.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-text"
         ]
     },
     "wpgmza-google-vertex-context-menu": {
@@ -342,6 +440,27 @@
         "pro": false,
         "dependencies": [
             "wpgmza-polyline"
+        ]
+    },
+    "wpgmza-ol-text": {
+        "src": "js\/v8\/open-layers\/ol-text.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-text"
+        ]
+    },
+    "wpgmza-admin-marker-data-table": {
+        "src": "js\/v8\/tables\/admin-marker-datatable.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza-data-table"
+        ]
+    },
+    "wpgmza-data-table": {
+        "src": "js\/v8\/tables\/datatable.js",
+        "pro": false,
+        "dependencies": [
+            "wpgmza"
         ]
     }
 }

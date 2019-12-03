@@ -88,6 +88,18 @@ class FMControllerSelect_data_from_db extends FMAdminController {
     $params['field_type'] = $field_type;
     $params['label'] = $label;
     $params['table_struct'] = $table_struct;
+	// Set placeholders.
+	$user_fields = array(
+		"ip" => "Submitter's IP",
+		"userid" => "User ID",
+		"username" => "Username",
+		"useremail" => "User Email"
+	);
+	$html_placeholders = '';
+	foreach ( $user_fields as $user_key => $user_field ) {
+		$html_placeholders .= '<a onclick="insert_placeholder(\'' . $user_key . '\'); jQuery(\'#fm-placeholder\').hide();" style="display:block; text-decoration:none;">' . $user_field . "</a>\r\n";
+	}
+    $params['html_placeholders'] = $html_placeholders;
     $this->view->db_table_struct_select($params);
   }
 }

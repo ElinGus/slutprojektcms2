@@ -130,7 +130,7 @@ class FMModelSubmissions_fm extends FMAdminModel {
     $where2 = array();
 
 	$order_by 		= WDW_FM_Library(self::PLUGIN)->get('order_by', 'group_id');
-	$asc_or_desc  	= WDW_FM_Library(self::PLUGIN)->get('asc_or_desc', 'desc');
+	$asc_or_desc = (WDW_FM_Library(self::PLUGIN)->get('asc_or_desc', 'desc') == 'desc' ? 'desc' : 'asc');
 	$lists['hide_label_list'] 	= WDW_FM_Library(self::PLUGIN)->get('hide_label_list', '');
 	$lists['startdate'] 		= WDW_FM_Library(self::PLUGIN)->get('startdate', '');
 	$lists['enddate'] 			= WDW_FM_Library(self::PLUGIN)->get('enddate', '');

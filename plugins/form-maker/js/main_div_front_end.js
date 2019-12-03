@@ -11,14 +11,29 @@ jQuery(document).ready(function () {
   // Scroll to form notice.
   if ( jQuery(".fm-form").find(".fm-message").length !== 0) {
     jQuery(window).scrollTop(jQuery(".fm-message").offset().top - 100);
+      var is_safari = navigator.userAgent.toLowerCase().indexOf('safari/') > -1;
+      if( is_safari ) {
+          document.scrollingElement.scrollTop = jQuery(".fm-message").offset().top - 100; / For Safari./
+      }
   }
 
   // Scroll to captcha field notice.
   if ( jQuery(".fm-form").find(".message_captcha").length !== 0 ) {
     var form_id = jQuery('.fm-form').attr('name').split("form")[1];
-    var element_offset = jQuery(jQuery("#form" + form_id + " .message_captcha")).offset().top;
-    jQuery(".fm-form").find(".message_captcha").parents('.wdform-field').find('.wdform-label').addClass('error_label');
-    jQuery('html').animate({scrollTop: element_offset-150 },500);
+	if ( jQuery("#form" + form_id + " .message_captcha").length !== 0 ) {
+		var element_offset = jQuery(jQuery("#form" + form_id + " .message_captcha")).offset().top;
+		jQuery(".fm-form").find(".message_captcha").parents('.wdform-field').find('.wdform-label').addClass('error_label');
+		jQuery('html').animate({scrollTop: element_offset-150 },500);
+		document.scrollingElement.scrollTop = element_offset - 150; /* For Safari.*/
+	}
+  }
+});
+
+jQuery(window).on("load", function () {
+  if (jQuery(".g-recaptcha").length > 0) {
+    if (jQuery(".g-recaptcha").data("render") != 1) {
+      fmRecaptchaInit( 0 );
+    }
   }
 });
 
@@ -117,7 +132,7 @@ function set_total_value(form_id) {
     }
   });
   var FormPaypalTax = eval("FormPaypalTax_" + form_id);
-  if(FormPaypalTax != 0) {
+  if ( FormPaypalTax != 0 ) {
     div_paypal_tax.html('Tax: ' + FormCurrency + (((total)*FormPaypalTax) / 100).toFixed(2));
   }
   jQuery('.div_total'+form_id).html(FormCurrency + (parseFloat((total *(1+FormPaypalTax/100)).toFixed(2))+total_shipping).toFixed(2));
@@ -181,6 +196,8 @@ function select_star_rating(id,el_id,form_id, color,star_amount) {
     document.getElementById(el_id+'_star_'+k+'_'+form_id).src=fm_objectL10n.plugin_url+"/images/star.png";
   }
   document.getElementById(el_id+'_selected_star_amount'+form_id).value=id+1;
+  /* Trigger change event after rating change to make work condition.*/
+  jQuery("#" + el_id+'_selected_star_amount'+form_id).trigger("change");
 }
 
 function show_other_input(num, form_id) {
@@ -433,7 +450,7 @@ function generate_page_nav(id, form_id, form_view_count) {
   td.style.display = "table-cell";
   td.style.width = "40%";
   page_nav.appendChild(td);
-  if (form_view_elemet.parentNode.previousSibling && 'wdform-page-and-images' == form_view_elemet.parentNode.previousSibling.className && form_view_elemet.parentNode.previousSibling.previousSibling) {
+  if (form_view_elemet.parentNode.previousSibling && form_view_elemet.parentNode.previousSibling.className.indexOf('wdform-page-and-images') != -1 && form_view_elemet.parentNode.previousSibling.previousSibling) {
     if (form_view_elemet.parentNode.previousSibling.tagName == "DIV") {
       table = form_view_elemet.parentNode.previousSibling;
     }
@@ -480,7 +497,7 @@ function generate_page_nav(id, form_id, form_view_count) {
   page_nav.appendChild(td);
   not_next = false;
   if (form_view_elemet.parentNode.nextSibling) {
-    if (form_view_elemet.parentNode.nextSibling.tagName == "DIV" && form_view_elemet.parentNode.nextSibling.className == "wdform-page-and-images") {
+    if (form_view_elemet.parentNode.nextSibling.tagName == "DIV" && form_view_elemet.parentNode.nextSibling.className.indexOf('wdform-page-and-images') != -1) {
       table = form_view_elemet.parentNode.nextSibling;
     }
     else {
@@ -615,7 +632,7 @@ function make_page_steps_front(form_view, form_id, form_view_count) {
   next_checkable = (document.getElementById(form_id + 'form_view' + form_view).getAttribute('next_checkable') == 'true');
   previous_checkable = (document.getElementById(form_id + 'form_view' + form_view).getAttribute('previous_checkable') == 'true');
   k = 0;
-  jQuery('.wdform-page-and-images').each(function () {
+  jQuery('#form'+form_id+' .wdform-page-and-images').each(function () {
     var index = jQuery(this).find('.wdform_page').attr('id');
     j = index.split("form_view")[1];
     if (document.getElementById(form_id + 'form_view' + j)) {
@@ -690,7 +707,7 @@ function make_page_percentage_front(form_view, form_id, form_view_count) {
       k++;
       if (j == form_view) {
         if (show_title) {
-          var cur_page_title = document.createElement('div');
+          cur_page_title = document.createElement('div');
           cur_page_title.innerHTML = w_pages;
           cur_page_title.innerHTML = w_pages;
           cur_page_title.setAttribute("class", "wdform_percentage_title");
@@ -781,6 +798,7 @@ function page_previous(id, form_id, form_view_count) {
     jQuery('html').animate({
       scrollTop: form.offset().top - 150
     }, 500);
+    document.scrollingElement.scrollTop = form.offset().top - 150; /* For Safari.*/
   }
 }
 
@@ -804,6 +822,7 @@ function page_next(id, form_id, form_view_count) {
     jQuery('html').animate({
       scrollTop: form.offset().top - 150
     }, 500);
+    document.scrollingElement.scrollTop = form.offset().top - 150; /* For Safari.*/
   }
 }
 
@@ -820,6 +839,7 @@ function fm_go_to_page(id, form_id, form_view_count) {
     jQuery('html').animate({
       scrollTop: form.offset().top - 150
     }, 500);
+    document.scrollingElement.scrollTop = form.offset().top - 150; /* For Safari.*/
   }
 }
 
@@ -960,7 +980,7 @@ function wd_check_confirmation_email(wdid, form_id, message, type) {
   var element = jQuery("#wdform_" + wdid +"_element" + form_id);
   var element_confirm = jQuery("#wdform_" + wdid +"_1_element" + form_id);
   var condition_confirm_email = false;
-  if(!window["check_before_submit" + form_id][wdid + "_" + form_id]) {
+  if ( false == window["check_before_submit" + form_id][wdid + "_" + form_id] ) {
     condition_confirm_email = true;
   }
   else {
@@ -987,7 +1007,8 @@ function wd_check_confirmation_email(wdid, form_id, message, type) {
 function wd_check_email(wdid, form_id, message_check) {
   var element = jQuery("#wdform_" + wdid +"_element" + form_id);
   var element_confirm = jQuery("#wdform_" + wdid +"_1_element" + form_id);
-  var re = /^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,61}$/;
+  /* Regexp is also for Cyrillic alphabet */
+  var re = /^[\u0400-\u04FFa-zA-Z0-9.+_-]+@[\u0400-\u04FFa-zA-Z0-9.-]+\.[\u0400-\u04FFa-zA-Z]{2,61}$/;
   if(jQuery(element).val()!="" && !re.test(jQuery.trim(jQuery(element).val())) && jQuery(element).attr("title") != jQuery(element).val()){
     jQuery("#check_email_" + wdid + "_" + form_id).remove();
     jQuery(element).parent().parent().parent().append("<div id='check_email_" + wdid + "_" + form_id + "'  class='fm-not-filled'>" + message_check + "</div>");
@@ -1092,28 +1113,44 @@ function scroll_on_element(form_id) {
     page_with_error = page_with_error.split('form_view')[1];
     fm_go_to_page(page_with_error, form_id, pagebreak_count, maxid[1]);
   }
+
+  var scrollTop = jQuery(document).scrollTop();
   var body_hight = document.body.clientHeight;
+  var element_height = jQuery("#form" + form_id + " .fm-not-filled").closest("div[wdid]").height();
   var element_offset = jQuery("#form" + form_id + " .fm-not-filled").offset().top;
 
   var scrollChecker = function() {
     if(document.body.clientHeight !== body_hight ) {
       body_hight = document.body.clientHeight;
+      element_height = jQuery("#form" + form_id + " .fm-not-filled").closest("div[wdid]").height();
       element_offset = jQuery("#form" + form_id + " .fm-not-filled").offset().top;
       jQuery('html').stop();
-      animateBodyToError();
+	  animateBodyToError();
     }
   };
+
   jQuery(window).on("scroll",scrollChecker);
+
+  function shakeError() {
+	old_bg=jQuery(parent_div).css("background-color");
+	jQuery(parent_div).effect( "shake", {}, 500 ).css("background-color","#FF8F8B").animate({backgroundColor: old_bg}, {duration: 500, queue: false });  
+  }
+
   function animateBodyToError() {
     jQuery('html').animate({
-      scrollTop: element_offset - 150
+      scrollTop: element_offset - (element_height + 40)
     }, 500, function() {
+      document.scrollingElement.scrollTop = element_offset - (element_height + 40); /* For Safari.*/
       jQuery(window).off("scroll", scrollChecker);
-      old_bg=jQuery(parent_div).css("background-color");
-      jQuery(parent_div).effect( "shake", {}, 500 ).css("background-color","#FF8F8B").animate({backgroundColor: old_bg}, {duration: 500, queue: false });
+      shakeError();
     });
   }
-  animateBodyToError();
+
+  if ( scrollTop > element_offset ) {
+	animateBodyToError();
+  } else {
+	shakeError();
+  }
 }
 
 function wd_file_upload_check(form_id, upload_check_field){
@@ -1168,8 +1205,10 @@ function wd_is_filled(form_id, field_id, all_pages) {
         case 'type_phone_new':
         case 'type_submitter_mail': {
           var element = "#wdform_" + wdid + "_element" + form_id;
+		  var element_value = jQuery(element).val();
+			  element_value = jQuery.trim(element_value);
           if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
-            if(jQuery(element).val() == jQuery(element).attr('title') || jQuery(element).val() == ""){
+            if ( element_value == "" ) {
               not_filled[wdid] = element;
             }
           }
@@ -1209,7 +1248,7 @@ function wd_is_filled(form_id, field_id, all_pages) {
           var element = ["#wdform_" + wdid + "_element_first" + form_id, "#wdform_" + wdid + "_element_last" + form_id];
           jQuery.each(element, function(i, elem){
             if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
-              if(jQuery(elem).val() == "" || jQuery(elem).val() == jQuery(elem).attr('title')){
+              if(jQuery(elem).val() == ""){
                 not_filled[wdid] = elem;
               }
             }
@@ -1228,9 +1267,13 @@ function wd_is_filled(form_id, field_id, all_pages) {
           var element = ["#wdform_" + wdid + "_element_title" + form_id, "#wdform_" + wdid + "_element_first" + form_id, "#wdform_" + wdid + "_element_last" + form_id, "#wdform_" + wdid + "_element_middle" + form_id];
           jQuery.each(element, function(i, elem){
             if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
-              if((jQuery(elem).val() == "" || jQuery(elem).val() == jQuery(elem).attr('title')) && typeof jQuery(elem).val() != "undefined"){
-                not_filled[wdid] = elem;
-              }
+				if ( jQuery(elem).length) {
+					var element_value = jQuery(elem).val();
+						element_value = jQuery.trim(element_value);
+				  if( ( element_value == "" ) && typeof element_value != "undefined") {
+					not_filled[wdid] = elem;
+				  }
+				}
             }
             if(!field_id  && !window['check_submit'+form_id]){
               jQuery(elem).focus(function() {
@@ -1247,7 +1290,11 @@ function wd_is_filled(form_id, field_id, all_pages) {
           var element = ["#wdform_" + wdid + "_street1" + form_id, "#wdform_" + wdid + "_street2" + form_id, "#wdform_" + wdid + "_city" + form_id, "#wdform_" + wdid + "_state" + form_id, "#wdform_" + wdid + "_postal" + form_id, "#wdform_" + wdid + "_country" + form_id];
           jQuery.each(element, function(i, elem){
             if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
-              if(jQuery(elem).val() == "" && typeof jQuery(elem).val() != "undefined"){
+              var element_value = jQuery(elem).val();
+              if (typeof element_value != "undefined") {
+                element_value = jQuery.trim(element_value);
+              }
+              if ( element_value == "" ) {
                 not_filled[wdid] = elem;
               }
             }
@@ -1464,7 +1511,7 @@ function wd_is_filled(form_id, field_id, all_pages) {
         case 'type_file_upload': {
           var element = "#wdform_" + wdid + "_element" + form_id;
           if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
-            if(jQuery(element).val() == jQuery(element).attr('title') || jQuery(element).val() == ""){
+            if(jQuery(element).val() == ""){
               not_filled[wdid] = element;
             }
           }
@@ -1481,24 +1528,40 @@ function wd_is_filled(form_id, field_id, all_pages) {
           break;
         }
         case 'type_matrix': {
-          if(jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') =="radio" || jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') =="checkbox"){
+          /* remove error message for matrix */
+          jQuery("#form"+form_id+" #wd_required_"+wdid).remove();
+          jQuery("#form"+form_id+" div[wdid='"+wdid+"'] .wdform-label-section:first .error_label").removeClass("error_label");
+          if ( jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') == 'radio' || jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') == 'checkbox' ) {
+
             if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
+
               if(x.find(jQuery("div[wdid='"+ wdid +"'] input:checked")).length == 0){
                 not_filled[wdid] = true;
               }
-            }
-            if(!field_id  && !window['check_submit'+form_id]) {
-              jQuery.each(jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input"), function( i, val ){
-                jQuery(this).change(function() {
-                  if(x.find(jQuery("div[wdid='"+ wdid +"'] input:checked")).length == 0){
-                    wd_is_filled(form_id, wdid);
-                  }
-                  else{
-                    jQuery("#form"+form_id+" div[wdid='"+wdid+"'] .wdform-label-section:first .error_label").removeClass("error_label");
-                    jQuery("#form"+form_id+" #wd_required_"+wdid).remove();
+
+              if ( jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') == 'radio' ) {
+                jQuery.each(jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] div[class^='wdform-matrix-row']"), function( i, rows ) {
+                  if ( jQuery(rows).find('input[type="radio"]:checked').length == 0 ) {
+                    not_filled[wdid] = true;
                   }
                 });
-              });
+              }
+            }
+
+            if ( jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') == 'checkbox' ) {
+              if ( !field_id  && !window['check_submit'+form_id] ) {
+                jQuery.each(jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input"), function( i, val ){
+                  jQuery(this).change(function() {
+                    if(x.find(jQuery("div[wdid='"+ wdid +"'] input:checked")).length == 0){
+                      wd_is_filled(form_id, wdid);
+                    }
+                    else{
+                      jQuery("#form"+form_id+" div[wdid='"+wdid+"'] .wdform-label-section:first .error_label").removeClass("error_label");
+                      jQuery("#form"+form_id+" #wd_required_"+wdid).remove();
+                    }
+                  });
+                });
+              }
             }
           }
           else if(jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] input").attr('type') =="text") {
@@ -1527,6 +1590,7 @@ function wd_is_filled(form_id, field_id, all_pages) {
           else {
             if(all_pages || x.find(jQuery("div[wdid='"+wdid+"']")).closest(".wdform-page-and-images").css('display') != "none") {
               var count_select_matrix = 0;
+
               jQuery.each(jQuery("#form" + form_id + " div[wdid='"+ wdid +"'] select"), function( i, val ){
                 if(jQuery(this).val() != "")
                   count_select_matrix ++;
@@ -1604,6 +1668,7 @@ function wd_is_filled(form_id, field_id, all_pages) {
   }
   else {
     if (Object.keys(not_filled).length !== 0) {
+
       jQuery.each( not_filled, function( wdid, elem ) {
         jQuery("#form"+form_id+" #wd_required_"+wdid).remove();
         jQuery("#form"+form_id+ " div[wdid='"+wdid+"'] .wdform-element-section:first").parent().parent().append("<div id='wd_required_"+wdid+"' class='fm-not-filled'>" + fm_objectL10n.fm_field_is_required + "</div>");
@@ -1726,9 +1791,74 @@ function fm_submit_form(form_id) {
   }
 }
 
+function getHostName(url) {
+  var match = url.match(/:\/\/(www[0-9]?\.)?(.[^/:]+)/i);
+  if (match != null && match.length > 2 && typeof match[2] === 'string' && match[2].length > 0) {
+    return match[2];
+  }
+  else {
+    return null;
+  }
+}
 function fm_submit(form_id) {
   fm_set_input_value('fm_empty_field_validation' + form_id, jQuery('#fm_empty_field_validation' + form_id).attr('data-value') );
-  jQuery("#form"+form_id).submit();
+  var ajax_submit = jQuery("#form" + form_id + " .button-submit").attr("data-ajax");
+  if( ajax_submit != '0' ) {
+    jQuery('#form'+form_id+' .fm-submit-loading').css('display','inline-block');
+    var form = jQuery('#form'+form_id)[0];
+    var formData = new FormData(form);
+    var ajax_url = jQuery('#fm_ajax_url' + form_id).data("ajax_url");
+    var after_submit_redirect_url = jQuery('#form'+form_id+' #fm_ajax_redirect_url'+form_id).data('ajax_redirect_url');
+    jQuery.ajax({
+      type: "POST",
+      enctype: 'multipart/form-data',
+      url: ajax_url,
+      data:  formData,
+      contentType: false,
+      processData: false,
+      success: function(response) {
+        if ( after_submit_redirect_url != 0 ) {
+          window.location.replace(after_submit_redirect_url);
+          return;
+        }
+        jQuery("#form" + form_id + " .button-submit").removeAttr("disabled");
+        jQuery('#form'+form_id+' .fm-submit-loading').hide();
+        var result = jQuery(response).find('#form'+form_id).html();
+        jQuery('#form'+form_id).html(result);
+        if (jQuery(document).find(".g-recaptcha").length > 0) {
+            fmRecaptchaInit(1);
+        }
+
+        var fm_func_name = 'fm_script_ready' + form_id;
+        if ( typeof( window[fm_func_name] ) !== 'undefined' ) {
+          window[fm_func_name]();
+        }
+
+        var error = false;
+        if(jQuery(result).find('.fm-not-filled.message_captcha').length > 0 || jQuery(result).find('.fm-notice-error').length > 0 || (typeof result != 'undefined' && result.indexOf('class="fm-message fm-notice-error"') > -1)) {
+          error = true;
+        }
+
+        if ( after_submit_redirect_url != 0 ) {
+          var domain = document.domain;
+          var redirect_hostname = getHostName(after_submit_redirect_url);
+          if( domain == redirect_hostname ) {
+            window.location.href = after_submit_redirect_url;
+          } else {
+            jQuery('#form'+form_id+' .fm-message').remove();
+            jQuery('#form'+form_id).prepend('<div class="fm-message fm-notice-error">Form submitted successfully done, but there is a problem with redirection.</div>')
+          }
+        }
+      },
+      complete: function() {
+        if ( typeof window['after_submit' + form_id] === 'function' ) {
+          window['after_submit' + form_id]();
+        }
+      }
+    });
+  } else {
+    jQuery("#form" + form_id).submit();
+  }
 }
 
 function fm_reset_form(form_id) {
@@ -1869,6 +1999,10 @@ function fm_reset_form(form_id) {
         jQuery("#wdform_"+index+"div_total"+form_id).html('$0');
         jQuery("#wdform_"+index+"paypal_products"+form_id).empty();
         break;
+
+      case 'type_captcha':
+        jQuery('#wd_captcha_input'+form_id).val('');
+	break;
       default:
         break;
     }
@@ -1892,7 +2026,7 @@ function fm_clear_form(form_id) {
     jQuery("#form" + form_id + " button").each(function () {
       jQuery(this).attr('disabled', 'disabled');
     });
-    jQuery.get(fm_objectL10n.form_maker_admin_ajax + '?action=FMClearProg&addon_task=clear_data&form_id=' + form_id).done(function() {
+    jQuery.get(fm_objectL10n.form_maker_admin_ajax + '?action=FMClearProg&addon_task=clear_data&nonce=' + fm_ajax.ajaxnonce + '&form_id=' + form_id).done(function() {
       window.location = jQuery('#form' + form_id).attr('action');
     });
   }
@@ -2063,11 +2197,13 @@ function fm_document_ready(form_id) {
   fm_initilize_form(form_id);
   window["condition_js" + form_id]();
 
+  jQuery(document).trigger('fm_document_ready');
+
   jQuery("#form" + form_id).closest(".fm-form-container").removeAttr("style");
 }
 
 function fm_check(id, form_id, all_pages) {
-  if(!wd_is_filled(form_id, undefined, all_pages)) {
+  if ( !wd_is_filled(form_id, undefined, all_pages) ) {
     return false;
   }
   /* Check Stripe fields when changing page. */
@@ -2099,24 +2235,47 @@ function fm_check(id, form_id, all_pages) {
   return true;
 }
 
-function fmRecaptchaInit() {
+function fmRecaptchaInit( already_rendered ) {
+  if (already_rendered === undefined) {
+    already_rendered = 0;
+  }
   jQuery(".g-recaptcha").each(function () {
     type = jQuery(this).attr('data-size');
+    jQuery(this).attr("data-render", 1);
     if (type == 'invisible') {
       form_id = jQuery(this).attr('data-form_id');
-      grecaptcha.render(jQuery(this).attr('id'), {
-        'sitekey': jQuery(this).attr('data-sitekey'),
-        'badge' : jQuery(this).attr('data-badge'),
-        'callback': function () {
-          fm_submit(form_id);
-        }
-      });
+      if( !already_rendered ) {
+        grecaptcha.render(jQuery(this).attr('id'), {
+          'sitekey': jQuery(this).attr('data-sitekey'),
+          'badge': jQuery(this).attr('data-badge'),
+          'callback': function () {
+            fm_submit(form_id);
+          }
+        });
+      } else {
+        grecaptcha.reset();
+      }
     }
-    else {
-      grecaptcha.render(jQuery(this).attr('id'), {
-        'sitekey': jQuery(this).attr('data-sitekey'),
-        'theme': 'light'
-      })
+    else if(type == 'v3') {
+      if(jQuery(this).attr('data-sitekey') == "undefined" || jQuery(this).attr('data-sitekey') == "") return;
+      var id = jQuery(this).attr("data-id");
+      var form_id = jQuery(this).attr("data-form-id");
+      var sitekey = jQuery(this).attr('data-sitekey');
+      grecaptcha.ready(function () {
+        grecaptcha.execute(sitekey).then(function (token) {
+          var recaptchaResponse = document.getElementById('recaptchaV3Response_'+form_id+id);
+          recaptchaResponse.value = token;
+        });
+      });
+    } else {
+      if( !already_rendered ) {
+        grecaptcha.render(jQuery(this).attr('id'), {
+          'sitekey': jQuery(this).attr('data-sitekey'),
+          'theme': 'light'
+        });
+      } else {
+        grecaptcha.reset();
+      }
     }
   });
 }
@@ -2135,6 +2294,17 @@ function wd_change_state_input(id, form_id) {
     if ( document.getElementById(id + "_country" + form_id).value == "United States" ) {
       var state = document.createElement('select');
       var states = fm_objectL10n.states;
+      for (var r in states) {
+        var option_ = document.createElement('option');
+        option_.setAttribute("value", r);
+        option_.innerHTML = states[r];
+        state.appendChild(option_);
+      }
+      flag = true;
+    }
+    else if ( document.getElementById(id + "_country" + form_id).value == "Canada" ) {
+      var state = document.createElement('select');
+      var states = fm_objectL10n.provinces;
       for (var r in states) {
         var option_ = document.createElement('option');
         option_.setAttribute("value", r);

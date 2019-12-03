@@ -18,8 +18,7 @@ class FMControllerGenerete_csv extends FMAdminController {
    */
   public function display() {
     // Get form maker settings
-    $option_key = WDFMInstance(self::PLUGIN)->is_free == 2 ? 'fmc_settings' : 'fm_settings';
-    $fm_settings = get_option($option_key);
+    $fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
     // Update export per_page.
     $page_num_update = WDW_FM_Library(self::PLUGIN)->get('page_num_update');
     if ( $page_num_update ) {

@@ -3,9 +3,9 @@ Contributors: damian-gora
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LD2ALVRLXPZPC
 Tags: woocomerce search, ajax search, live search, product search, woocommerce
 Requires at least: 3.8
-Tested up to: 4.9.8
+Tested up to: 5.2
 Requires PHP: 5.5
-Stable tag: 1.2.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,14 +21,6 @@ Suggestions can be displayed in a simple form (names of the products only) or in
 
 Ajax Search for WooCommerce has been designed to enhance user search experience to the maximum.
 
-= Free =
-This plugin is completely free of charge and provides the whole range of functions which are included in some paid plugins.
-Initially, I created the plugin for my personal use, but I have decided to include new features and make it available to WordPress community.
-
-= Demo =
-See how it works on the [DEMO](http://damiangora.com/ajax-search-for-woocommerce) site.
-
-
 = Features =
 * Search in **products titles, descriptions, excerpt or SKU**.
 * **Product image** can be displayed for each suggestion
@@ -42,16 +34,33 @@ See how it works on the [DEMO](http://damiangora.com/ajax-search-for-woocommerce
 * WPML compatible
 * You can set your own **label on the 'search' button**
 * You can set your own **preloader image**
-* You can set your own **colour scheme** for the 10 main form elements and suggestions
-* **[WP Tao](https://wordpress.org/plugins/wp-tao) integration** - allows you to track and analyze search results of a website users. Each click on the suggestion is logged. Read more on [wptao.org](http://wptao.org/documentation/user-guide/).
+* You can set your own **color scheme** for the 10 main form elements and suggestions
 
 = How to use? =
 1. Use shorcode [wcas-search-form] in page/post editor or <?php echo do_shortcode('[wcas-search-form]'); ?> in your Child Theme template files.
 2. Go to the "Widgets Screen" and assign widget "Woo Ajax Search" to one of the widget area.
 
-= Feedback =
+= Free =
+This plugin is completely free of charge and provides the whole range of functions which are included in some paid plugins.
 
-Any suggestions or comments are welcome. Feel free to contact me using this [contact form](http://damiangora.com/ajax-search-for-woocommerce/contact).
+= Pro =
+There are also **AJAX Search for WooCommerce Pro** with new search engine based on inverted index. It works even 10x faster in some cases. Some of the most important Pro features:
+
+*   Fast search engine based on inverted index
+*   Works very fast even with 100,000+ products
+*   Fuzzy search
+*   Search in custom fields
+*   Search in attributes
+*   Search in brands (WooCommerce Brands and YITH WooCommerce Brands)
+*   Search in variation product SKU
+*   Help with embedding or replacing the search form in any theme
+*   SEE ALL PRO [FEATURES](https://ajaxsearch.pro?utm_source=readme&utm_medium=referral&utm_content=title&utm_campaign=asfw#features-comparsion)!
+
+= Showcase =
+See how it works for others: [Showcase](https://ajaxsearch.pro/showcase/?utm_source=readme&utm_medium=referral&utm_campaign=asfw&utm_content=showcase&utm_gen=utmdc).
+
+= Feedback =
+Any suggestions or comments are welcome. Feel free to contact me using this [contact form](https://ajaxsearch.pro/contact/?utm_source=readme&utm_medium=referral&utm_campaign=asfw&utm_content=contact&utm_gen=utmdc).
 
 == Installation ==
 
@@ -68,6 +77,68 @@ Any suggestions or comments are welcome. Feel free to contact me using this [con
 4. Settings page with colour schemes
 
 == Changelog ==
+= 1.5.0, September 16, 2019 =
+
+* ADD: Integration with the Flatsome theme. It is possible to replace the Flatsome search form via one checbox in the plugin settings page.
+* FIX: Overload servers. Optimalization for chain AJAX requests. Creates a debounced function that delays invoking func until after wait milliseconds have elapsed since the last time the debounced function was invoked
+* FIX: Better support for HTML entities in products title and description
+* FIX: Issues with mobile search version on Storefront theme for iPhones
+* CHANGE: Update/sync fork of devbridge/jQuery-Autocomplete to the latest version
+* CHANGE: Settings design
+
+= 1.4.1, August 05, 2019 =
+
+* ADD: French translations
+* FIX: Better support for fixed menu
+* FIX: Add box-sizing to the search input to better implementation for some themes
+* FIX: Duplicated class Mobile_Detect in some cases
+* FIX: Submit button position in some cases
+* FIX: Zoom in iPhones on focused input
+* FIX: Size of images for categories and tags in the details box
+* CHANGE: Updated Freemius SDK
+
+= 1.4.0, May 04, 2019 =
+
+* ADD: New modern mobile search UX (beta, disabled by default, enabled only for Storefront theme)
+* ADD: Italian translations
+* ADD: Spain translations
+* FIX: Error with WP Search WooCommerce Integration
+* FIX: Conflict with the Divi theme for some cases
+* CHANGE: Implementing flexbox grid (CSS)
+
+= 1.3.3, March 02, 2019 =
+
+* FIX: Deactivate browser native "X" icon for search input
+* FIX: Products images for tags and categories in details box
+* FIX: Security fix
+* ADD: New logos
+* CHANGE: Updated Freemius SDK
+
+
+
+= 1.3.2, February 16, 2019 =
+
+* ADD: The text "No results" and "See all results..." can be customized in the plugin settings
+* ADD: New filters and hooks
+* FIX: Hide the "Account" link in the free plugin versions
+* FIX: The error with the appearance of the tags suggestion
+* FIX: Problem with artificially duplicated search forms occurred in the Mega Menu plugin and some themes.
+* CHANGE: Enforcing use "box-sizing: border-box" within the search form
+* CHANGE: Updated Freemius SDK
+
+= 1.3.1, January 06, 2019 =
+* FIX: PHP error with widget
+
+= 1.3.0, January 06, 2019 =
+
+* ADD: If there are more results than limit, the "See all results..." link will appear
+* ADD: Information about the PRO features
+* ADD: Breadcrumbs for nested product categories
+* FIX: Better synchronization between the ajax search results and the search page
+* FIX: Improvements in the scoring system
+* FIX: Image placeholder for products without image
+* FIX: Add SKU label translatable in the suggestions
+* CHANGE: Updated Freemius SDK
 
 = 1.2.1, October 26, 2018 =
 * ADD: Storefront support as a option. Allows to replace the native Storefront search form
@@ -75,7 +146,6 @@ Any suggestions or comments are welcome. Feel free to contact me using this [con
 * FIX: Problem with too big images is some cases
 * FIX: Support for HTML entities in the search results
 * FIX: Bugs with the blur event on mobile devices
-
 
 = 1.2.0, August 24, 2018 =
 * ADD: Backward compatibility system
@@ -94,8 +164,7 @@ Any suggestions or comments are welcome. Feel free to contact me using this [con
 * CHANGE: Better settings organization
 * CHANGE: Updated Freemius SDK
 
-
-= 1.1.7, April 22, 2017 =
+= 1.1.7, April 22, 2018 =
 * FIX: Removed duplicate IDs
 * CHANGE: PHP requires tag set to PHP 5.5
 * CHANGE: Woocommerce requires tags

@@ -1,45 +1,170 @@
-=== Form Maker by WD - responsive drag & drop Contact Form Builder ===
+=== Form Maker by 10Web - Mobile-Friendly Drag & Drop Contact Form Builder ===
 Contributors: webdorado,10web,wdsupport,formmakersupport
 Tags:  form, forms, form builder, contact form, feedback, custom form, contact, web contact form, captcha, email, form manager, survey
 Requires at least: 4.6
-Tested up to: 4.9
-Stable tag: 1.12.39
+Tested up to: 5.3
+Stable tag: 1.13.24
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Form Maker is a  user-friendly contact form builder that allows to create forms for any purpose, from a simple contact form to a multi page survey   
+Form Maker is a  user-friendly contact form builder that allows to create forms for any purpose, from a simple contact form to multi page survey forms
 
 == Description ==
 
-https://www.youtube.com/watch?v=tN3_c6MhqFk
+Form Maker is the leading drag & drop plugin for building forms of any complexity in just a few clicks.
 
-= Useful Links: =  
-[Special Offer for all Premium Plugins](https://web-dorado.com/wordpress-plugins-bundle.html)  
-
-
-[WordPress Form Maker](https://web-dorado.com/products/wordpress-form.html)  
-[Demo](http://wpdemo.web-dorado.com/)  
-[Demo Admin](http://wpdemo.web-dorado.com/wp-admin/admin.php?page=Form_maker)  
-[User Guide](https://web-dorado.com/wordpress-form-maker-guide-1.html)  
-[Frequently Asked Questions](https://web-dorado.com/blog/wordpress-themes-and-plugins/wordpress-form-maker-plugin-faq/)  
+= Useful Links: =
+[Live Demo](https://demo.10web.io/form-maker/)
 
 
+[Demo Admin](https://admindemo.10web.io/?product_name=form-maker)
+
+[Premium Form Maker by 10Web](https://10web.io/plugins/wordpress-form-maker/)
+
+[Special Offer for all Premium Plugins](https://10web.io/plugins-bundle-pricing/)
+
+https://www.youtube.com/watch?v=vxxKfhxIS44
 
 
-Form Maker is a power-packed yet user-friendly form builder plugin. With an intuitive drag and drop interface, this plugin is the ultimate solution to help you create responsive WordPress Forms easily and in a timely manner. Add modern and functional questionnaires to your website with a few clicks. Using the plugin you can create forms for pretty much any purpose, from simple contact form to multi-page application, registration survey and questionnaire with conditional fields, captcha protection, multiple choice questions and more. It will take you just a few clicks to create them and a couple of minutes to customize with the available themes, styling and display options. This plugin can be a good addition to any website, so go ahead and give it a try.
+Looking for the perfect form plugin that’ll save you time and effort?
+
+Is matching your website design with your forms difficult?
+
+Finding it hard to build lengthy and advanced forms?
+
+
+== Form Maker Features ==
+
+**Intuitive Interface**
+Drag and drop to build complex forms with just a few clicks.
+
+**Mobile-Friendly and Responsive**
+Your forms will look great on all resolutions and devices: mobile, tablet, and desktop.
+
+**Field Types**
+43 different form field types to help you create just the form you need.
+
+**Embed Easily**
+Display your forms as popups, top bars or scroll boxes or embed them into blog posts.
+
+**Pre-built Templates**
+Pick from five form template options to save time.
+
+**Fully Customizable Themes**
+Use one of our fifteen beautiful themes to make your forms match website design.
+
+**Manage Submissions**
+Set automatic email replies, track and export all your entries, and more.
+
+**Protection from Spam**
+Block IPs and set captchas to avoid spam.
+
+**Receive Payments\***
+Get payments and donations using integrated PayPal and Stripe gateways.
+
+**Conditional Logic**
+Build forms with complex conditional logic.
+
+**Multi-Page Forms**
+Divide up lengthy forms into pages to provide better user experience.
+
+**File Upload\***
+Your users can upload files to your forms.
+
+_\* Premium version only_
+
+
+
+== Form Maker Extensions ==
+_[Available in Plugins Bundle](https://10web.io/plugins/wordpress-form-maker/#product_pricing)_
+
+**Save Form Progress**
+Your users can save unfinished entries and continue anytime.
+
+**Conditional Mailing**
+Send out emails to user groups based on submitted forms.
+
+**Export/Import**
+Export form entries and forms in the XML format and import them into another site afterwards.
+
+**Pushover**
+Get a notification on your phone whenever there is an entry submission.
+
+**Mailchimp Integration**
+Create Mailchimp signup forms and expand your lead list.
+
+**WordPress Registration**
+Build WP user registration forms and expand the user base of your site.
+
+**Post Generation**
+Use a form to invite your users to submit guest posts.
+
+**Dropbox Integration**
+Store attachments received from form entries in your Dropbox.
+
+**Google Drive Integration**
+Upload received form attachments straight to your Google Drive.
+
+**PDF Integration**
+Use content from submitted entries to create PDFs.
+
+**Stripe**
+Your users can make credit card payments via Stripe, and we’ll transfer them to your bank account automatically.
+
+**Calculator**
+Build forms that contain automatically calculated fields.
+
+
+
+Form Maker is a power-packed yet user-friendly form builder plugin. With an intuitive drag and drop interface, this plugin is the ultimate solution to help you create responsive contact Forms easily and in a timely manner. Add modern and functional questionnaires to your website with a few clicks. Using the plugin you can create forms for pretty much any purpose, from simple email form or contact form to multi-page application, registration survey and questionnaire with conditional fields, captcha protection, multiple choice questions and more. It will take you just a few clicks to create an email form and a couple of minutes to customize with the available themes, styling and display options.
+
+
+== World Class Customer Support ==
+*  Low response time
+We always respond within a few hours.
+*  Quick issue resolution
+Resolving an issue never takes more than 24 hours.
+
+
+== Just ask our users ==
+
+> I had tried several form plugins but I was always searching for a better one.
+> Then I stumbled Formmaker just by chance and thought to give a try.
+> I was thrilled to see its features. It has more than everything I expected. Very customizable and easy to use.
+> Now I don’t search for form plugin anymore
+> Lots of thanks to the developers of this plugin.
+> **by [@mayank0522](https://wordpress.org/support/topic/a-must-have-plugin-223/)**
+
+
+> If I could give this plugin more than 5 stars I would!
+> The level of control is extremely nice – even with the free version – though I quickly purchased the PRO version!
+> And the level of customer service in troubleshooting forum questions is incredible!
+> Very impressed with the plugin – but even more so with the way they interact with and help users get to what they need!
+> Great job guys!!
+> **by [@JonathanWilson99](https://wordpress.org/support/topic/amazing-form-plugin/)**
+
+
+> This is the best plugin for creating functional forms and very user friendly even for the none technical users.
+> Absolutely recommend everyone to use this one.
+> Thanks a lot guys!!!
+> **by [@denisecox](https://wordpress.org/support/topic/wonderful-form-builder-plugin/)**
+
+== Steps for creating a website form  ==
+1. Install Form Maker by 10Web.
+2. Create a form in a few clicks.
+3. Publish your form.
 
 **Benefits**
 
    * **Better communication between your visitors and you** - Contact forms serve as a communication tool between you and your site visitors, and make it easy to get/receive orders, requests, and inquiries. If you offer memberships, courses or trainings on your website, forms are an easy way to order, apply or register online.
    * **Valuable User/Customer Feedback** - You are what your user/customer thinks of you! The plugin lets you put together surveys and questionnaires and get feedback from your users/customers.
-   * **One plugin, different purposes** - Whether you want to have a single form on the contact us page, or multiple, on different pages on your website, that&#39;s absolutely doable with this plugin. You can create unlimited number of different forms and display them using one of the available display options. Please note, that free version is limited to 7 form fields.
+   * **One plugin, different purposes** - Whether you want to have a single form on the contact us page, or multiple, on different pages on your website, that's absolutely doable with this plugin. You can create unlimited number of different forms and display them using one of the available display options. Please note, that free version is limited to 7 form fields.
    * **Save time** - Plugin uses an intuitive drag and drop interface, which makes it easy to create contact forms and add/remove form fields.
-   * **Add to the overall website design** - A well designed contact form can contribute to your website&#39;s overall look and feel. Customize its style and have it match with your website design.
+   * **Add to the overall website design** - A well designed contact form can contribute to your website's overall look and feel. Customize its style and have it match with your website design.
    * **Improve accessibility** - Plugin provides four different display options, which make your contact forms easily accessible. Whether you want to embed the form into a post or a page, or have it follow the visitors as they scroll up and down, you have the option to do that.
-   * **Awesome Support** - The team behind this plugin provides timely and effective support to all its users. We keep standards high and response time low.
 
 
-**What&#39;s in it**
+**What's in it**
 
 **MULTIPLE FORM FIELDS**
 Plugin comes with a myriad of field options to let you create high performing forms. The fields you can add include: text input, multiple and single choice fields, select box, submit and reset buttons, custom HTML, 3 types of captcha protection and many more. In addition to these fields, the Premium version of the plugin offers file upload, Google Maps, and payment fields with automatic PayPal integration or Stripe integration with an add on.
@@ -60,7 +185,7 @@ You can use the custom CSS editor to give additional styling features to the for
 Send customized emails to your users as well as website administrators upon submission for any given form.
 
 **MANAGED SUBMISSIONS**
-View and manage the submissions for each form. See number of entries, number of views, the conversion rate and more.
+View and manage the submissions for each web form. See number of entries, number of views, the conversion rate and more.
 
 **CONDITIONAL FIELDS**
 Conditional fields feature of the plugin lets you display/hide specific fields based on the user input. This is a great way to make your forms shorter and avoid receiving irrelevant information.
@@ -68,45 +193,30 @@ Conditional fields feature of the plugin lets you display/hide specific fields b
 **PRE-BUILD TEMPLATES**
 The plugin comes with 5 pre-built templates, which you can use as they are or customize to better fit your needs.
 
-**ADD-ONs**
-Form Maker supports 12 premium add-ons to power up your forms even further. Whether you want to integrate them with Mailchimp service, send out conditional emails, or give your visitors an additional payment method like Stripe. Find the full list of add-ons bellow.
-
-   * [Export/Import](https://web-dorado.com/products/wordpress-form/add-ons/export-import.html)     
-   * [PDF Integration](https://web-dorado.com/products/wordpress-form/add-ons/pdf.html)  
-   * [Save Progress](https://web-dorado.com/products/wordpress-form/add-ons/save-progress.html)    
-   * [Stripe Integration](https://web-dorado.com/products/wordpress-form/add-ons/stripe.html)       
-   * [Conditional Emails](https://web-dorado.com/products/wordpress-form/add-ons/conditional-emails.html)      
-   * [WordPress Registration](https://web-dorado.com/products/wordpress-form/add-ons/registration.html)  
-   * [Post Generation](https://web-dorado.com/products/wordpress-form/add-ons/post-generation.html)      
-   * [Mailchimp Integration](https://web-dorado.com/products/wordpress-form/add-ons/mailchimp.html)  
-   * [Dropbox Integration](https://web-dorado.com/products/wordpress-form/add-ons/dropbox.html)     
-   * [Google Drive Integration](https://web-dorado.com/products/wordpress-form/add-ons/google-drive.html)               
-   * [Pushover Integration](https://web-dorado.com/products/wordpress-form/add-ons/pushover.html)       
-   * [Calculator](https://web-dorado.com/products/wordpress-form/add-ons/calculator.html)       
 
 **SETTINGS/CUSTOMIZATION**
 _\*Some customizations described here are available in Premium version. Please refer to feature summary for additional info._
 
-Form Maker plugin provides a full range of options and features you can tailor to your needs. Each of the entries you create will have its own set of options and display settings. Under the options you can choose a theme for each form, adjust email options, choose what happens after the user submits, set conditional logic, and choose one of the available payment options, such as PayPal and Stripe (add-on). Under the display settings you can adjust the options for each form display type.
+Form Maker plugin provides a full range of options and features you can tailor to your needs. Each of the forms you create will have its own set of form options and display settings. Under the options you can choose a theme for each custom web form, adjust email options, choose what happens after the user submits, set conditional logic, and choose one of the available payment options, such as PayPal and Stripe (Extension). Under the display settings you can adjust the options for each web form display type.
 
 The available themes are fully configurable, allowing you make the necessary adjustments to the header, content, input box, buttons, choices, pagination, and add custom CSS. You can change the header background color, adjust the parameters for title, description and header image,customize the parameters for buttons, adjust the settings for single and multiple choice questions, and many more. The changes you make to the settings will immediately be displayed in the form preview next to the settings box.
 
 With conditional fields option you can set to hide/show specific fields based on the selections your visitors make. You just choose the field you want to show or hide, then set the conditions based on which the field will appear or will be hidden. The plugin features a user-friendly interface, which makes it easy to create, style and customize the forms.
 
 
-**[Premium version adds](https://web-dorado.com/products/wordpress-form.html)**
+**[Premium version adds](https://10web.io/plugins/wordpress-form-maker/)**
 
-   * Unlimited fields in one form     
-   * File Upload field     
-   * PayPal Integration     
-   * Stripe Integration with add on     
-   * Google Maps API Integration     
-   * Front-End Submissions     
+   * Unlimited fields in one form
+   * File Upload field
+   * PayPal Integration (Creating PayPal Forms for payments)
+   * Stripe Integration (Creating Credit Card payment Forms) with Extension
+   * Google Maps API Integration
+   * Front-End Submissions
 
 
-= Privacy Notices =
+== Privacy Notices ==
 
-Form Maker plugin does not collect and store any data of your users on Web-Dorado’s end. All data submitted by your website visitors is stored in your website database. With every form submission Form Maker plugin collects users’ IP address and WordPress user ID for logged in users. From this perspective, you may be subject to GDPR compliance.
+Form Maker plugin does not collect and store any data of your users on 10Web's end. All data submitted by your website visitors is stored in your website database. With every form submission Form Maker plugin collects users' IP address and WordPress user ID for logged in users. From this perspective, you may be subject to GDPR compliance.
 
  Form Maker forms imply interaction between website visitors and website owner. As such you may publish forms that require input of Private data. You need to get explicit consent from your users to comply with GDPR. Under GDPR your users may request access  and/or erasure of their entry data at any time. Here you can find how to export and/or delete submissions.
 
@@ -140,14 +250,14 @@ You can edit your form fields anytime by double-clicking on them. Alternatively,
 After adding your form fields and updating your form, you are able to Undo or Redo the changes you have made. Please note, that these two buttons appear at the top of your form only after you modify the form and save the changes.
 
 == Screenshots ==
-1.  [Wordpress Form](http://wordpress.org/plugins/form-maker/) Maker - Sample RSVP  
-2.  Form Maker - Sample  form  
-3.  Form Maker - Manage forms  
-4.  Form Maker - Creating a new form  
-5.  Form Maker - form Text input field type  
-6.  Form Maker - form Captcha field type  
-7.  Form Maker - Manage submissions of form
-8.  Form Maker - Select form Columns
+1.  Reservation form created using Form Maker
+2.  Pop-up form created using Form Maker
+3.  Product Survey with radio buttons, evaluation, star rating, etc.
+4.  Feedback form with number range sliders, radio buttons, etc.
+5.  Form Maker - Drag and Drop Form builder interface
+6.  Form Maker - searching field types and adding a field to a form
+7.  Form Maker Options - Save data to database, save uploads, etc.
+8.  Form Maker - Manage form submissions, export, block ips
 
 
 == Frequently Asked Questions ==
@@ -156,7 +266,7 @@ After adding your form fields and updating your form, you are able to Undo or Re
 
 **Form Maker** is a modern and intuitive free online application form creator plugin developed for WordPress. It lets you build personalized, perfect-looking responsive forms with its elegant drag and drop interface.
 
-You can create web forms free of additional coding, with just a few clicks. The functionality of Form Maker is excellent for any kind of online questionnaires.
+You can create custom forms free of additional coding, with just a few clicks. The functionality of Form Maker is excellent for any kind of online questionnaires.
 
 Form Maker can be used for creating multiple types of forms, including contact forms, evaluation form, application forms, quizzes/tests or survey forms, online order forms and etc. Form Maker includes various types of fields which can be modified and/or edited.
 
@@ -180,7 +290,7 @@ This dynamic contact form builder lets you have a nice header section on your fo
 
 You can also have an image on your form header and set it to appear with an animation effect. Press **Add Image** button to upload and select a picture from **WordPress Media Library.** Then choose the animation effect using Image Animation option.
 
-In case you don’t want the **Header Image** of your forms to appear on smartphones and tablets, mark **Hide Image on Mobile** option as checked.
+In case you don't want the **Header Image** of your forms to appear on smartphones and tablets, mark **Hide Image on Mobile** option as checked.
 
 Make sure to **Publish/Update** the form to save the change you made.
 
@@ -196,7 +306,7 @@ Go to **Form Options** of your form, then click **Conditional Fields** tab to st
 
 Click the little **Plus (+)** icon to add the statement of your form condition.
 
-For example, let’s assume there is a **Single Choice** field on your form titled **Inquiry type.** And you wish to show **Message** field in case users choose **Support Request** as the type of their inquiry. The condition you configure needs to have the following logic:
+For example, let's assume there is a **Single Choice** field on your form titled **Inquiry type.** And you wish to show **Message** field in case users choose **Support Request** as the type of their inquiry. The condition you configure needs to have the following logic:
 
 *Show [Message] if [all] of the following match:*
 *[Inquiry type] is [Support request]*
@@ -224,7 +334,7 @@ Options of Form Maker Themes are divided into the following sections:
   * Other
   * Custom CSS
 
-You can preview the design of each form theme under Preview block. In case you created forms with multiple pages, you can change its Pagination Type, setting it to Step, Percentage or None.
+You can preview the design of each web form theme under Preview block. In case you created forms with multiple pages, you can change its Pagination Type, setting it to Step, Percentage or None.
 
 Custom CSS option in Themes of this offline form builder lets you write additional CSS code and customize your forms further. All CSS rules apply to this editor. Make sure to press Save after modifying the form theme.
 
@@ -248,7 +358,7 @@ Important! In case you do not have an email input created from User Info Fields 
 
 &quot;There is no email field&quot;.
 
-**Email Verification.** Activate this option, in case you would like the users to verify their email addresses. If it&#39;s enabled, the user email will contain a verification link. Clicking on this link set the user email address as verified.
+**Email Verification.** Activate this option, in case you would like the users to verify their email addresses. If it's enabled, the user email will contain a verification link. Clicking on this link set the user email address as verified.
 
 **Verification link expires in.** Use this option to specify a time period (hours), during which the user will be able to verify their email address.
 
@@ -264,7 +374,7 @@ Note: You need to set up **Form Options > Payment Options** of your form in orde
 
 Configuring Payment Options, you can use Form Maker as an order form generator and let users make payments through your form. Default payment gateway of Form Maker is **PayPal.** Select **PayPal** as **Payment Method** from Form **Options &gt; Payment Options** tab and configure corresponding options.
 
-Also, you can easily integrate the forms builder plugin with Stripe using its [Stripe Integration add-on](https://web-dorado.com/products/wordpress-form/add-ons/stripe.html).
+Also, you can easily integrate the forms builder plugin with Stripe using its Stripe Integration extension ( [Available in Plugins Bundle](https://10web.io/plugins/wordpress-form-maker/#product_pricing) ).
 
 **Payment Currency.** Choose the currency to be used for the payments made through your form. Note, that the selected currency symbol will only display on the front-end of the published form.
 
@@ -276,13 +386,13 @@ Also, you can easily integrate the forms builder plugin with Stripe using its [S
 
 = Where can I check the submissions of my forms? =
 
-**Submissions** page of this HTML form generator plugin lets you view the full record of submissions of each form. Choose your form from **Select a form** drop-down box to display its submitted information. Furthermore, you are able to view **Statistics** of **Single/Multiple Choice** and **Select Box** fields.
+**Submissions** page of this HTML form generator plugin lets you view the full record of submissions of each web form. Choose your form from **Select a form** drop-down box to display its submitted information. Furthermore, you are able to view **Statistics** of **Single/Multiple Choice** and **Select Box** fields.
 
 **Entries / Conversion Rate / Views.** These attributes of **Submissions** page will help you quickly view the statistics of the selected form.
 
 **Export to CSV / Export to XML.** You are able to download all submissions of each contact form in **CSV** or **XML** format by clicking on these buttons.
 
-**Show Filters.** Form Maker lets you filter form submissions by values provided by user, e.g. submitter’s email address, name and more. Press **Show Filters** button on form submissions, write the values you wish to search with, then press **Search.** Click **Reset** button to clear the filters.
+**Show Filters.** Form Maker lets you filter form submissions by values provided by user, e.g. submitter's email address, name and more. Press **Show Filters** button on form submissions, write the values you wish to search with, then press **Search.** Click **Reset** button to clear the filters.
 
 **Add/Remove Columns.** This button will help you customize the columns which display in submissions of the selected contact form. Click on the button and unmark the columns you wish to hide.
 
@@ -310,7 +420,7 @@ Form Maker uses modern verification methods, such as ReCaptcha and invisible ReC
 
 = Can I use Form Maker to create a registration form? =
 
-You can register users on your website with the help of Form Maker [WordPress Registration add-on](https://web-dorado.com/products/wordpress-form/add-ons/registration.html). Install the add on and use it alongside the free version of Form Maker plugin.
+You can register users on your website with the help of Form Maker WordPress Registration Extension ( [Available in Plugins Bundle](https://10web.io/plugins/wordpress-form-maker/#product_pricing) ). Install the Extension and use it alongside the free version of Form Maker plugin.
 
 You are able to ask users to provide username, email address and password for their account. The registration of users is done upon completing the form created by this visual form builder plugin.
 
@@ -340,7 +450,7 @@ After configuring all necessary options, press **Insert.** Publish your page wit
 
 = Can I let users choose between PayPal or offline payments when submitting the form? =
 
-**Premium version** of this handy forms plugin has the features and functions to achieve this. You need to use **Conditional Fields** and **Payment Fields** of the plugin. Here are the necessary steps.
+**Premium version** of this handy forms plugin has the features and functions to create PayPal forms. You need to use **Conditional Fields** and **Payment Fields** of the plugin. Here are the necessary steps.
 
 Firstly, add one **Single Choice** field from **Basic Fields** of Form Maker plugin. It should contain the following two options:
 
@@ -412,7 +522,7 @@ This might be a problem related to the hosting configurations of your website. Y
 
 Please install [WP SMTP](https://wordpress.org/plugins/wp-smtp/) plugin and go to **Settings > WP SMTP** page. Scroll down to the bottom and send a test mail to your email address.
 
-If the test email will be sent, then the issue is triggered by Form Maker plugin. Please contact Web-Dorado Customer Care at support@web-dorado.com. Our developers will have a closer look.
+If the test email will be sent, then the issue is triggered by Form Maker plugin. Please contact [10Web Customer Care at WordPress.org Support Forums](https://wordpress.org/support/plugin/form-maker/). Our developers will have a closer look.
 
 But if the test mail fails, the problem is on the server of your website. Please contact your hosting provider in this case, and ask them to enable mail functions on your site.
 
@@ -427,7 +537,7 @@ Connect to your website files via FTP connection and open the following two dire
 
 Please make sure all **.css** and **.js** files in these folders have their permissions set to **777.**
 
-If the permissions are correct, please do not hesitate to contact Web-Dorado Customer Care at support@web-dorado.com.
+If the permissions are correct, please do not hesitate to contact [10Web Customer Care at WordPress.org Support Forums](https://wordpress.org/support/plugin/form-maker/).
 
 = Is it possible to pass parameters from the page URL to form fields? =
 
@@ -451,11 +561,171 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 
 
 == Changelog ==
+
+= 1.13.24 =
+*	Fixed: Minor bug.
+
+= 1.13.23 =
+*  Added: Flush Rewrite Rules for multisite.
+*  Added: South Sudan to Address and Country List fields.
+*  Improved: Include Google Fonts only if used by a form on that page.
+*  Fixed: + sign in Regular Expressions.
+*  Fixed: Recaptcha with AJAX submit.
+*  Fixed: Row maximum width.
+*  Fixed: Placeholder text color.
+*  Fixed: PHP validation issue on an empty non-required email field.
+
+= 1.13.22 =
+*  Added: New Extension: Form Maker Webhooks.
+*  Added: Message about missing Stripe keys.
+*  Improved: Email field validation for Cyrillic.
+*  Fixed: Allow + sign in password for connecting to remote DB in MySQL mapping.
+
+= 1.13.21 =
+*  Added: "Custom text" in "Action after submission" for not embedded forms.
+*  Improved: Generated JS/CSS files fallback.
+*  Changed: Do not show confirmation alert on deleting empty columns.
+*  Fixed: Submitting a form with a value equal to the placeholder.
+*  Fixed: Recaptcha load issue with slow internet.
+*  Fixed: Show the unpublished form message only to the administrator.
+*  Fixed: Pagination styles for Form Maker admin pages.
+*  Fixed: Importing submissions of multiple forms at once.
+*  Fixed: Saving IP on "Block IPs" page.
+*  Fixed: Shortcode buttons behavior in Text widget of Divi Builder.
+*  Fixed: Condition with line break in Textarea default value.
+*  Fixed: Upload file URL in the email when Save Uploads is disabled.
+
+= 1.13.20 =
+* Added: Ask a question button.
+
+= 1.13.19 =
+* Removed: Webinar banner.
+
+= 1.13.18 =
+*  Fixed: Conflict with common mod_security rules.
+
+= 1.13.17 =
+*  Fixed: Spam protection.
+*  Fixed: Counting form views.
+*  Fixed: Error message on submitting form with existing username.
+
+= 1.13.16 =
+*  Added: Webinar banner.
+
+= 1.13.15 =
+*  Added: Use AJAX to submit forms (optional).
+*  Added: Additional spam protection (optional).
+*  Updated: PO files.
+*  Improved: Email delivery functionality.
+*  Fixed: Disable the submit button with deactivated Privacy options.
+*  Fixed: Empty time field in Submissions.
+*  Fixed: Recaptcha responsiveness.
+*  Fixed: Do not include dashicons to front.
+
+= 1.13.14 =
+* Fixed: Action after submission for cached pages.
+
+= 1.13.12 =
+*  Added: "Get Free Ebook" page on activation.
+*  Added: Integration with reCaptcha v3.
+*  Added: Fields placeholder functionality for Email to Admin.
+*  Fixed: Disable auto fill for Date field.
+*  Fixed: Pagination.
+*  Changed: Banner text.
+
+= 1.13.10 =
+*  Fixed: Page title in progress bar.
+*  Fixed: Option for selecting posts/pages to display Popup, Topbar, and Scrollbox forms.
+
+= 1.13.9 =
+*  Fixed: Issue with saving themes.
+
+= 1.13.8 =
+*  Fixed: Form submit bug.
+
+= 1.13.7 =
+*  Added: Support for 'all' placeholder in actions after submission.
+*  Added: Provinces for Canada.
+*  Improved: Spam protection.
+*  Improved: Minify js, css.
+*  Changed: Some country names.
+*  Fixed: Two required "Table of fields" fields on a page.
+*  Fixed: Error on uninstalling from multisite.
+*  Fixed: Preview in themes edit page.
+*  Fixed: User guide links for tabs in form edit page.
+*  Fixed: Empty Simple Captcha input after form reset.
+*  Fixed: Remove unnecessary container from placeholders popup.
+
+= 1.13.6 =
+* Fixed: Payment info is not retrieved.
+
+= 1.13.5 =
+* Fixed: CSRF issue.
+* Added: Banner to install 10Web manager.
+
+= 1.13.4 =
+* Fixed: Vulnerability on submissions page.
+
+= 1.13.3 =
+*  Added: Functionality to add placeholders in "Select options from database" Where selector.
+*  Added: Functionality to use "Star rating" as a condition.
+*  Fixed: Security issue.
+*  Fixed: Link for attachment in email.
+*  Fixed: Allow "0" value for required fields.
+*  Fixed: Don't use the same title for the duplicated form.
+*  Fixed: Adding field to incorrect position.
+*  Fixed: Scroll to required address field.
+*  Fixed: Broken multiple pages.
+*  Fixed: MySQL mapping edit functionality.
+*  Fixed: Multisite support for add-ons.
+*  Fixed: Saving advanced layout.
+*  Fixed: 0 value is not saved in submissions for Payment single choice and Shipping fields.
+
+= 1.13.2 =
+*  Changed: Links to 10Web.io.
+
+= 1.13.1 =
+*  Fixed: Bug on checking if Address field is required.
+
+= 1.13.0 =
+*  Added: Enable/Disable option for Form header.
+*  Added: Tax option for Stripe payments.
+*  Added: "Class name" option for "Single Line Text" field to allow add a css class for the field.
+*  Added: "Palestine" to country list field.
+*  Changed: Form editing page layout.
+*  Changed: Form Revisions functionality.
+*  Changed: Settings (Form Options) tab new design.
+*  Changed: Form Publishing tab new design.
+*  Changed: Selecting a Theme moved to Appearance.
+*  Changed: Make email options a separate tab.
+*  Changed: Remove required mark color from "Default" and "Inherit from site" themes.
+*  Changed: Inherit styles (font, color) from Elementor for Form maker widget.
+*  Fixed: Try to reproduce, try/catch curl part of code.
+*  Fixed: Requirement of table field should be affected on all rows of it.
+*  Fixed: The Like/Starting With options in WHERE of Select options from Database.
+*  Fixed: Remove the link of the word "Privacy Policy" when there is no Privacy Policy page.
+*  Fixed: Styles for rtl languages.
+*  Fixed: Addons settings for duplicated forms.
+*  Fixed: Required validation not allow space.
+*  Fixed: Error when clicking allow or skip to collect some usage data more then once.
+
+= 1.12.42 =
+*  Fixed: Remove the link from "Privacy Policy" text in the form when there is no Privacy Policy page.
+
+= 1.12.41 =
+*  Added: WHERE selectors in "Options from database" (Select, Single and Multiple choice fields).
+*  Added: Placeholders (User ID, Submitter's IP, etc.) in WHERE clause in "Options from database" and MySQL Mapping.
+*  Improved: Parsing images in post content in Post Generation extension.
+*  Improved: Automatically deactivate plugin after uninstall.
+*  Fixed: Scroll issues on Safari (MacOS).
+*  Fixed: "Receive Copy" field checkbox with Form maker some themes.
+*  Fixed: "Custom text" after form submit.
+
 = 1.12.39 =
-*  Added: Drag & Drop of Columns in form editor  
-*  Added: Drag & Drop of Pages in form editor  
+*  Added: Drag & Drop of Columns in form editor
+*  Added: Drag & Drop of Pages in form editor
 *  Added: New icon in Elementor plugin
-*  Improved: Drag & Drop of fields in form editor  
+*  Improved: Drag & Drop of fields in form editor
 *  Fixed: Conditional fields flickering during page loading
 
 = 1.12.38 =
@@ -530,8 +800,8 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 *  Fixed: Bug on saving a theme.
 
 = 1.12.27 =
-*  Added: Help and suggestions text for Privacy Policy (for GDPR compliance)  
-*  Added: Privacy related text to readme.  
+*  Added: Help and suggestions text for Privacy Policy (for GDPR compliance)
+*  Added: Privacy related text to readme.
 
 = 1.12.26 =
 *  Fixed: Vulnerabilities reported by Neven Biruski from DefenseCode (using the tool ThunderScan).
@@ -574,7 +844,7 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 
 = 1.12.18 =
 *  Changed: improved Form Submissions view: added tooltips for long labels of form fields.
-*  Added: detailed descriptions of form fields inside the form editor 
+*  Added: detailed descriptions of form fields inside the form editor
 *  Fixed: UTF-8 text in Email body.
 
 = 1.12.17 =
@@ -586,7 +856,7 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 *  Fixed: Form submissions CSV export with UTF-8 encoding.
 
 = 1.12.15 =
-*  Fixed: Error on adding a form field.   
+*  Fixed: Error on adding a form field.
 
 = 1.12.14 =
 *  Fixed: Form submissions page.
@@ -640,7 +910,7 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 *  Updated: Support forum link.
 
 = 1.12.7 =
-*  Added: Invisibe reCAPTCHA.
+*  Added: Invisible reCAPTCHA.
 *  Improved: Compatibility with Contact Form Maker.
 *  Improved: Stripe add-on styles.
 *  Fixed: Some frontend styles.
@@ -666,18 +936,18 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 *  Fixed: List of US states.
 
 = 1.12.4 =
-*  Changed: Email validation field now allows + symbol   
-*  Changed: Remove Font Awesome.   
-*  Changed: Italian translation.   
+*  Changed: Email validation field now allows + symbol
+*  Changed: Remove Font Awesome.
+*  Changed: Italian translation.
 
 = 1.12.3 =
 *  Fixed: Get editor by id instead of active.
 *  Fixed: Not found form id redirect to main page.
 
 = 1.12.2 =
-*  Fixed: Border types bug   
-*  Fixed: Bug with PayPal IPN   
-*  Fixed: Date format syncronization with Save Progress add-on   
+*  Fixed: Border types bug
+*  Fixed: Bug with PayPal IPN
+*  Fixed: Date format synchronization with Save Progress add-on
 
 = 1.12.1 =
 * Changed: Add field button design.
@@ -699,180 +969,180 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 *  Fixed: Theme version control.
 
 = 1.11.6 =
-*  Fixed: Shortcode editor pop-up styles.   
-*  Fixed: Scripts enqueue in Manage Forms page.   
-*  Fixed: MySQL Mapping fields list scrolling.   
+*  Fixed: Shortcode editor pop-up styles.
+*  Fixed: Scripts enqueue in Manage Forms page.
+*  Fixed: MySQL Mapping fields list scrolling.
 
 = 1.11.5 =
-*  Fixed: Bug on CSV/XML export.   
-*  Fixed: Google maps api conflict with other plugins.   
-*  Changed: Improved Matrix type field view in submissions.   
-*  Fixed: File upload field styles with "Inherit from website theme".   
+*  Fixed: Bug on CSV/XML export.
+*  Fixed: Google maps api conflict with other plugins.
+*  Changed: Improved Matrix type field view in submissions.
+*  Fixed: File upload field styles with "Inherit from website theme".
 
 = 1.11.4 =
-*  Fixed: Bug on color picker when choosing transparency  
-*  Fixed: Bug on submissions edit  
-*  Fixed: Bug on "Inherit from website" theme   
-*  Fixed: Bug on Paypal notifications   
-*  Changed: Form Options tab id to avoid conflict with some plugins   
+*  Fixed: Bug on color picker when choosing transparency
+*  Fixed: Bug on submissions edit
+*  Fixed: Bug on "Inherit from website" theme
+*  Fixed: Bug on Paypal notifications
+*  Changed: Form Options tab id to avoid conflict with some plugins
 
 
 = 1.11.3 =
-*  Added: Global option to enable Advanced Layout   
-*  Changed: Themes table field name: `params` to `css`   
-*  Fixed: Bug on PHP 5.2   
-*  Fixed: Uninstall bug in free version   
-*  Fixed: bug on generating Theme css   
-*  Fixed: CSS conflict with some ajax themes   
+*  Added: Global option to enable Advanced Layout
+*  Changed: Themes table field name: `params` to `css`
+*  Fixed: Bug on PHP 5.2
+*  Fixed: Uninstall bug in free version
+*  Fixed: bug on generating Theme css
+*  Fixed: CSS conflict with some ajax themes
 
 = 1.11.2 =
-*  Added: Overview page   
-*  Removed: Featured Plugins, Featured Themes pages   
-*  Fixed: Security issue   
-*  Fixed: Themes - bug on save as copy   
+*  Added: Overview page
+*  Removed: Featured Plugins, Featured Themes pages
+*  Fixed: Security issue
+*  Fixed: Themes - bug on save as copy
 
 
 = 1.11.1 =
-*  Removed: Old forms support (created with Form Maker versions < 1.7.0)   
-*  Added: Form Header   
-*  Added: New Themes   
-*  Added: New Theme Editor   
-*  Added: Form Display Options (Embedded, Popup, Topbar, Scrollbox)   
-*  Fixed: Database creation on some versions of MySQL   
-*  Fixed: Removed html tags from csv and xml   
+*  Removed: Old forms support (created with Form Maker versions < 1.7.0)
+*  Added: Form Header
+*  Added: New Themes
+*  Added: New Theme Editor
+*  Added: Form Display Options (Embedded, Popup, Topbar, Scrollbox)
+*  Fixed: Database creation on some versions of MySQL
+*  Fixed: Removed html tags from csv and xml
 
 = 1.10.11 =
-*  Added: Support forum links.   
+*  Added: Support forum links.
 
 = 1.10.10 =
-*  Fixed: Bug on arithmetic captcha   
+*  Fixed: Bug on arithmetic captcha
 
 = 1.10.9 =
-*  Changed: New logo   
+*  Changed: New logo
 
 = 1.10.8 =
-*  Added: New form field type: Phone with flag   
-*  Fixed: Bug on captcha reset   
+*  Added: New form field type: Phone with flag
+*  Fixed: Bug on captcha reset
 
 = 1.10.7 =
-*  Changed: Improved captcha security   
-*  Fixed: Bug on matrix field   
-*  Fixed: Bug on conditional fields (for date field)   
-*  Added: Notification about old forms   
+*  Changed: Improved captcha security
+*  Fixed: Bug on matrix field
+*  Fixed: Bug on conditional fields (for date field)
+*  Added: Notification about old forms
 
 = 1.10.6 =
-*  Fixed: Bug on spinner field   
-*  Fixed: Bug on matrix field   
+*  Fixed: Bug on spinner field
+*  Fixed: Bug on matrix field
 
 = 1.10.5 =
-*  Fixed: JS conflict on contact form submission   
+*  Fixed: JS conflict on contact form submission
 
 = 1.10.4 =
-*  Fixed: Conflict with Yoast SEO plugin    
-*  Fixed: Line breaks in textarea after incorrect captcha    
+*  Fixed: Conflict with Yoast SEO plugin
+*  Fixed: Line breaks in textarea after incorrect captcha
 
 = 1.10.3 =
-*  Fixed: Bug on PHP 5.3   
+*  Fixed: Bug on PHP 5.3
 
 = 1.10.2 =
-*  Added: New Global option "Use an alternative version of JS code on front-end:". Checking this box fixes JS conflicts with some themes, that alter inline JS.   
+*  Added: New Global option "Use an alternative version of JS code on front-end:". Checking this box fixes JS conflicts with some themes, that alter inline JS.
 
 = 1.10.1 =
-*  Added: Verified emails list in csv, xml files   
+*  Added: Verified emails list in csv, xml files
 
 = 1.10 =
-*  Changed: Field validation errors and notifications   
-*  Added: Realtime field validation   
-*  Changed: Improved NL translation   
-*  Fixed: Bug on verified emails   
+*  Changed: Field validation errors and notifications
+*  Added: Real time field validation
+*  Changed: Improved NL translation
+*  Fixed: Bug on verified emails
 
 = 1.9.18 =
-*  Added: Filter verified emails and Export submissions with verified emails   
+*  Added: Filter verified emails and Export submissions with verified emails
 
 = 1.9.17 =
-*  Fixed: Bug with search by ID in Submissions    
-*  Fixed: Bug with Validation (Regular Exp.)    
+*  Fixed: Bug with search by ID in Submissions
+*  Fixed: Bug with Validation (Regular Exp.)
 
 = 1.9.16 =
-*  Fixed: Bug with Hidden field in custom text in Email   
-*  Fixed: Bug on email verification custom post   
-*  Added: Field type in field edit page   
+*  Fixed: Bug with Hidden field in custom text in Email
+*  Fixed: Bug on email verification custom post
+*  Added: Field type in field edit page
 
 = 1.9.15 =
-*  Added: Password Confirmation field   
+*  Added: Password Confirmation field
 
 = 1.9.14 =
-*  Fixed: Bug on CSV and XML export   
+*  Fixed: Bug on CSV and XML export
 
 = 1.9.13 =
-*  Fixed: Bug on Field label position (Left/Top)   
-*  Fixed: JS error on IE 11 and Microsoft Edge   
+*  Fixed: Bug on Field label position (Left/Top)
+*  Fixed: JS error on IE 11 and Microsoft Edge
 
 = 1.9.12 =
-*  Added: Email Confirmation field   
-*  Fixed: Bug on CSV and XML export   
+*  Added: Email Confirmation field
+*  Fixed: Bug on CSV and XML export
 
 = 1.9.11 =
-*  Changed: Filters now apply to CSV and XML export   
+*  Changed: Filters now apply to CSV and XML export
 
 = 1.9.10 =
-*  Fixed: Bug on "Advanced Layout"   
+*  Fixed: Bug on "Advanced Layout"
 
 = 1.9.9 =
-*  Changed: Featured plugins page   
+*  Changed: Featured plugins page
 
 = 1.9.8 =
-*  Fixed: Unexpected behavior on pressing "Enter" key on back end form creator page   
+*  Fixed: Unexpected behavior on pressing "Enter" key on back end form creator page
 
 = 1.9.7 =
-*  Fixed: JS error on incorrect Google Maps API key   
-*  Added: Alert about incorrect Google Maps API key   
+*  Fixed: JS error on incorrect Google Maps API key
+*  Added: Alert about incorrect Google Maps API key
 
 = 1.9.6 =
-*  Added: Global option for Google Maps API key   
-*  Fixed: Google Maps API key warning in browser      
+*  Added: Global option for Google Maps API key
+*  Fixed: Google Maps API key warning in browser
 
 = 1.9.5 =
-*  Changed: Improvements in "Select options from database" pop-up window for Select box, single and multiple choices    
-*  Fixed: Back end minor style issues   
+*  Changed: Improvements in "Select options from database" pop-up window for Select box, single and multiple choices
+*  Fixed: Back end minor style issues
 
 = 1.9.3 =
-*  Fixed: Bug with Date field in custom text in Email   
-*  Fixed: Bug on editing submissions with checkbox and radio fields with customized values    
+*  Fixed: Bug with Date field in custom text in Email
+*  Fixed: Bug on editing submissions with checkbox and radio fields with customized values
 
 = 1.9.2 =
-*  Added: "View" button on submissions to open a sigle submission in a separate pop-up window   
-*  Fixed: Minor bugs on editing submissions   
+*  Added: "View" button on submissions to open a single submission in a separate pop-up window
+*  Fixed: Minor bugs on editing submissions
 
 = 1.9.1 =
-*  Fixed: bug on date field on some browsers (Safari, Edge)   
+*  Fixed: bug on date field on some browsers (Safari, Edge)
 
 = 1.9 =
-*  Changed: Improved Date picker functionality (new options: Dates to exclude, Default, Minimum, Maximum dates)   
-*  Added: New field type: Date Range   
+*  Changed: Improved Date picker functionality (new options: Dates to exclude, Default, Minimum, Maximum dates)
+*  Added: New field type: Date Range
 
 = 1.8.41 =
-*  Fixed: Bug on conditional fields (for multiple contact forms on the same page)   
+*  Fixed: Bug on conditional fields (for multiple contact forms on the same page)
 
 = 1.8.40 =
-*  Changed: Style of required field asterisk   
-*  Changed: Display the correct IDs and Names of the fields in the back end (Add/Edit field interface) to use in js/css   
+*  Changed: Style of required field asterisk
+*  Changed: Display the correct IDs and Names of the fields in the back end (Add/Edit field interface) to use in js/css
 
 = 1.8.39 =
-*  Fixed: Bug on Matrix field (additional attributes)   
+*  Fixed: Bug on Matrix field (additional attributes)
 
 = 1.8.38 =
-*  Fixed: Bug on Matrix field (special characters in row/column labels)   
+*  Fixed: Bug on Matrix field (special characters in row/column labels)
 
 = 1.8.36 =
-*  Fixed: Bug on long content in textarea fields   
+*  Fixed: Bug on long content in textarea fields
 
 = 1.8.35 =
-*  Fixed: Browser warning on Google Maps API version   
-*  Fixed: Phone field style issue on Mac OS    
+*  Fixed: Browser warning on Google Maps API version
+*  Fixed: Phone field style issue on Mac OS
 
 = 1.8.34 =
-*  Fixed: Some minor style issues   
+*  Fixed: Some minor style issues
 
 = 1.8.33 =
 *  Fixed: Bug in Address field
@@ -880,168 +1150,168 @@ Where **{{field_id}}** is the ID of the field you wish to prefill. Also, **{{par
 *  Changed: before_submit() function functionality
 
 = 1.8.32 =
-*  New Add-on: Calculator    
-Removed: deprecated Number field    
+*  New Add-on: Calculator
+Removed: deprecated Number field
 
 = 1.8.31 =
-*  Fixed: Issue with search in Submissions page   
+*  Fixed: Issue with search in Submissions page
 
 = 1.8.30 =
-*  Added: Submission ID in csv export   
+*  Added: Submission ID in csv export
 
 = 1.8.29 =
-*  Changed: Featured Plugins, Featured Themes pages design.    
+*  Changed: Featured Plugins, Featured Themes pages design.
 
 = 1.8.28 =
-*  Fixed: Bug in Email Options     
-*  Fixed: Bug in Conditional Fields      
-*  Fixed: Bug in date field   
+*  Fixed: Bug in Email Options
+*  Fixed: Bug in Conditional Fields
+*  Fixed: Bug in date field
 
 = 1.8.27 =
-*  Fixed: Bug in Conditional Fields    
-*  Fixed: Bug with Additional Attributs in Multiple Choice   
+*  Fixed: Bug in Conditional Fields
+*  Fixed: Bug with Additional Attributes in Multiple Choice
 
 = 1.8.26 =
-*  Fixed: Submissions page styles    
-*  Fixed: Issue with IPv6     
+*  Fixed: Submissions page styles
+*  Fixed: Issue with IPv6
 
 = 1.8.25 =
-*  Fixed: Bug in conditional fields.    
-*  Changed: Featured Plugins, Featured Themes pages design.    
+*  Fixed: Bug in conditional fields.
+*  Changed: Featured Plugins, Featured Themes pages design.
 
 = 1.8.24 =
-*  Added: File upload as a link in email   
+*  Added: File upload as a link in email
 
 = 1.8.23 =
-*  Fixed: Bug in textarea field with line breaks     
+*  Fixed: Bug in textarea field with line breaks
 
 = 1.8.22 =
 *  Fixed: Conflict with some plugins
 
 = 1.8.21 =
-*  Fixed: Bug in selectbox   
+*  Fixed: Bug in selec tbox
 
 = 1.8.20 =
-*  Added: Autofill with user data for email address and name fields 
+*  Added: Auto fill with user data for email address and name fields
 
 = 1.8.19 =
-*  Changed: Back End design     
+*  Changed: Back End design
 
 = 1.8.18 =
-*  Added: Date format validation    
-*  Fixed: Recaptcha Validation bug    
+*  Added: Date format validation
+*  Fixed: Recaptcha Validation bug
 
 = 1.8.17 =
-*  Added: Global Options   
+*  Added: Global Options
 
 = 1.8.16 =
-*  Fixed: User guide links   
+*  Fixed: User guide links
 
 = 1.8.15 =
-*  Changed: Back End Design for old forms   
+*  Changed: Back End Design for old forms
 
 = 1.8.14 =
-*  Fixed: Bug in PayPal field   
-*  Changed: Matrix field display in email    
+*  Fixed: Bug in PayPal field
+*  Changed: Matrix field display in email
 
 = 1.8.13 =
-*  Fixed: Style in form builder edit page    
-*  Fixed: Bug in PayPal options     
+*  Fixed: Style in form builder edit page
+*  Fixed: Bug in PayPal options
 
 = 1.8.12 =
 *  Changed: Submissions page styles
 
 = 1.8.11 =
-*  New Add-on: Stripe Integration      
+*  New Add-on: Stripe Integration
 
 = 1.8.10 =
-*  Fixed: Bug in name field   
-*  Fixed: Bug in captcha   
+*  Fixed: Bug in name field
+*  Fixed: Bug in captcha
 
 = 1.8.9 =
-*  New Add-on: Save Progress     
+*  New Add-on: Save Progress
 
 = 1.8.8 =
-*  Fixed: Minor bug   
+*  Fixed: Minor bug
 
 = 1.8.7 =
 *  New: New year promo
 
 = 1.8.6 =
-*  Changed: Reset button       
-*  Fixed: Bug with scrolling in new field pop up      
-*  Fixed: Bug in MySql mapping on firefox browser    
+*  Changed: Reset button
+*  Fixed: Bug with scrolling in new field pop up
+*  Fixed: Bug in MySql mapping on firefox browser
 
 = 1.8.5 =
-*  Fixed: Bug in mysql mapping.             
-*  Changed: Featured themes page.      
+*  Fixed: Bug in mysql mapping.
+*  Changed: Featured themes page.
 
 = 1.8.4 =
-*  Fixed: Bug in submissions    
+*  Fixed: Bug in submissions
 
 = 1.8.3 =
-*  Changed: Backend design    
+*  Changed: Backend design
 
 = 1.8.2 =
-*  New Add-on: Pushover Integration         
+*  New Add-on: Pushover Integration
 
 = 1.8.1 =
-*  Fixed: Bug in email options     
-*  Changed: Backend design     
+*  Fixed: Bug in email options
+*  Changed: Backend design
 
 = 1.8.0 =
-*  Changed: Backend design    
+*  Changed: Backend design
 
 = 1.7.97 =
-*  Fixed: Bug in CSV/XML export     
+*  Fixed: Bug in CSV/XML export
 
 = 1.7.96 =
-*  Added: Preview button      
-*  Changed: Conditional fields limitation     
+*  Added: Preview button
+*  Changed: Conditional fields limitation
 
 = 1.7.95 =
 *  Changed: csv/xml export file directory
 
 = 1.7.94 =
-*  Added: Progress bar for csv/xml export 
+*  Added: Progress bar for csv/xml export
 
 = 1.7.93 =
-*  Fixed: Bug in mailing     
-*  Changed: Calendar styles     
+*  Fixed: Bug in mailing
+*  Changed: Calendar styles
 
 = 1.7.92 =
-*  Fixed: Bug in mailing      
+*  Fixed: Bug in mailing
 
 = 1.7.91 =
-*  Changed: Themes        
-*  Fixed: Bug in block ip     
+*  Changed: Themes
+*  Fixed: Bug in block ip
 
 = 1.7.90 =
-*  Fixed: Bug in CSV/XML export       
+*  Fixed: Bug in CSV/XML export
 
 = 1.7.89 =
-*  Fixed: Conflict with some plugins      
-*  Changed: Styles        
+*  Fixed: Conflict with some plugins
+*  Changed: Styles
 
 = 1.7.88 =
-*  New: Doublescroll in submissions page      
-*  New: Delete confirmation        
-*  Fixed: Bug in mysql mapping for conditional fields     
+*  New: Double scroll in submissions page
+*  New: Delete confirmation
+*  Fixed: Bug in mysql mapping for conditional fields
 
 = 1.7.87 =
-*  Fixed: Bug in CSV/XML export   
+*  Fixed: Bug in CSV/XML export
 
 = 1.7.86 =
 *  Changed: CSV/XML export
 
 = 1.7.85 =
-*  Fixed: Bug in conditional fields   
- 
+*  Fixed: Bug in conditional fields
+
 = 1.7.84 =
-*  New Add-on: PDF Integration   
+*  New Add-on: PDF Integration
 
 = 1.7.83 =
-*  New: Google Drive Integration Add-on 
+*  New: Google Drive Integration Add-on
 
 = 1.7.82 =
 *  Fixed: Bug in demo forms
@@ -1050,23 +1320,23 @@ Removed: deprecated Number field
 *  Fixed: Bug in update
 
 = 1.7.80 =
-*  Changed: Notices  
+*  Changed: Notices
 
 = 1.7.79 =
 *  Fixed: Bug in update
 
 = 1.7.78 =
-*  Changed: Themes  
+*  Changed: Themes
 
 = 1.7.77 =
-*  New: Dropbox Integration Add-on 
+*  New: Dropbox Integration Add-on
 
 = 1.7.76 =
-*  Changed: Licensing/Donation page   
-*  Changed: Notices   
+*  Changed: Licensing/Donation page
+*  Changed: Notices
 
 = 1.7.75 =
-*  Changed: Submissions default ordering   
+*  Changed: Submissions default ordering
 *  Changed: Featured Plugins page
 
 = 1.7.74 =
@@ -1082,21 +1352,21 @@ Removed: deprecated Number field
 *  Changed: Styles
 
 = 1.7.69 =
-Minor bug fixed  
+Minor bug fixed
 
 = 1.7.68 =
-*  Changed: Compability with WordPress 4.3
+*  Changed: Compatibility with WordPress 4.3
 
 = 1.7.67 =
-*  Fixed: Bug in slider field  
-*  Fixed: Bug in address field  
+*  Fixed: Bug in slider field
+*  Fixed: Bug in address field
 *  Fixed: Bug in mysql mapping
 
 = 1.7.66 =
-*  Fixed: Bug in Undo/Rendo
+*  Fixed: Bug in Undo/Redo
 
 = 1.7.65 =
-*  New: Post Generation Add-on 
+*  New: Post Generation Add-on
 
 = 1.7.64 =
 *  Fixed: Minor bug
@@ -1117,8 +1387,8 @@ Minor bug fixed
 *  Fixed: Bug in csv/xml export
 
 = 1.7.58 =
-*  Fixed: Minor bugs   
-*  Added: Email verification custom post   
+*  Fixed: Minor bugs
+*  Added: Email verification custom post
 
 = 1.7.57 =
 *  Fixed: Security issue
@@ -1140,8 +1410,8 @@ bug in select field fixed
 minor bugs fixed
 
 = 1.7.51 =
-*  Changed: Featured plugins page.  
-*  New: Featured themes page.  
+*  Changed: Featured plugins page.
+*  New: Featured themes page.
 
 = 1.7.50 =
 minor bugs fixed
@@ -1170,14 +1440,14 @@ security issue fixed
 *  New: Email verification
 
 = 1.7.42 =
-bug in recaprcha fixed
+bug in recaptcha fixed
 change links
 
 = 1.7.40 =
 Allow to use entry values in "Custom text after submission"
 
 = 1.7.39 =
-*  New: User informetion in mysql mapping
+*  New: User information in mysql mapping
 *  Fixed: Country names
 
 = 1.7.38 =
@@ -1195,19 +1465,19 @@ Optimize csv/xml export
 *  Fixed: Select field duplication
 
 = 1.7.33 =
-bug in address field fixed 
+bug in address field fixed
 
 = 1.7.32 =
 bug fixed
 
 = 1.7.31 =
-Bug fixed: Hidden field save to DB.    
-*  New: Drag and drop options in multiple, single choices and select box.   
-*  New: Select options from database.   
-*  New: Add image in email as image.   
-*  New: Additional clauses within conditional fields.   
-*  New: Search submissions by ID.   
-*  New: Submission ID in email.   
+Bug fixed: Hidden field save to DB.
+*  New: Drag and drop options in multiple, single choices and select box.
+*  New: Select options from database.
+*  New: Add image in email as image.
+*  New: Additional clauses within conditional fields.
+*  New: Search submissions by ID.
+*  New: Submission ID in email.
 
 = 1.7.30 =
 Cache issue fixed
@@ -1218,7 +1488,7 @@ Bug fixed: Delete theme.
 
 = 1.7.28 =
 Bug fixed: Edit submissions.
-Bug fixed: Conditional fielsd with quota in labels
+Bug fixed: Conditional fields with quota in labels
 
 = 1.7.27 =
 bug fixed in csv\xml export
@@ -1242,10 +1512,10 @@ Form field reordering using Drag&Drop
 wp 4.0.1 shortcode issue fixed
 
 = 1.7.18 =
-pagination with input 
+pagination with input
 
 = 1.7.17 =
-bug fixed in condition fileds 
+bug fixed in condition fields
 
 = 1.7.16 =
 show submitter information in popup (Country, CountryCode, City, Latitude, Longitude)
@@ -1278,7 +1548,7 @@ bug fixed in required radio field
 bug fixed in adding new contact form
 
 = 1.7.6 =
-new email options, conditional fileds
+new email options, conditional fields
 
 = 1.7.5 =
 conflict with Jetpack  Contact Form module fixed
@@ -1290,7 +1560,7 @@ bug fixed in form options
 improve themes
 
 = 1.7.1 =
-bug fixed in email options 
+bug fixed in email options
 
 = 1.7 =
 Div structured, responsive form
@@ -1300,34 +1570,34 @@ New themes
 = 1.6.6 =
 *  fix security issue which was reported by Mateusz Lach
 = 1.6.4 =
-*  Added featured plugins  
+*  Added featured plugins
 = 1.6.3 =
-*  From Name, From Email in Form options  
+*  From Name, From Email in Form options
 = 1.5.0 =
-*  Survey Tools (Star Rating, Scale Rating, Spinner, Slider, Range, Grading, Matrix)  
-= 1.4.0 = 
-*  Customizable Email message for Administrator and Users  
+*  Survey Tools (Star Rating, Scale Rating, Spinner, Slider, Range, Grading, Matrix)
+= 1.4.0 =
+*  Customizable Email message for Administrator and Users
 = 1.3.0 =
-*  Actions after form Submission:  
--	Stay on form:   
--	To go to Post,Page after the form submission:  
--	Custom text after the form submission:   
--	URL: The user is redirected to the provided URL after the form submission.  
-*  Edit javascript of the form:  
-*  Save as the copy of the form:  
-*  Themes: There are 43 standard themes included in Form Maker  
-*  New form fields:  
--	Address field  
--	Address mark on map form field  
--	Number form field  
--	Phone form field  
--	Date 3 different form field  
--	Time form field  
--	Country list form field  
--	Recapthca form field  
+*  Actions after form Submission:
+- Stay on form:
+- To go to Post,Page after the form submission:
+- Custom text after the form submission:
+- URL: The user is redirected to the provided URL after the form submission.
+*  Edit javascript of the form:
+*  Save as the copy of the form:
+*  Themes: There are 43 standard themes included in Form Maker
+*  New form fields:
+- Address field
+- Address mark on map form field
+- Number form field
+- Phone form field
+- Date 3 different form field
+- Time form field
+- Country list form field
+- Recaptcha form field
 *  Pagebreak of the [Wordpress Form](http://wordpress.org/plugins/form-maker/) Maker: This can be used to break the form into distinct pages.  
 *  Section Break of the Form Maker: This option allows adding a section break to the form page.  
-*  For each form certain types of statistical data are available in the form builder tool:  
+*  For each web form certain types of statistical data are available in the form builder tool:  
 *  Entries of a form: The number of submitted forms in the form builder tool.  
 *  Views of a form: The number of times the form has been viewed.  
 *  Conversion Rate of a form: The percentage of submitted forms to the overall number of views.  

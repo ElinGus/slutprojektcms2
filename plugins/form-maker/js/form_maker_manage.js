@@ -14,78 +14,69 @@ function remove_whitespace(node) {
   return;
 }
 
-function remove_empty_columns() {
-	jQuery('.wdform_section').each(function() {
-		if(jQuery(this).find('.wdform_column').last().prev().html()=='') {
-			if(jQuery(this).children().length>2) {
-				jQuery(this).find('.wdform_column').last().prev().remove();
-				remove_empty_columns();
-			}
-		}	
-	});
-}
-
-function fm_section_handle(section) {
+function fm_row_handle(section) {
   var fm_section = jQuery(section);
-  fm_section.find('.wdform_section_handle').remove();
-  if (fm_section.find('.wdform_row').length > 0 || !fm_section.is(':last-child')) {
-    fm_section.prepend('<div class="wdform_section_handle">' +
-      '<span class="dashicons dashicons-move"></span>' +
-      '<div class="fm-divider"></div>' +
-      '</div>');
-  }
-}
-
-function fm_update_columns() {
-  jQuery('.wdform_section .wdform_column:last-child').each(function() {
-    if (jQuery(this).find('.wdform_row').length > 0) {
-      fm_section_handle(this);
-      jQuery(this).parent().append(jQuery('<div></div>').addClass("wdform_column"));
-      sortable_columns();
-    }
-  });
+  fm_section.find('.wdform_row_handle').remove();
+  var row_handle = jQuery('<div class="wdform_row_handle">' +
+    '<span class="fm-ico-draggable"></span>' +
+    '<span title="Remove the column" class="page_toolbar fm-ico-delete" onclick="fm_remove_row_popup(this);"></span>' +
+    '<span class="add-new-field" onclick="jQuery(\'#cur_column\').removeAttr(\'id\');jQuery(this).parent().parent().attr(\'id\', \'cur_column\').val(1);popup_ready(); Enable(); return false;">' + form_maker_manage.add_new_field + '</span>' +
+    '<div class="fm-divider"></div>' +
+    '</div>');
+  fm_section.prepend(row_handle);
+  row_handle.after('<div class="fm-section-overlay"></div>');
 }
 
 function sortable_columns() {
   jQuery( "#take" ).sortable({
     cursor: 'move',
-    cursorAt: { left: 5, top: 5 },
     placeholder: "highlight",
     tolerance: "pointer",
-    handle: ".form_id_tempform_view_img .dashicons-move",
+    handle: ".form_id_tempform_view_img .fm-ico-draggable",
     items: "> .wdform-page-and-images",
     axis: "y",
 		update: function(event, ui) {
       refresh_page_numbers();
     },
   });
-  jQuery( ".wdform_section" ).sortable({
-    connectWith: ".wdform_section",
+  jQuery( ".wdform_page" ).sortable({
+    connectWith: ".wdform_page",
     cursor: 'move',
-    cursorAt: { left: 5, top: 5 },
-    placeholder: "highlight wdform_column",
+    placeholder: "highlight",
     tolerance: "pointer",
-    handle: ".wdform_section_handle .dashicons-move",
-    items: "> .wdform_column:not(:empty), > .wdform_column:empty:only-child",
+    handle: ".wdform_row_handle",
+    cancel: ".add-new-field, .page_toolbar",
+    items: "> .wdform_section",
     create: function( event, ui ) {
-      jQuery(event.target).find('.wdform_column').each(function() {
-        fm_section_handle(this);
+      jQuery(event.target).find('.wdform_section').each(function() {
+        fm_row_handle(this);
       });
+    },
+    start: function( event, ui ) {
+      jQuery('.wdform_row_empty').hide();
+    },
+    stop: function( event, ui ) {
+      fm_rows_refresh();
+      jQuery('.wdform_row_empty').show();
     },
   });
   jQuery( ".wdform_column" ).sortable({
 		connectWith: ".wdform_column",
 		cursor: 'move',
 		placeholder: "highlight",
+    tolerance: "pointer",
     cancel: ".wdform_section_handle",
     items: "> .wdform_row, #add_field",
 		start: function(e, ui) {
       jQuery(".add-new-button").off("click");
-		},
-		update: function(event, ui) {
-      fm_update_columns();
-		},
+      jQuery(".wdform_column").removeClass("fm-hidden");
+			jQuery("#cur_column").removeAttr("id");
+    },
 		stop: function(event, ui) {
+		  // Prevent dropping on "New Field" conatiner.
+		  if (ui.item.parent().attr("id") == "add_field_cont") {
+		    return false;
+      }
       if (ui.item.attr("id") == "add_field" && ui.item.parent().attr("id") != "add_field_cont") {
         if (fm_check_something_really_important()) return false;
         nextID = jQuery("#add_field").next(".wdform_row").attr("wdid"); //find next row id for position
@@ -96,24 +87,30 @@ function sortable_columns() {
 				jQuery(".add-new-button").removeAttr("onclick");
 				return false;
 			}
-			remove_empty_columns();
+      jQuery(".wdform_column:not(#add_field_cont):empty").addClass("fm-hidden");
+      fm_columns_refresh();
 		}
   });
 }
 
 function all_sortable_events() {
-  jQuery(".wdform_row, .wdform_tr_section_break").on("hover, touchstart", function (event) {
+  fm_rows_refresh();
+  fm_columns_refresh();
+  jQuery(".wdform_row, .wdform_tr_section_break").off("hover, touchstart").on("hover, touchstart", function (event) {
     if (!jQuery(this).find('.wdform_arrows').is(':visible')) {
       jQuery('.wdform_arrows').hide();
       jQuery(this).find('.wdform_arrows').show();
       event.preventDefault();
       return false;
     }
-  });
-  jQuery(".wdform_row, .wdform_tr_section_break").on("mouseleave", function () {
+  }).off("mouseleave").on("mouseleave", function () {
     jQuery(this).find('.wdform_arrows').hide();
   });
-  fm_update_columns();
+  jQuery(".wdform_section_handle, .wdform_row_handle").off("hover, touchstart").on("hover, touchstart", function (event) {
+    jQuery(this).parent().addClass('fm-hover');
+  }).off("mouseleave").on("mouseleave", function () {
+    jQuery(this).parent().removeClass('fm-hover');
+  });
 }
 
 jQuery(document).on( "dblclick", ".wdform_row, .wdform_tr_section_break", function() {
@@ -162,7 +159,14 @@ function refresh_() {
   });
   jQuery("#take div").removeClass("ui-sortable ui-sortable-disabled ui-sortable-handle");
 	jQuery( "#add_field_cont" ).remove(); // remove add new button from div content
-	document.getElementById('form_front').value = document.getElementById('take').innerHTML;
+	document.getElementById('form_front').value = btoa(fm_htmlentities(document.getElementById('take').innerHTML));
+}
+function fm_htmlentities(s){
+  var div = document.createElement('div');
+  var text = document.createTextNode(s);
+  div.style.cssText = "display:none";
+  div.appendChild(text);
+  return div.innerHTML;
 }
 
 function fm_add_submission_email(toAdd_id, value_id, parent_id, cfm_url) {
@@ -242,7 +246,8 @@ function check_isnum(e) {
 function fm_check_email(id) {
   if (document.getElementById(id) && jQuery('#' + id).val() != '') {
     var email_array = jQuery('#' + id).val().split(',');
-		var re = /^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,61}$/;
+	/* Regexp is also for Cyrillic alphabet */
+	var re = /^[\u0400-\u04FFa-zA-Z0-9.+_-]+@[\u0400-\u04FFa-zA-Z0-9.-]+\.[\u0400-\u04FFa-zA-Z]{2,61}$/;
     for (var email_id = 0; email_id < email_array.length; email_id++) {
       var email = email_array[email_id].replace(/^\s+|\s+$/g, '');
       if ( email && ! re.test( email ) && email.indexOf('{') === -1 ) {
@@ -545,6 +550,7 @@ function add_condition_fields(num, ids1, labels1, types1, params1) {
 	
 	switch(types[index_of_field]) {
 		case "type_text":
+		case "type_star_rating":
 		case "type_password":
 		case "type_textarea":
 		case "type_name":

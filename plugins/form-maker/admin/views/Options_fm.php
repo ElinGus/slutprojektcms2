@@ -8,10 +8,15 @@ class FMViewOptions_fm extends FMAdminView {
    * FMViewOptions_fm constructor.
    */
   public function __construct() {
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
-
-    wp_enqueue_script('jquery');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+	$fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+	if ( $fm_settings['fm_developer_mode'] ) {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+	}
+	else {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-styles');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-scripts');
+	}
   }
 
   /**
@@ -53,9 +58,13 @@ class FMViewOptions_fm extends FMAdminView {
   public function body( $fm_settings = array() ) {
     $public_key = isset($fm_settings['public_key']) ? $fm_settings['public_key'] : '';
     $private_key = isset($fm_settings['private_key']) ? $fm_settings['private_key'] : '';
+    $recaptcha_score = isset($fm_settings['recaptcha_score']) ? $fm_settings['recaptcha_score'] : '';
     $csv_delimiter = isset($fm_settings['csv_delimiter']) ? $fm_settings['csv_delimiter'] : ',';
     $fm_advanced_layout = isset($fm_settings['fm_advanced_layout']) && $fm_settings['fm_advanced_layout'] == '1' ? '1' : '0';
     $fm_enable_wp_editor = !isset($fm_settings['fm_enable_wp_editor']) ? '1' : $fm_settings['fm_enable_wp_editor'];
+    $fm_ajax_submit = !isset($fm_settings['fm_ajax_submit']) ? '0' : $fm_settings['fm_ajax_submit'];
+    $fm_developer_mode = !isset($fm_settings['fm_developer_mode']) ? '0' : $fm_settings['fm_developer_mode'];
+    $fm_antispam = !isset($fm_settings['fm_antispam']) ? '0' : $fm_settings['fm_antispam'];
 
     $map_key = isset($fm_settings['map_key']) ? $fm_settings['map_key'] : '';
     $uninstall_href = add_query_arg( array( 'page' => 'uninstall' . WDFMInstance(self::PLUGIN)->menu_postfix), admin_url('admin.php') );
@@ -76,6 +85,13 @@ class FMViewOptions_fm extends FMAdminView {
               <input id="private_key" name="private_key" value="<?php echo $private_key; ?>" type="text" />
               <p class="description">
                 <?php echo sprintf(__('%s for your site from ReCaptcha website and copy the provided here.', WDFMInstance(self::PLUGIN)->prefix), '<a href="https://www.google.com/recaptcha/intro/index.html" target="_blank">' . __('Get ReCaptcha Site and Secret Keys', WDFMInstance(self::PLUGIN)->prefix) . '</a>'); ?>
+              </p>
+            </span>
+            <span class="wd-group">
+              <label class="wd-label" for="recaptcha_score"><?php _e('Minimum ReCaptcha v3 Score to allow submission', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input id="recaptcha_score" name="recaptcha_score" value="<?php echo $recaptcha_score == '' ? 0.5 : $recaptcha_score; ?>" type="number" max="1" min="0" step="0.1" />
+              <p class="description">
+                <?php echo sprintf(__('ReCaptcha v3 returns a score based on the user interactions with your forms. Scores range from 0.0 to 1.0, with 0.0 indicating abusive traffic and 1.0 indicating good traffic. %sVisit%s ReCaptcha admin to review verification statistics.', WDFMInstance(self::PLUGIN)->prefix), '<a href="https://www.google.com/recaptcha/admin/" target="_blank">', '</a>'); ?>
               </p>
             </span>
             <span class="wd-group wd-right">
@@ -127,7 +143,30 @@ class FMViewOptions_fm extends FMAdminView {
               <label class="wd-label-radio" for="fm_enable_wp_editor-0"><?php _e('No', WDFMInstance(self::PLUGIN)->prefix); ?></label>
               <p class="description"><?php _e('Form Header Description text and Layout fields boxes of Form Maker will use TinyMCE editor, in case this setting is enabled.', WDFMInstance(self::PLUGIN)->prefix); ?></p>
             </span>
-
+			<span class="wd-group">
+              <label class="wd-label"><?php _e('Antispam', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input <?php echo checked($fm_antispam, '1'); ?> id="fm_antispam-1" class="wd-radio" value="1" name="fm_antispam" type="radio"/>
+              <label class="wd-label-radio" for="fm_antispam-1"><?php _e('Yes', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input <?php echo checked($fm_antispam, '0'); ?> id="fm_antispam-0" class="wd-radio" value="0" name="fm_antispam" type="radio"/>
+              <label class="wd-label-radio" for="fm_antispam-0"><?php _e('No', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <p class="description"><?php _e('Enable antispam to protect your forms from junk submissions.', WDFMInstance(self::PLUGIN)->prefix); ?></p>
+            </span>
+			<span class="wd-group">
+              <label class="wd-label"><?php _e('Developer mode', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input <?php echo checked($fm_developer_mode, '1'); ?> id="fm_developer_mode-1" class="wd-radio" value="1" name="fm_developer_mode" type="radio"/>
+              <label class="wd-label-radio" for="fm_developer_mode-1"><?php _e('Yes', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input <?php echo checked($fm_developer_mode, '0'); ?> id="fm_developer_mode-0" class="wd-radio" value="0" name="fm_developer_mode" type="radio"/>
+              <label class="wd-label-radio" for="fm_developer_mode-0"><?php _e('No', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <p class="description"><?php _e('Do not use minified JS and CSS files. Enable this option if You need to debug JS or CSS issues.', WDFMInstance(self::PLUGIN)->prefix); ?></p>
+            </span>
+			<span class="wd-group">
+              <label class="wd-label"><?php _e('Ajax submit', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input <?php echo checked($fm_ajax_submit, '1'); ?> id="fm_ajax_submit-1" class="wd-radio" value="1" name="fm_ajax_submit" type="radio"/>
+              <label class="wd-label-radio" for="fm_ajax_submit-1"><?php _e('Yes', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <input <?php echo checked($fm_ajax_submit, '0'); ?> id="fm_ajax_submit-0" class="wd-radio" value="0" name="fm_ajax_submit" type="radio"/>
+              <label class="wd-label-radio" for="fm_ajax_submit-0"><?php _e('No', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+              <p class="description"><?php _e('Enable AJAX submit to submit forms without reloading the page.', WDFMInstance(self::PLUGIN)->prefix); ?></p>
+            </span>
             <span class="wd-group">
               <label class="wd-label"><?php echo sprintf(__('Uninstall %s', WDFMInstance(self::PLUGIN)->prefix), WDFMInstance(self::PLUGIN)->nicename); ?></label>
               <a class="button" href="<?php echo $uninstall_href ?>"><?php _e('Uninstall', WDFMInstance(self::PLUGIN)->prefix); ?></a>

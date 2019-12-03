@@ -16,8 +16,8 @@ class FMControllerOptions_fm extends FMAdminController {
   }
 
   public function execute() {
-    $task = WDW_FM_Library(self::PLUGIN)->get('task');
-    $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0);
+    $task = WDW_FM_Library(self::PLUGIN)->get('task', '', 'sanitize_text_field');
+    $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0, 'intval');
     if ( method_exists($this, $task) ) {
       check_admin_referer(WDFMInstance(self::PLUGIN)->nonce, WDFMInstance(self::PLUGIN)->nonce);
       $this->$task($id);
@@ -28,13 +28,13 @@ class FMControllerOptions_fm extends FMAdminController {
   }
 
   public function display() {
-    $fm_settings = get_option(WDFMInstance(self::PLUGIN)->is_free == 2 ? 'fmc_settings' : 'fm_settings');
+    $fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
     $this->view->display($fm_settings);
   }
 
   public function save() {
     $message = $this->model->save_db();
-    $page = WDW_FM_Library(self::PLUGIN)->get('page');
+    $page = WDW_FM_Library(self::PLUGIN)->get('page','','sanitize_text_field');
     WDW_FM_Library(self::PLUGIN)->fm_redirect(add_query_arg(array(
                                                 'page' => $page,
                                                 'task' => 'display',

@@ -13,6 +13,8 @@ class FMModelForm_maker {
 
   public $custom_fields = array();
 
+  public $fm_ajax_submit;
+
   /**
    * @param int $id
    * @param string $type
@@ -36,7 +38,10 @@ class FMModelForm_maker {
     $form_preview = (WDW_FM_Library(self::PLUGIN)->get( 'wdform_id', '' ) == $id) ? TRUE : FALSE;
     if ( !$form_preview && !$row->published ) {
       // If the form has been unpublished.
-      echo WDW_FM_Library(self::PLUGIN)->message( __( 'The form you are trying to view has been unpublished.', WDFMInstance(self::PLUGIN)->prefix ), 'fm-notice-error' );
+      if ( current_user_can( 'manage_options' ) ) {
+        // If the user is administrator.
+        echo WDW_FM_Library(self::PLUGIN)->message( __( 'The form you are trying to view has been unpublished.', WDFMInstance(self::PLUGIN)->prefix ), 'fm-notice-error' );
+      }
       return FALSE;
     }
     $theme_id = WDW_FM_Library(self::PLUGIN)->get( 'test_theme', '' );
@@ -67,21 +72,21 @@ class FMModelForm_maker {
     $fm_style_dir = $wp_upload_dir[ 'basedir' ] . $frontend_dir . 'css/fm-style-' . $theme_id . '.css';
     $fm_style_url = $front_urls[ 'upload_url' ] . $frontend_dir . 'css/fm-style-' . $theme_id . '.css';
 
-	// Elementor plugin is active.
-	if ( WDW_FM_Library(self::PLUGIN)->elementor_is_active() ) {
-		wp_register_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-style-' . $theme_id, $fm_style_url, array(), $cssver);
-		wp_print_styles(WDFMInstance(self::PLUGIN)->handle_prefix . '-style-' . $theme_id);
-	}
-
-	if (!file_exists($fm_style_dir)) {
+	  if (!file_exists($fm_style_dir)) {
       if ( function_exists('wp_add_inline_style') ) {
-        wp_add_inline_style(WDFMInstance(self::PLUGIN)->handle_prefix . 'frontend', $this->fm_css_content);
+        wp_add_inline_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-frontend', $this->fm_css_content);
       } else {
         echo '<style>' . $this->fm_css_content . '</style>';
       }
     } else {
       wp_register_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-style-' . $theme_id, $fm_style_url, array(), $cssver);
-      wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-style-' . $theme_id);
+      // Elementor plugin is active.
+      if ( WDW_FM_Library(self::PLUGIN)->elementor_is_active() ) {
+        wp_print_styles(WDFMInstance(self::PLUGIN)->handle_prefix . '-style-' . $theme_id);
+      }
+      else{
+        wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-style-' . $theme_id);
+      }
     }
 
     $label_id = array();
@@ -501,9 +506,9 @@ class FMModelForm_maker {
           }
         }
       }
-      $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-action-buttons {' .
+      $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-action-buttons * {' .
         (!empty( $form_theme[ 'CBPFontWeight' ] ) ? 'font-weight:' . $form_theme[ 'CBPFontWeight' ] . ';' : '') .
-        (!empty( $form_theme[ 'CBPFontSize' ] ) ? 'font-size:' . $form_theme[ 'CBPFontSize' ] . 'px;' : '') .
+        (!empty( $form_theme[ 'CBPFontSize' ] ) ? 'font-size:' . $form_theme[ 'CBPFontSize' ] . 'px !important;' : '') .
         (!empty( $form_theme[ 'CBPColor' ] ) ? 'color:' . $form_theme[ 'CBPColor' ] . ';' : '') .
         '}';
       $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .closing-form,
@@ -612,6 +617,7 @@ class FMModelForm_maker {
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=url],
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=email],
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form textarea,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .StripeElement,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-spinner-input,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form select,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .captcha_img,
@@ -625,6 +631,7 @@ class FMModelForm_maker {
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=url],
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=email],
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form textarea,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .StripeElement,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-spinner-input,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .file-upload-status,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form select {' .
@@ -637,8 +644,10 @@ class FMModelForm_maker {
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=url],
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=email],
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form textarea,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .StripeElement,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-spinner-input,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .file-upload-status,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .country-name,
 						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form select {' .
         (!empty( $form_theme[ 'IPMargin' ] ) ? 'margin:' . $form_theme[ 'IPMargin' ] . ';' : '') .
         (!empty( $form_theme[ 'IPBGColor' ] ) ? 'background-color:' . $form_theme[ 'IPBGColor' ] . ';' : '') .
@@ -648,6 +657,24 @@ class FMModelForm_maker {
         ((isset( $form_theme[ 'IPBorderRadius' ] ) && $form_theme[ 'IPBorderRadius' ] !== '') ? 'border-radius:' . $form_theme[ 'IPBorderRadius' ] . 'px !important;' : '') .
         (!empty( $form_theme[ 'IPBoxShadow' ] ) ? 'box-shadow:' . $form_theme[ 'IPBoxShadow' ] . ';' : '') .
         '}';
+        $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type="text"]::placeholder,
+              .fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-corner-all::placeholder,
+              .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type="number"]::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=password]::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=url]::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=email]::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form textarea::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .StripeElement::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-spinner-input::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .file-upload-status::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form .country-name::placeholder,
+						 .fm-form-container.fm-theme' . $theme_id . ' .fm-form select::placeholder {' .
+            (!empty( $form_theme[ 'IPColor' ] ) ? 'color:' . $form_theme[ 'IPColor' ] . '; opacity:0.5;' : '') .
+            '}';
+	  $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-slider-range {' .
+        ((isset( $form_theme[ 'IPBorderRadius' ] ) && $form_theme[ 'IPBorderRadius' ] !== '') ? 'border-radius:' . $form_theme[ 'IPBorderRadius' ] . 'px 0 0 ' . $form_theme[ 'IPBorderRadius' ] . 'px !important;' : '') .
+        '}';
+
       if ( $borders[ 'IP' ] ) {
         foreach ( $borders[ 'IP' ] as $border ) {
           if ( !empty( $form_theme[ 'IPBorderType' ] ) && ($form_theme[ 'IPBorderType' ] == 'inherit' || $form_theme[ 'IPBorderType' ] == 'initial') ) {
@@ -657,6 +684,7 @@ class FMModelForm_maker {
 										.fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=url],
 										.fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=email],
 										.fm-form-container.fm-theme' . $theme_id . ' .fm-form textarea,
+										.fm-form-container.fm-theme' . $theme_id . ' .fm-form .StripeElement,
 										.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-spinner,
 										.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-slider,
 										.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-slider-handle,
@@ -676,6 +704,7 @@ class FMModelForm_maker {
 									.fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=url],
 									.fm-form-container.fm-theme' . $theme_id . ' .fm-form input[type=email],
 									.fm-form-container.fm-theme' . $theme_id . ' .fm-form textarea,
+									.fm-form-container.fm-theme' . $theme_id . ' .fm-form .StripeElement,
 									.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-spinner,
 									.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-slider,
 									.fm-form-container.fm-theme' . $theme_id . ' .fm-form .ui-slider-handle,
@@ -797,6 +826,7 @@ class FMModelForm_maker {
         (!empty( $form_theme[ 'SPColor' ] ) ? 'color:' . $form_theme[ 'SPColor' ] . ' !important;' : '') .
         (!empty( $form_theme[ 'SPBoxShadow' ] ) ? 'box-shadow:' . $form_theme[ 'SPBoxShadow' ] . ' !important;' : '') .
         ((isset( $form_theme[ 'SPBorderRadius' ] ) && $form_theme[ 'SPBorderRadius' ] !== '') ? 'border-radius:' . $form_theme[ 'SPBorderRadius' ] . 'px !important;' : '') .
+        'max-width:100%' .
         '}';
       if ( !empty( $form_theme[ 'SPBorderType' ] ) && ($form_theme[ 'SPBorderType' ] == 'none' || $form_theme[ 'SPBorderType' ] == 'inherit' || $form_theme[ 'SPBorderType' ] == 'initial') ) {
         $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form .button-submit {' . 'border: ' . $form_theme['SPBorderType'] . '}';
@@ -817,7 +847,18 @@ class FMModelForm_maker {
           }
         }
       }
-      $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form .button-submit:hover {' .
+
+      $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form .button-submit .fm-submit-loading.spinner{' .
+        (!empty( $form_theme[ 'SPFontSize' ] ) ? 'width:' . $form_theme[ 'SPFontSize' ] . 'px !important;' : '') .
+        (!empty( $form_theme[ 'SPFontSize' ] ) ? 'height:' . $form_theme[ 'SPFontSize' ] . 'px !important;' : '') .
+        '}';
+
+      $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form .button-submit .fm-submit-loading.spinner:before{' .
+        (!empty( $form_theme[ 'SPColor' ] ) ? 'color:' . $form_theme[ 'SPColor' ] . ' !important;' : '') .
+        (!empty( $form_theme[ 'SPFontSize' ] ) ? 'font-size:' . $form_theme[ 'SPFontSize' ] . 'px !important;' : '') .
+        '}';
+
+        $css_content .= '.fm-form-container.fm-theme' . $theme_id . ' .fm-form .button-submit:hover {' .
         (!empty( $form_theme[ 'SHPBGColor' ] ) ? 'background-color:' . $form_theme[ 'SHPBGColor' ] . ' !important;' : '') .
         (!empty( $form_theme[ 'SHPColor' ] ) ? 'color:' . $form_theme[ 'SHPColor' ] . ' !important;' : '') .
         '}';
@@ -1088,159 +1129,195 @@ class FMModelForm_maker {
    * @return array|mixed
    */
   public function savedata( $form = 0, $id = 0 ) {
-    $fm_settings = get_option(WDFMInstance(self::PLUGIN)->is_free == 2 ? 'fmc_settings' : 'fm_settings');
-    $all_files = array();
-    $correct = FALSE;
+    $this->fm_ajax_submit = $form->fm_ajax_submit;
+    if ( !isset( $_POST[ "save_or_submit" . $id ] ) || !isset( $_POST[ "counter" . $id ] ) ) {
+      // If removed special field.
+      return;
+    }
+	  WDFMInstance(self::PLUGIN)->fm_form_nonce = sprintf( WDFMInstance(self::PLUGIN)->fm_form_nonce, $id );
+
     $id_for_old = $id;
     if ( !$form->form_front ) {
       $id = '';
     }
-    if ( isset( $_POST[ "counter" . $id ] ) ) {
+
+    // If IP is blacklisted.
+    $this->check_ip($id);
+
+    if ( !isset($_POST[WDFMInstance(self::PLUGIN)->fm_form_nonce])
+      || !wp_verify_nonce($_POST[WDFMInstance(self::PLUGIN)->fm_form_nonce], WDFMInstance(self::PLUGIN)->fm_form_nonce) ) {
+      // If failed nonce verification.
+      return;
+    }
+
+    if ( !isset( $_POST[ "fm_bot_validation" . $id ] ) || $_POST[ "fm_bot_validation" . $id ] != '' ) {
+      // If bot validation field does not exist or is not empty.
+      return;
+    }
+
+    $fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+    if ( $fm_settings['fm_antispam'] && (!$this->fm_empty_field_validation($id) || !$this->check_http_referer()) ) {
+      // If failed empty field and referer verification with enabled antispam protection.
+      return;
+    }
+
+    // If action is Save and Save progress add-on is enabled.
+    $save_progress = (WDFMInstance(self::PLUGIN)->is_free != 2 && $_POST["save_or_submit" . $id] == 'save' && has_action('WD_FM_SAVE_PROG_save_progress_init'));
+
+    $success = FALSE;
+    if ( $_POST["save_or_submit" . $id] == 'submit' || $save_progress ) {
       WDW_FM_Library(self::PLUGIN)->start_session();
-      if ( (isset( $_POST[ "save_or_submit" . $id ] ) && $_POST[ "save_or_submit" . $id ] != 'save') ) {
-        if ( isset( $_POST[ "captcha_input" ] ) ) {
-          $captcha_input = esc_html( $_POST[ "captcha_input" ] );
-          $session_wd_captcha_code = isset( $_SESSION[ $id . '_wd_captcha_code' ] ) ? $_SESSION[ $id . '_wd_captcha_code' ] : '-';
-          if ( md5( $captcha_input ) == $session_wd_captcha_code ) {
-            $correct = TRUE;
-          } else {
-            $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Error, incorrect Security code.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-            $_SESSION[ 'message_captcha' ] = $_SESSION[ 'massage_after_submit' . $id ];
-            $_SESSION[ 'error_or_no' . $id ] = 1;
-          }
-        } elseif ( isset( $_POST[ "arithmetic_captcha_input" ] ) ) {
-          $arithmetic_captcha_input = esc_html( $_POST[ "arithmetic_captcha_input" ] );
-          $session_wd_arithmetic_captcha_code = isset( $_SESSION[ $id . '_wd_arithmetic_captcha_code' ] ) ? $_SESSION[ $id . '_wd_arithmetic_captcha_code' ] : '-';
-          if ( md5( $arithmetic_captcha_input ) == $session_wd_arithmetic_captcha_code ) {
-            $correct = TRUE;
-          } else {
-            $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Error, incorrect Security code.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-            $_SESSION[ 'message_captcha' ] = $_SESSION[ 'massage_after_submit' . $id ];
-            $_SESSION[ 'error_or_no' . $id ] = 1;
-          }
-        } elseif ( isset( $_POST[ "g-recaptcha-response" ] ) ) {
-          $privatekey = isset( $fm_settings[ 'private_key' ] ) ? $fm_settings[ 'private_key' ] : '';
-          $captcha = $_POST[ 'g-recaptcha-response' ];
-          $url = 'https://www.google.com/recaptcha/api/siteverify';
-          $data = array(
-            'secret' => $privatekey,
-            'response' => $captcha,
-            'remoteip' => $_SERVER[ 'REMOTE_ADDR' ],
-          );
-          $response = wp_remote_post( $url, array( 'body' => $data ) );
-          if ( !is_wp_error( $response ) ) {
-            $jsonResponse = json_decode( wp_remote_retrieve_body( $response ), true );
-            if ( $jsonResponse[ 'success' ] == "true" ) {
-              $correct = TRUE;
-            } else {
-              if ( isset( $jsonResponse[ 'error-codes' ] ) ) {
-                foreach ( $jsonResponse[ 'error-codes' ] as $errorcode ) {
-                  switch ( $errorcode ) {
-                    case 'missing-input-secret' :
-                    case 'invalid-input-secret' : {
-                      $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Error, incorrect secret code.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-                      break;
-                    }
-                    case 'missing-input-response' :
-                    case 'invalid-input-response' :
-                    case 'bad-request' :
-                    default: {
-                      $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Verification failed.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-                      break;
-                    }
-                  }
-                }
-              } else {
-                $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Verification failed.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-              }
-              $_SESSION[ 'message_captcha' ] = $_SESSION[ 'massage_after_submit' . $id ];
-              $_SESSION[ 'error_or_no' . $id ] = 1;
-              $correct = FALSE;
-            }
-          } else {
-            $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Verification failed.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-            $_SESSION[ 'message_captcha' ] = $_SESSION[ 'massage_after_submit' . $id ];
-            $_SESSION[ 'error_or_no' . $id ] = 1;
-            $correct = FALSE;
-          }
-        } else {
-          if ( preg_match( '(type_arithmetic_captcha|type_captcha|type_recaptcha)', $form->label_order_current ) === 1 ) {
-            $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Error, incorrect Security code.', WDFMInstance(self::PLUGIN)->prefix ) ) );
-            $_SESSION[ 'message_captcha' ] = $_SESSION[ 'massage_after_submit' . $id ];
-            $_SESSION[ 'error_or_no' . $id ] = 1;
-            $correct = FALSE;
-          } else {
-            $correct = TRUE;
-          }
-        }
-      } else {
-        $correct = TRUE;
-      }
-	    if ( !$this->fm_empty_field_validation( $id ) ) {
-		$_SESSION['massage_after_submit' . $id] = addslashes( addslashes( __('Error, something went wrong.', WDFMInstance(self::PLUGIN)->prefix) ) );
-		$_SESSION['error_or_no' . $id] = 1;
-		$correct = FALSE;
-	  }
-      if ( $correct ) {
-        $ip = $_SERVER[ 'REMOTE_ADDR' ];
-        global $wpdb;
-        $blocked_ip = $wpdb->get_var( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'formmaker_blocked WHERE ip="%s"', $ip ) );
-        if ( $blocked_ip ) {
-          $_SESSION[ 'massage_after_submit' . $id ] = addslashes( __( 'Your ip is blacklisted. Please contact the website administrator.', WDFMInstance(self::PLUGIN)->prefix ) );
-          wp_redirect( $_SERVER[ "REQUEST_URI" ] );//to be checked
-          exit;
-        }
-        if ( isset( $_POST[ "save_or_submit" . $id ] ) && $_POST[ "save_or_submit" . $id ] == 'save' ) {
-          if ( WDFMInstance(self::PLUGIN)->is_free != 2 ) {
-            $current_user = wp_get_current_user();
-            $userid = '';
-            $username = '';
-            $useremail = '';
-            $adminemail = get_option( 'admin_email' );
-            $current_page_url = WDW_FM_Library(self::PLUGIN)->get_current_page_url();
-            if ( $current_user->ID != 0 ) {
-              $userid = $current_user->ID;
-              $username = $current_user->display_name;
-              $useremail = $current_user->user_email;
-            }
-            $custom_fields = array(
-              "ip" => $ip,
-              "subid" => '',
-              "userid" => $userid,
-              'adminemail' => $adminemail,
-              "useremail" => $useremail,
-              "username" => $username,
-              'pageurl' => $current_page_url,
-              'formtitle' => $form->title
-            );
-            do_action( 'WD_FM_SAVE_PROG_save_progress_init', array( 'id' => $id, 'addon_task' => 'save_progress', 'form' => $form, 'custom_fields' => $custom_fields ) );
-          }
-          return $all_files;
+      if ( isset($_POST["captcha_input"]) ) {
+        $captcha_input = esc_html($_POST["captcha_input"]);
+        $session_wd_captcha_code = isset($_SESSION[$id . '_wd_captcha_code']) ? $_SESSION[$id . '_wd_captcha_code'] : '-';
+        if ( md5($captcha_input) == $session_wd_captcha_code ) {
+          $success = TRUE;
         }
         else {
-          $result_temp = $this->save_db( $id_for_old );
-          // Enqueue any message from an add-on to display.
+          $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Error, incorrect Security code.', WDFMInstance(self::PLUGIN)->prefix)));
+          $_SESSION['message_captcha'] = $_SESSION['massage_after_submit' . $id];
+          $_SESSION['error_or_no' . $id] = 1;
+        }
+      }
+      elseif ( isset($_POST["arithmetic_captcha_input"]) ) {
+        $arithmetic_captcha_input = esc_html($_POST["arithmetic_captcha_input"]);
+        $session_wd_arithmetic_captcha_code = isset($_SESSION[$id . '_wd_arithmetic_captcha_code']) ? $_SESSION[$id . '_wd_arithmetic_captcha_code'] : '-';
+        if ( md5($arithmetic_captcha_input) == $session_wd_arithmetic_captcha_code ) {
+          $success = TRUE;
+        }
+        else {
+          $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Error, incorrect Security code.', WDFMInstance(self::PLUGIN)->prefix)));
+          $_SESSION['message_captcha'] = $_SESSION['massage_after_submit' . $id];
+          $_SESSION['error_or_no' . $id] = 1;
+        }
+      }
+      elseif ( isset($_POST["g-recaptcha-response"]) ) {
+        $privatekey = isset($fm_settings['private_key']) ? $fm_settings['private_key'] : '';
+        $captcha = $_POST['g-recaptcha-response'];
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = array(
+          'secret' => $privatekey,
+          'response' => $captcha,
+          'remoteip' => $_SERVER['REMOTE_ADDR'],
+        );
+        $response = wp_remote_post($url, array( 'body' => $data ));
+        if ( !is_wp_error($response) ) {
+          $jsonResponse = json_decode(wp_remote_retrieve_body($response), TRUE);
+          if ( $jsonResponse['success'] == "true" ) {
+            $success = TRUE;
+          }
+          else {
+            $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Submission has failed due to the unsuccessful ReCaptcha verification. Please try to submit the form again.', WDFMInstance(self::PLUGIN)->prefix)));
+            $_SESSION['message_captcha'] = $_SESSION['massage_after_submit' . $id];
+            $_SESSION['error_or_no' . $id] = 1;
+          }
+        }
+      }
+      elseif ( isset($_POST["recaptcha_response" . $id]) ) {
+        // Build POST request:
+        $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
+        $recaptcha_secret = isset($fm_settings['private_key']) ? $fm_settings['private_key'] : '';
+        $recaptcha_response = $_POST['recaptcha_response' . $id];
+        // Make and decode POST request:
+        $recaptcha = file_get_contents($recaptcha_url . '?secret=' . $recaptcha_secret . '&response=' . $recaptcha_response);
+        $recaptcha = json_decode($recaptcha, TRUE);
+        if ( $recaptcha['success'] ) {
+          $recaptcha_settings_score = isset($fm_settings['recaptcha_score']) ? floatval($fm_settings['recaptcha_score']) : 0.5;
+          // Take action based on the score returned.
+          if ( floatval($recaptcha['score']) >= $recaptcha_settings_score ) {
+            $success = TRUE;
+          }
+          else {
+            if ( isset($recaptcha['score']) ) {
+              // Save recaptcha score for support.
+              $_SESSION['recaptcha_score'] = floatval($recaptcha['score']);
+            }
+            $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Submission has failed due to the unsuccessful ReCaptcha verification. Please try to submit the form again.', WDFMInstance(self::PLUGIN)->prefix)));
+            $_SESSION['message_captcha'] = $_SESSION['massage_after_submit' . $id];
+            $_SESSION['error_or_no' . $id] = 1;
+          }
+        }
+        else {
+          $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Submission has failed due to the unsuccessful ReCaptcha verification. Please try to submit the form again.', WDFMInstance(self::PLUGIN)->prefix)));
+          $_SESSION['message_captcha'] = $_SESSION['massage_after_submit' . $id];
+          $_SESSION['error_or_no' . $id] = 1;
+        }
+      }
+      elseif ( preg_match('(type_arithmetic_captcha|type_captcha|type_recaptcha)', $form->label_order_current) === 1 ) {
+        $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Error, incorrect Security code.', WDFMInstance(self::PLUGIN)->prefix)));
+        $_SESSION['message_captcha'] = $_SESSION['massage_after_submit' . $id];
+        $_SESSION['error_or_no' . $id] = 1;
+      }
+      else {
+        $success = TRUE;
+      }
+    }
+
+    if ( $success ) {
+      if ( $save_progress ) {
+        $current_user = wp_get_current_user();
+        $userid = '';
+        $username = '';
+        $useremail = '';
+        if ( $current_user->ID != 0 ) {
+          $userid = $current_user->ID;
+          $username = $current_user->display_name;
+          $useremail = $current_user->user_email;
+        }
+        $custom_fields = array(
+          "ip" => $_SERVER['REMOTE_ADDR'],
+          "subid" => '',
+          "userid" => $userid,
+          'adminemail' => get_option( 'admin_email' ),
+          "useremail" => $useremail,
+          "username" => $username,
+          'pageurl' => WDW_FM_Library(self::PLUGIN)->get_current_page_url(),
+          'formtitle' => $form->title
+        );
+        do_action( 'WD_FM_SAVE_PROG_save_progress_init', array( 'id' => $id, 'addon_task' => 'save_progress', 'form' => $form, 'custom_fields' => $custom_fields ) );
+      }
+      else {
+        $result_temp = $this->save_db( $id_for_old );
+        $this->ip_exceeded_limit( $id, $_SERVER['REMOTE_ADDR'] );
+        if ( isset( $result_temp['error'] ) ) {
+          $this->remove( $result_temp['group_id'] );
+          if ( isset($result_temp['message']) ) {
+            $_SESSION['massage_after_submit' . $id] = $result_temp['message'];
+          }
+          else {
+            $_SESSION['massage_after_submit' . $id] = addslashes(addslashes(__('Error, something went wrong.', WDFMInstance(self::PLUGIN)->prefix)));
+          }
+          $_SESSION[ 'error_or_no' . $id ] = 1;
+        }
+        else {
+          // Enqueue any message from an extension to display.
           if ( isset( $result_temp[ 'message' ] ) ) {
             $_SESSION['massage_after_submit' . $id] = $result_temp['message'];
             $_SESSION['error_or_no' . $id ] = 0;
           }
-          if ( isset( $result_temp['error'] ) ) {
-            $this->remove( $result_temp['group_id'] );
-            $_SESSION[ 'error_or_no' . $id ] = 1;
+
+          if ( WDFMInstance(self::PLUGIN)->is_free != 2 ) {
+            do_action( 'WD_FM_SAVE_PROG_save_progress_init', array( 'id' => $id, 'addon_task' => 'clear_data' ) );
           }
-          else {
-            if ( WDFMInstance(self::PLUGIN)->is_free != 2 ) {
-              do_action( 'WD_FM_SAVE_PROG_save_progress_init', array( 'id' => $id, 'addon_task' => 'clear_data' ) );
-            }
-            $this->gen_mail( $result_temp['group_id'], $result_temp['all_files'], $id_for_old, $result_temp['redirect_url'] );
-          }
+          $this->gen_mail( $result_temp['group_id'], $result_temp['all_files'], $id_for_old, $result_temp['redirect_url'] );
         }
       }
     }
-
-    return $all_files;
   }
 
+  public function check_ip($id) {
+    WDW_FM_Library(self::PLUGIN)->start_session();
+    global $wpdb;
+    $blocked_ip = $wpdb->get_var( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'formmaker_blocked WHERE ip="%s"', $_SERVER['REMOTE_ADDR'] ) );
+    if ( $blocked_ip ) {
+      $_SESSION[ 'massage_after_submit' . $id ] = addslashes( __( 'Your ip is blacklisted. Please contact the website administrator.', WDFMInstance(self::PLUGIN)->prefix ) );
+      $_SESSION[ 'error_or_no' . $id ] = 1;
+      // Add query arg to url to display message on cached pages.
+      $redirect_url = add_query_arg( array( 'succes' => time() ), $_SERVER["REQUEST_URI"] );
+      wp_redirect( $redirect_url );
+      exit;
+    }
+  }
   /**
    * Select data from db for labels.
    *
@@ -1258,7 +1335,7 @@ class FMModelForm_maker {
     if ( $db_info ) {
       $temp = explode( '@@@wdfhostwdf@@@', $db_info );
       $host = $temp[ 0 ];
-      $temp = explode( '@@@wdfportwdf@@@', $temp[ 1 ] );
+      $temp = explode( '@@@wdfportwdf@@@', $temp[1] );
       $port = $temp[ 0 ];
       if ($port) {
         $host .= ':' . $port;
@@ -1323,6 +1400,7 @@ class FMModelForm_maker {
    * @return array( 'error' => true, 'group_id' => $max, 'message' => '' ); in case of error | array('group_id' => $max, 'all_files' => '', 'redirect_url' => '')
    */
   public function save_db( $id = 0 ) {
+    $fm_nonce = wp_create_nonce('fm_ajax_nonce');
     global $wpdb;
     $wp_userid = '';
     $wp_username = '';
@@ -1333,10 +1411,10 @@ class FMModelForm_maker {
       $wp_username = $current_user->display_name;
       $wp_useremail = $current_user->user_email;
     }
-    $chgnac = TRUE;
+    $submited = TRUE;
     $paypal = array();
     $all_files = array();
-	  $frontend_parmas = array();
+  	$frontend_parmas = array();
     $paypal['item_name'] = array();
     $paypal['quantity'] = array();
     $paypal['amount'] = array();
@@ -1417,9 +1495,13 @@ class FMModelForm_maker {
       $i = $label_id[ $key ];
 
       $missing_required_field = FALSE;
+      if ( $form && $form->gdpr_checkbox == 1 ) {
+        if( !isset($_POST['fm_privacy_policy' . $id]) ) {
+          return array( 'error' => true, 'group_id' => $group_id, 'message' => addslashes( addslashes( sprintf( __( '%s Submission failed. Your consent to collect personal data is required.', WDFMInstance(self::PLUGIN)->prefix ),'') ) ) );
+        }
+      }
       $invalid_email_address = FALSE;
       $required = (isset($params[$i]) && strpos($params[$i], '*:*yes*:*w_required*:*') !== FALSE ? 1 : 0);
-
       if ( !in_array( $i, $disabled_fields ) ) {
         switch ( $type ) {
           case 'type_text':
@@ -1432,18 +1514,18 @@ class FMModelForm_maker {
           case "type_textarea":
           case "type_send_copy":
           case "type_spinner": {
-            $value = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) : "";
-            if ( $required && !isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ) {
+            $value = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ? trim( esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ) : "";
+			      if ( $required && $value === '' ) {
               $missing_required_field = TRUE;
             }
             break;
           }
           case "type_submitter_mail": {
-            $value = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) : "";
+            $value = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ? trim( esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ) : "";
             if ( $required && !isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ) {
               $missing_required_field = TRUE;
             }
-            if ( $value !== '' && is_email($value) === FALSE ) {
+            if ( !WDW_FM_Library(self::PLUGIN)->is_email($value) ) {
               $invalid_email_address = TRUE;
             }
             break;
@@ -1493,12 +1575,16 @@ class FMModelForm_maker {
             $value1 = isset( $_POST[ 'wdform_' . $i . "_mm" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_mm" . $id ] ) : "";
             $value2 = isset( $_POST[ 'wdform_' . $i . "_ss" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_ss" . $id ] ) : "";
             $value3 = isset( $_POST[ 'wdform_' . $i . "_am_pm" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_am_pm" . $id ] ) : '';
-            $value = ($value0) . ':' . ($value1);
-            if ( $value2 ) {
-              $value .= ':' . ($value2);
+            if ( !$value0 && !$value1 && !$value2 ) {
+              $value = "";
             }
-            if ( $value3 ) {
-              $value .= ' ' . $value3;
+            else {
+              $value = $value0 ? ($value0) . " : " : "00 : ";
+              $value .= $value1 ? ($value1) : "00";
+              $value .= $value2 ? " : " . ($value2) : "";
+              if ( $value3 ) {
+                $value .= ' ' . $value3;
+              }
             }
             if ( $required && ( !isset( $_POST[ 'wdform_' . $i . "_hh" . $id ] ) || !isset( $_POST[ 'wdform_' . $i . "_mm" . $id ] ) ) ) {
               $missing_required_field = TRUE;
@@ -1515,8 +1601,8 @@ class FMModelForm_maker {
             break;
           }
           case "type_name": {
-            $value0 = isset( $_POST[ 'wdform_' . $i . "_element_first" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element_first" . $id ] ) : "";
-            $value1 = isset( $_POST[ 'wdform_' . $i . "_element_last" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element_last" . $id ] ) : "";
+            $value0 = isset( $_POST[ 'wdform_' . $i . "_element_first" . $id ] ) ? trim( esc_html( $_POST[ 'wdform_' . $i . "_element_first" . $id ] ) ) : "";
+            $value1 = isset( $_POST[ 'wdform_' . $i . "_element_last" . $id ] ) ? trim( esc_html( $_POST[ 'wdform_' . $i . "_element_last" . $id ] ) ) : "";
             $value2 = isset( $_POST[ 'wdform_' . $i . "_element_title" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element_title" . $id ] ) : "";
             $value3 = isset( $_POST[ 'wdform_' . $i . "_element_middle" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element_middle" . $id ] ) : "";
 
@@ -1527,14 +1613,14 @@ class FMModelForm_maker {
             if ( $value3 ) {
               $value .= '@@@' . $value3;
             }
-            if ( $required && ( !isset( $_POST[ 'wdform_' . $i . "_element_first" . $id ] ) || !isset( $_POST[ 'wdform_' . $i . "_element_last" . $id ] ) ) ) {
+            if ( $required && ( empty($value0) || empty($value1) ) ) {
               $missing_required_field = TRUE;
             }
             break;
           }
           case "type_file_upload": {
             if ( WDFMInstance(self::PLUGIN)->is_demo ) {
-              $value = '';
+              $value = __('This functionality is disabled in demo.', WDFMInstance(self::PLUGIN)->prefix );
             } else {
               if ( isset( $_POST[ 'wdform_' . $i . "_file_url" . $id . '_save' ] ) ) {
                 $file_url = isset( $_POST[ 'wdform_' . $i . "_file_url" . $id . '_save' ] ) ? stripslashes( $_POST[ 'wdform_' . $i . "_file_url" . $id . '_save' ] ) : NULL;
@@ -1546,7 +1632,7 @@ class FMModelForm_maker {
                 $upload_dir = wp_upload_dir();
                 $files = isset( $_FILES[ 'wdform_' . $i . '_file' . $id ] ) ? $_FILES[ 'wdform_' . $i . '_file' . $id ] : array();
                 if ( !empty($files) ) {
-			          	foreach ( $files[ 'name' ] as $file_key => $file_name ) {
+				          foreach ( $files[ 'name' ] as $file_key => $file_name ) {
                     if ( $file_name ) {
                       $untilupload = $form->form_fields;
                       $untilupload = substr( $untilupload, strpos( $untilupload, $i . '*:*id*:*type_file_upload' ), -1 );
@@ -1878,10 +1964,11 @@ class FMModelForm_maker {
           }
           case "type_paypal_radio": {
             $value = '';
-            $element = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) && $_POST[ 'wdform_' . $i . "_element" . $id ] ? esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) : '';
-            if ( $element ) {
+            $element = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) && $_POST[ 'wdform_' . $i . "_element" . $id ] !== '' ? esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) : NULL;
+            if ( isset($element) ) {
               $value = (isset( $_POST[ 'wdform_' . $i . "_element_label" . $id ] ) ? esc_html( $_POST[ 'wdform_' . $i . "_element_label" . $id ] ) : '') . ' : ' . $form_currency . $element;
             }
+
             if ( $required && !isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ) {
               $missing_required_field = TRUE;
               break;
@@ -1913,7 +2000,7 @@ class FMModelForm_maker {
             break;
           }
           case "type_paypal_shipping": {
-            $element = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) && $_POST[ 'wdform_' . $i . "_element" . $id ] ? esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) : '';
+            $element = isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) && $_POST[ 'wdform_' . $i . "_element" . $id ] !== '' ? esc_html( $_POST[ 'wdform_' . $i . "_element" . $id ] ) : '';
             if ( $required && !isset( $_POST[ 'wdform_' . $i . "_element" . $id ] ) ) {
               $missing_required_field = TRUE;
               break;
@@ -2147,6 +2234,10 @@ class FMModelForm_maker {
           $fvals[ '{' . $i . '}' ] = rtrim( $fvals[ '{' . $i . '}' ], ', ' );
         }
 
+               if ( $type == "type_file_upload" ) {
+          $fvals['{' . $i . '(link)}'] = rtrim( $fvals['{' . $i . '}'], ', ' );
+               }
+
         if ( $form->savedb ) {
           $submition_data = array(
             'form_id' => $id,
@@ -2167,12 +2258,11 @@ class FMModelForm_maker {
         if ( !$save_or_no ) {
           return array( 'error' => true, 'group_id' => $group_id, 'message' => addslashes( __( 'Database error occurred. Please try again.', WDFMInstance(self::PLUGIN)->prefix ) ) );
         }
-        $chgnac = FALSE;
+        $submited = FALSE;
       } else {
         $fvals[ '{' . $i . '}' ] = '';
       }
     }
-
     $user_fields = array(
       "subid" => $group_id,
       "ip" => $ip,
@@ -2204,7 +2294,7 @@ class FMModelForm_maker {
         $database = $temp[ 0 ];
         $query = str_replace( array_keys( $fvals ), $fvals, $query->query );
         foreach ( $user_fields as $user_key => $user_field ) {
-          $query = str_replace( '{' . $user_key . '}', $user_field, $query );
+          $query = str_replace('{' . $user_key . '}', $user_field, $query );
         }
         if ( $con_type == 'remote' ) {
           $wpdb_temp = new wpdb( $username, $password, $database, $host );
@@ -2220,7 +2310,15 @@ class FMModelForm_maker {
     $stripeToken = WDW_FM_Library(self::PLUGIN)->get( $stripe_post_key, '' );
     if ( $is_amount && $stripeToken ) {
       $wdstripe_products_data = new stdClass();
-      $tax = $form->tax;
+      $tax = 0;
+      if ( $form->paypal_mode && $form->paypal_mode == 1 ) {
+        $tax = $form->tax;
+      }
+      if ( $form->paypal_mode && $form->paypal_mode == 2 ) {
+        $stripe_data = apply_filters('fm_addon_stripe_get_data_init', array('form_id' => $id));
+        $tax = $stripe_data->stripe_tax;
+      }
+
       $total = $total + ($total * $tax) / 100;
       $shipping = isset( $paypal[ 'shipping' ] ) ? $paypal[ 'shipping' ] : 0;
       $total = $total + $shipping;
@@ -2294,7 +2392,7 @@ class FMModelForm_maker {
           $str .= "currency_code=" . $currency;
           $str .= "&business=" . urlencode( $business );
           $str .= "&cmd=" . "_cart";
-          $str .= "&notify_url=" . admin_url( 'admin-ajax.php?action=checkpaypal%26form_id=' . $id . '%26group_id=' . $group_id );
+          $str .= "&notify_url=" . admin_url( 'admin-ajax.php?action=checkpaypal%26form_id=' . $id . '%26nonce=' . $fm_nonce . '%26group_id=' . $group_id );
           $str .= "&upload=" . "1";
           $str .= "&charset=UTF-8";
           if ( isset( $paypal[ 'shipping' ] ) ) {
@@ -2358,14 +2456,16 @@ class FMModelForm_maker {
         }
       }
     }
-    if ( $chgnac ) {
+    if ( $submited ) {
       WDW_FM_Library(self::PLUGIN)->start_session();
       if ( $form->submit_text_type != 4 ) {
         $_SESSION[ 'massage_after_submit' . $id ] = addslashes( addslashes( __( 'Nothing was submitted.', WDFMInstance(self::PLUGIN)->prefix ) ) );
       }
       $_SESSION[ 'error_or_no' . $id ] = 1;
       $_SESSION[ 'form_submit_type' . $id ] = $form->submit_text_type . ',' . $form->id . ',' . $group_id;
-      wp_redirect( $_SERVER[ "REQUEST_URI" ] );
+      // Add query arg to url to display message on cached pages.
+      $redirect_url = add_query_arg( array( 'succes' => time() ), $_SERVER[ "REQUEST_URI" ] );
+      wp_redirect( $redirect_url );
       exit;
     }
 
@@ -2399,17 +2499,18 @@ class FMModelForm_maker {
           }
         }
       }
-      $frontend_parmas['user_email'] = ( is_email($user_email) !== FALSE ) ? $user_email : '';
+
+      $frontend_parmas['user_email'] = WDW_FM_Library(self::PLUGIN)->is_email($user_email) ? $user_email : '';
       do_action( 'fm_addon_frontend_init', $frontend_parmas );
     }
     $return_value = array( 'group_id' => $group_id, 'all_files' => $all_files, 'redirect_url' => $str );
-    // Get output from add-ons.
+    // Get output from extensions.
     $return_value = $this->get_output_from_add_ons( $return_value );
     return $return_value;
   }
 
   /**
-   * Get output from add-ons.
+   * Get output from extensions.
    *
    * @param array $params
    * @return array $$outputs
@@ -2466,22 +2567,29 @@ class FMModelForm_maker {
    */
   public function get_after_submission_text( $form_id = 0, $group_id = 0 ) {
     global $wpdb;
-    $submit_text = $wpdb->get_var( "SELECT submit_text FROM " . $wpdb->prefix . "formmaker WHERE id='" . $form_id . "'" );
+	WDW_FM_Library(self::PLUGIN)->start_session();
+
+	$userid = '';
+	$username = '';
+	$useremail = '';
     $current_user = wp_get_current_user();
     if ( $current_user->ID != 0 ) {
       $userid = $current_user->ID;
       $username = $current_user->display_name;
       $useremail = $current_user->user_email;
-    } else {
-      $userid = '';
-      $username = '';
-      $useremail = '';
     }
+
     $row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $wpdb->prefix . "formmaker WHERE id=%d", $form_id ) );
-    $ip = $_SERVER['REMOTE_ADDR'];
+
+	$all = $_SESSION['form_all_fields' . $form_id];
+	$_SESSION['form_all_fields' . $form_id] = '';
+	$ip = $_SERVER['REMOTE_ADDR'];
     $adminemail = get_option( 'admin_email' );
     $current_page_url = WDW_FM_Library(self::PLUGIN)->get_current_page_url();
     $formtitle = $row->title;
+    $submit_text = $row->submit_text;
+
+	$label_type = array();
     $label_order_original = array();
     $label_order_ids = array();
     $submission_array = array();
@@ -2489,21 +2597,26 @@ class FMModelForm_maker {
     $label_all = array_slice( $label_all, 0, count( $label_all ) - 1 );
     foreach ( $label_all as $key => $label_each ) {
       $label_id_each = explode( '#**id**#', $label_each );
-      $label_id = $label_id_each[ 0 ];
+      $label_id = $label_id_each[0];
       array_push( $label_order_ids, $label_id );
-      $label_order_each = explode( '#**label**#', $label_id_each[ 1 ] );
-      $label_order_original[ $label_id ] = $label_order_each[ 0 ];
+      $label_order_each = explode('#**label**#', $label_id_each[1]);
+      $label_order_original[$label_id] = $label_order_each[0];
+	  $label_type[ $label_id ] = $label_order_each[1];
     }
+
     $submissions_row = $wpdb->get_results( $wpdb->prepare( "SELECT `element_label`, `element_value` FROM " . $wpdb->prefix . "formmaker_submits WHERE form_id=%d AND group_id=%d", $form_id, $group_id ) );
-    foreach ( $submissions_row as $sub_row ) {
-      $submission_array[ $sub_row->element_label ] = $sub_row->element_value;
+	foreach ( $submissions_row as $sub_row ) {
+		$submission_array[$sub_row->element_label] = $sub_row->element_value;
     }
+
     foreach ( $label_order_original as $key => $label_each ) {
-      if (isset($submission_array[ $key ])) {
-        $submit_text = str_replace( array( '%' . $label_each . '%', '{' . $key . '}' ), $submission_array[ $key ], $submit_text );
-      }
+		$type = $label_type[$key];
+		$post = !empty($submission_array[$key]) ? $submission_array[$key] : '';
+		$submit_text = str_replace( array( '%' . $label_each . '%', '{' . $key . '}' ), $post, $submit_text );
     }
+
     $custom_fields = array(
+	  "all" => $all,
       "ip" => $ip,
       "subid" => $group_id,
       "userid" => $userid,
@@ -2526,7 +2639,6 @@ class FMModelForm_maker {
       "***br***",
       "***star_rating***",
     ), array( " ", "", " ", " ", " ", ", ", " " ), $submit_text );
-
     return $submit_text;
   }
 
@@ -2537,11 +2649,10 @@ class FMModelForm_maker {
    */
   public function increment_views_count( $id = 0 ) {
     global $wpdb;
-    $vives_form = $wpdb->get_var( $wpdb->prepare( "SELECT views FROM " . $wpdb->prefix . "formmaker_views WHERE form_id=%d", $id ) );
-    if ( isset( $vives_form ) ) {
-      $vives_form = $vives_form + 1;
+    $views_count = $wpdb->get_var( $wpdb->prepare( "SELECT views FROM " . $wpdb->prefix . "formmaker_views WHERE form_id=%d", $id ) );
+    if ( isset( $views_count ) ) {
       $wpdb->update( $wpdb->prefix . "formmaker_views", array(
-        'views' => $vives_form,
+        'views' => ++$views_count,
       ), array( 'form_id' => $id ), array(
         '%d',
       ), array( '%d' ) );
@@ -2585,6 +2696,7 @@ class FMModelForm_maker {
         $all_file[ 'tmp_name' ] = $destination . "/" . $fileName;
       }
     }
+
     $row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $wpdb->prefix . "formmaker WHERE id=%d", $id ) );
     if ( !$row->form_front ) {
       $id = '';
@@ -2623,13 +2735,13 @@ class FMModelForm_maker {
     $label_all = array_slice( $label_all, 0, count( $label_all ) - 1 );
     foreach ( $label_all as $key => $label_each ) {
       $label_id_each = explode( '#**id**#', $label_each );
-      $label_id = $label_id_each[ 0 ];
+      $label_id = $label_id_each[0];
       array_push( $label_order_ids, $label_id );
-      $label_order_each = explode( '#**label**#', $label_id_each[ 1 ] );
-      $label_order_original[ $label_id ] = $label_order_each[ 0 ];
-      $label_type[ $label_id ] = $label_order_each[ 1 ];
-      array_push( $label_label, $label_order_each[ 0 ] );
-      array_push( $label_type, $label_order_each[ 1 ] );
+      $label_order_each = explode( '#**label**#', $label_id_each[1] );
+      $label_order_original[ $label_id ] = $label_order_each[0];
+      $label_type[ $label_id ] = $label_order_each[1];
+      array_push( $label_label, $label_order_each[0] );
+      array_push( $label_type, $label_order_each[1] );
     }
     $disabled_fields = explode( ',', WDW_FM_Library(self::PLUGIN)->get('disabled_fields' . $id, '') );
     $disabled_fields = array_slice( $disabled_fields, 0, count( $disabled_fields ) - 1 );
@@ -2833,10 +2945,10 @@ class FMModelForm_maker {
                   $element = isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j ] : NULL;
                   if ( isset( $element ) ) {
                     if ( $j == $other_element_id ) {
-                      $list = $list . (isset( $_POST[ 'wdform_' . $i . "_other_input" . $id ] ) ? $_POST[ 'wdform_' . $i . "_other_input" . $id ] : "") . '<br>';
+                      $list = $list . '<p>' . (isset( $_POST[ 'wdform_' . $i . "_other_input" . $id ] ) ? $_POST[ 'wdform_' . $i . "_other_input" . $id ] : "") . '</p>';
                       $list_text_mode = $list_text_mode . (isset( $_POST[ 'wdform_' . $i . "_other_input" . $id ] ) ? $_POST[ 'wdform_' . $i . "_other_input" . $id ] : "") . ', ';
                     } else {
-                      $list = $list . (isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j ] : "") . '<br>';
+                      $list = $list . '<p>' . (isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j ] : "") . '</p>';
                       $list_text_mode = $list_text_mode . (isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j ] : "") . ', ';
                     }
                   }
@@ -2950,7 +3062,7 @@ class FMModelForm_maker {
                 for ( $j = $start; $j < 300; $j++ ) {
                   $element = isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j ] : NULL;
                   if ( isset( $element ) ) {
-                    $list = $list . (isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j . "_label" ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j . "_label" ] : "") . ' - ' . $form_currency . ($element == '' ? '0' : $element) . '<br>';
+                    $list = $list . '<p>' . (isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j . "_label" ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j . "_label" ] : "") . ' - ' . $form_currency . ($element == '' ? '0' : $element) . '</p>';
                     $list_text_mode = $list_text_mode . (isset( $_POST[ 'wdform_' . $i . "_element" . $id . $j . "_label" ] ) ? $_POST[ 'wdform_' . $i . "_element" . $id . $j . "_label" ] : "") . ' - ' . ($element == '' ? '0' . $form_currency : $element) . $form_currency . ', ';
                   }
                 }
@@ -2968,7 +3080,7 @@ class FMModelForm_maker {
                 for ( $k = 0; $k < 50; $k++ ) {
                   $temp_val = isset( $_POST[ 'wdform_' . $i . "_element_property_value" . $id . $k ] ) ? $_POST[ 'wdform_' . $i . "_element_property_value" . $id . $k ] : NULL;
                   if ( isset( $temp_val ) ) {
-                    $list = $list . '<br/>' . (isset( $_POST[ 'wdform_' . $i . "_element_property_label" . $id . $k ] ) ? $_POST[ 'wdform_' . $i . "_element_property_label" . $id . $k ] : "") . ': ' . $temp_val;
+                    $list = $list . '<p>' . (isset( $_POST[ 'wdform_' . $i . "_element_property_label" . $id . $k ] ) ? $_POST[ 'wdform_' . $i . "_element_property_label" . $id . $k ] : "") . ': ' . $temp_val . '</p>';
                     $list_text_mode = $list_text_mode . (isset( $_POST[ 'wdform_' . $i . "_element_property_label" . $id . $k ] ) ? $_POST[ 'wdform_' . $i . "_element_property_label" . $id . $k ] : "") . ': ' . $temp_val . ', ';
                   }
                 }
@@ -3170,13 +3282,13 @@ class FMModelForm_maker {
       $type = $label_type[ $key ];
       $key1 = $type == 'type_hidden' ? $label_each : $key;
       $label_each_decoded = htmlspecialchars_decode( $label_each );
-      $new_value = $this->custom_fields_mail( $type, $key1, $id, $attachment_user, $form_currency );
+      $new_value = $this->custom_fields_mail( $type, $key1, $id, $attachment_user, $form_currency, 0, $row->mail_mode_user );
       $key_replace = array( '%' . $label_each_decoded . '%', '{' . $key . '}' );
 
       $new_script = str_replace( $key_replace, $new_value, $new_script );
 
       if ( $type == "type_file_upload" ) {
-        $new_value = $this->custom_fields_mail( $type, $key, $id, $attachment_user, $form_currency, 1 );
+        $new_value = $save_uploads ? $this->custom_fields_mail( $type, $key, $id, $attachment_user, $form_currency, 1 ) : '';
         $new_script = str_replace( array( '%' . $label_each_decoded . '(link)%', '{' . $key . '(link)}' ), $new_value, $new_script );
       }
       // Set from name value.
@@ -3220,16 +3332,16 @@ class FMModelForm_maker {
     $header_arr['cc'] = $row->mail_cc_user;
     $header_arr['bcc'] = $row->mail_bcc_user;
 
-    // PDF output for add-on.
+    // PDF output for extension.
     $pdf_data = array('attach_to_admin' => 0, 'attach_to_user' => 0, 'pdf_url' => '');
     if ( WDFMInstance(self::PLUGIN)->is_free != 2 ) {
-      $pdf_data = apply_filters( 'fm_pdf_data_frontend', $pdf_data, array( 'custom_fields' => $this->custom_fields, 'form_id' => $id ) );
+      $pdf_data = apply_filters( 'fm_pdf_data_frontend', $pdf_data, array( 'attachment' => $attachment_user, 'custom_fields' => $this->custom_fields, 'form_id' => $id ) );
     }
     if ( $pdf_data['attach_to_user'] ) {
       array_push( $attachment_user, $pdf_data['pdf_url'] );
     }
 
-	  if ( $row->sendemail && $row->send_to || (has_action('fm_set_params_frontend_init') && WDFMInstance(self::PLUGIN)->is_free != 2) ) {
+	if ( $row->sendemail && $row->send_to || (has_action('fm_set_params_frontend_init') && WDFMInstance(self::PLUGIN)->is_free != 2) ) {
       $body = $new_script;
       $send_tos = explode( '**', $row->send_to );
       $send_copy = isset( $_POST[ "wdform_send_copy_" . $id ] ) ? $_POST[ "wdform_send_copy_" . $id ] : NULL;
@@ -3244,44 +3356,52 @@ class FMModelForm_maker {
         $body = str_replace( '{PDF(link)}', site_url($pdf_data['pdf_url']), $body );
 
         foreach ( $send_tos as $index => $send_to ) {
-          $send_to = str_replace( '*', '', $send_to );
-          if ( $row->mail_verify && $verification_link !== NULL
-            && (strpos( $new_script, "{verificationlink}" ) > -1 || strpos( $new_script, "%Verification link%" ) > -1) ) {
-            $ver_link = $row->mail_mode_user ? "<a href =" . add_query_arg( array(
-                'gid' => $_SESSION[ 'gid' ],
-                'h' => $_SESSION[ 'hash' ][ $index ] . '@' . $send_to,
-              ), get_post_permalink( $mail_verification_post_id ) ) . ">" . add_query_arg( array(
-                'gid' => $_SESSION[ 'gid' ],
-                'h' => $_SESSION[ 'hash' ][ $index ] . '@' . $send_to,
-              ), get_post_permalink( $mail_verification_post_id ) ) . "</a><br/>" : add_query_arg( array(
-              'gid' => $_SESSION[ 'gid' ],
-              'h' => $_SESSION[ 'hash' ][ $index ] . '@' . $send_to,
-            ), get_post_permalink( $mail_verification_post_id ) );
-            $body = str_replace( array( '%Verification link%', '{verificationlink}' ), $ver_link, $new_script );
+          $send_to = str_replace('*', '', $send_to);
+          $ver_link = $row->mail_mode_user ? "<a href =" . add_query_arg(array(
+              'gid' => $_SESSION['gid'],
+              'h' => $_SESSION['hash'][$index] . '@' . $send_to,
+            ),
+              get_post_permalink($mail_verification_post_id)) . ">" . add_query_arg(array(
+              'gid' => $_SESSION['gid'],
+              'h' => $_SESSION['hash'][$index] . '@' . $send_to,
+            ),
+              get_post_permalink($mail_verification_post_id)) . "</a><br/>" : add_query_arg(array(
+            'gid' => $_SESSION['gid'],
+            'h' => $_SESSION['hash'][$index] . '@' . $send_to,
+          ), get_post_permalink($mail_verification_post_id));
+
+          if ($row->mail_verify && $verification_link !== NULL
+            && (strpos($new_script, "{verificationlink}") === FALSE || strpos($new_script, "%Verification link%") === FALSE)) {
+            $body .= $ver_link;
           }
-          $recipient = isset( $_POST[ 'wdform_' . str_replace( '*', '', $send_to ) . "_element" . $id ] ) ? $_POST[ 'wdform_' . $send_to . "_element" . $id ] : NULL;
-          if ( $recipient ) {
-            if ( $row->mail_attachment_user ) {
-              $remove_parrent_array_user = new RecursiveIteratorIterator( new RecursiveArrayIterator( $attachment_user ) );
-              $attachment_user = iterator_to_array( $remove_parrent_array_user, FALSE );
-            }
-            else {
+
+          if ($row->mail_verify && $verification_link !== NULL
+            && (strpos($new_script, "{verificationlink}") > -1 || strpos($new_script, "%Verification link%") > -1)) {
+            $body = str_replace(array('%Verification link%', '{verificationlink}'), $ver_link, $new_script);
+          }
+
+          $recipient = isset($_POST['wdform_' . str_replace('*', '', $send_to) . "_element" . $id]) ? $_POST['wdform_' . $send_to . "_element" . $id] : NULL;
+          if ($recipient) {
+            if ($row->mail_attachment_user) {
+              $remove_parrent_array_user = new RecursiveIteratorIterator(new RecursiveArrayIterator($attachment_user));
+              $attachment_user = iterator_to_array($remove_parrent_array_user, FALSE);
+            } else {
               $attachment_user = array();
             }
-            if ( $row->sendemail && $row->send_to ) {
-              WDW_FM_Library(self::PLUGIN)->mail($recipient, $subject, $body, $header_arr, $attachment_user);
+            if ($row->sendemail && $row->send_to) {
+              WDW_FM_Library(self::PLUGIN)->mail($recipient, $subject, $body, $header_arr, $attachment_user, $save_uploads);
             }
           }
         }
       }
     }
-
     // Admin part.
     if ( $row->sendemail || (has_action('fm_set_params_frontend_init') && WDFMInstance(self::PLUGIN)->is_free != 2) ) {
       $recipient = $row->mail ? $row->mail : '';
       $subject = !empty( $row->mail_subject ) ? $row->mail_subject : $row->title;
 
       $fromname = $row->from_name;
+
       $from_mail = $row->from_mail;
       $attachment = array();
       if ( !WDFMInstance(self::PLUGIN)->is_demo ) {
@@ -3322,11 +3442,11 @@ class FMModelForm_maker {
         $label_each_decoded = htmlspecialchars_decode( $label_each );
         $key_replace = array( '%' . $label_each_decoded . '%', '{' . $key . '}' );
 
-        $new_value = $this->custom_fields_mail( $type, $key1, $id, $attachment, $form_currency );
+        $new_value = $this->custom_fields_mail( $type, $key1, $id, $attachment, $form_currency, 0, $row->mail_mode );
         $new_script = str_replace( $key_replace, $new_value, $new_script );
 
         if ( $type == "type_file_upload" ) {
-          $new_value = $this->custom_fields_mail( $type, $key, $id, $attachment, $form_currency, 1 );
+          $new_value = $save_uploads ? $this->custom_fields_mail( $type, $key, $id, $attachment, $form_currency, 1 ) : '';
           $new_script = str_replace( array( '%' . $label_each_decoded . '(link)%', '{' . $key . '(link)}' ), $new_value, $new_script );
         }
         if ( strpos( $fromname, "{" . $key . "}" ) > -1 || strpos( $fromname, "%" . $label_each . "%" ) > -1 ) {
@@ -3339,6 +3459,7 @@ class FMModelForm_maker {
         if ( strpos( $fromname, "{" . $key . "}" ) > -1 || strpos( $fromname, "%username%" ) > -1 ) {
           $fromname = str_replace( array( '%' . $username . '%', '{' . $key . '}' ), $username, $fromname );
         }
+
         if ( strpos( $subject, "{" . $key . "}" ) > -1 || strpos( $subject, "%" . $label_each . "%" ) > -1 ) {
           $new_value = str_replace( '<br>', ', ', $this->custom_fields_mail( $type, $key1, $id, '', $form_currency ) );
           if ( substr( $new_value, -2 ) == ', ' ) {
@@ -3346,16 +3467,25 @@ class FMModelForm_maker {
           }
           $subject = str_replace( array( '%' . $label_each . '%', '{' . $key . '}' ), $new_value, $subject );
         }
+
+        if ( strpos( $recipient, "{" . $key . "}" ) > -1 || strpos( $recipient, "%" . $label_each . "%" ) > -1 ) {
+          $new_value = str_replace( '<br>', ', ', $this->custom_fields_mail( $type, $key1, $id, '', $form_currency ) );
+          if ( substr( $new_value, -2 ) == ', ' ) {
+            $new_value = substr( $new_value, 0, -2 );
+          }
+          $recipient = str_replace( array( '%' . $label_each . '%', '{' . $key . '}' ), $new_value, $recipient );
+        }
       }
       $this->custom_fields['all'] = $list;
-
-	    foreach ( $this->custom_fields as $key => $custom_field ) {
+	    $_SESSION['form_all_fields' . $id ] = $list;
+      foreach ( $this->custom_fields as $key => $custom_field ) {
         $new_script = str_replace( array( '%' . $key . '%', '{' . $key . '}' ), $custom_field, $new_script );
         $recipient = str_replace( array( '%' . $key . '%', '{' . $key . '}' ), $custom_field, $recipient);
         $fromname = str_replace( array( '%' . $key . '%', '{' . $key . '}' ), $custom_field, $fromname );
         $from_mail = str_replace( array( '%' . $key . '%', '{' . $key . '}' ), $custom_field, $from_mail );
         $subject = str_replace( array( '%' . $key . '%', '{' . $key . '}' ), $custom_field, $subject );
       }
+
       if ( $fromname === '' ) {
 	      $fromname = get_bloginfo('name');
       }
@@ -3368,7 +3498,6 @@ class FMModelForm_maker {
       $header_arr['reply_to'] = isset( $_POST['wdform_' . $row->reply_to . "_element" . $id] ) ? $_POST['wdform_' . $row->reply_to . "_element" . $id] : $row->reply_to;
       $header_arr['cc'] = $row->mail_cc;
       $header_arr['bcc'] = $row->mail_bcc;
-
       $admin_body = $new_script;
       if ( $row->mail_attachment ) {
         $remove_parrent_array = new RecursiveIteratorIterator( new RecursiveArrayIterator( $attachment ) );
@@ -3381,7 +3510,7 @@ class FMModelForm_maker {
       $admin_body = str_replace( '{PDF(link)}', site_url($pdf_data['pdf_url']), $admin_body );
 
       if ( $row->sendemail ) {
-        $send = WDW_FM_Library(self::PLUGIN)->mail($recipient, $subject, $admin_body, $header_arr, $attachment);
+        $send = WDW_FM_Library(self::PLUGIN)->mail($recipient, $subject, $admin_body, $header_arr, $attachment, $save_uploads);
       }
     }
     $_SESSION[ 'error_or_no' . $id ] = 0;
@@ -3400,7 +3529,7 @@ class FMModelForm_maker {
       }
     }
 
-    // Add-on conditional email.
+    // Extension conditional email.
     if ( has_action('fm_set_params_frontend_init') && WDFMInstance(self::PLUGIN)->is_free != 2 ) {
       $fm_email_params = $row->sendemail ? array(
         'admin_body' => $admin_body,
@@ -3445,22 +3574,27 @@ class FMModelForm_maker {
     }
 
     if ( $row->submit_text_type != 4 || $row->url == '' ) {
-      // This ensures that no message is enqueued by an add-on.
-      if ( !$_SESSION[ 'massage_after_submit' . $id ] ) {
+      // This ensures that no message is enqueued by an extension.
+      if ( !isset($_SESSION[ 'massage_after_submit' . $id ]) || !$_SESSION[ 'massage_after_submit' . $id ] ) {
         $_SESSION[ 'massage_after_submit' . $id ] = $msg;
       }
       if ( $row->type == 'popover' || $row->type == 'topbar' || $row->type == 'scrollbox' ) {
         $_SESSION[ 'fm_hide_form_after_submit' . $id ] = 1;
       }
     }
+    // Add query arg to url to display message on cached pages.
+    $redirect_url = add_query_arg( array( 'succes' => time() ), $redirect_url );
 
     if ( !$str ) {
-      wp_redirect( html_entity_decode( $redirect_url ) );
+      if( !$this->fm_ajax_submit || $row->submit_text_type != 4 ) {
+        wp_redirect( html_entity_decode( $redirect_url ) );
+      }
+
       exit;
     }
     else {
       $_SESSION[ 'redirect_paypal' . $id ] = 1;
-      $str .= "&return=" . urlencode( add_query_arg( array( 'succes' => time() ), $redirect_url ) );
+      $str .= "&return=" . urlencode( $redirect_url );
       wp_redirect( $str );
       exit;
     }
@@ -3477,7 +3611,7 @@ class FMModelForm_maker {
    * @param int $file_upload_link
    * @return null|string $new_value
    */
-  public static function custom_fields_mail( $type = '', $key = '', $id = 0, $attachment = array(), $form_currency = '', $file_upload_link = 0 ) {
+  public static function custom_fields_mail( $type = '', $key = '', $id = 0, $attachment = array(), $form_currency = '', $file_upload_link = 0, $mail_mode = 1 ) {
     $new_value = "";
     if ( $type != "type_submit_reset" or $type != "type_map" or $type != "type_editor" or $type != "type_captcha" or $type != "type_arithmetic_captcha" or $type != "type_recaptcha" or $type != "type_button" ) {
       switch ( $type ) {
@@ -3492,6 +3626,9 @@ class FMModelForm_maker {
         case "type_number": {
           $element = isset( $_POST[ 'wdform_' . $key . "_element" . $id ] ) ? $_POST[ 'wdform_' . $key . "_element" . $id ] : NULL;
           if ( isset( $element ) ) {
+            if ( 'type_textarea' == $type ) {
+              $element = nl2br($element);
+            }
             $new_value = $element;
           }
           break;
@@ -3510,7 +3647,7 @@ class FMModelForm_maker {
               $file_name = explode( '/', $attach );
               $file_name = end( $file_name );
               if ( $file_upload_link == 1 ) {
-                $new_value .= '<a href="' . site_url() . '/' . $attach . '"/>' . $file_name . '</a><br />';
+                $new_value .= '<a href="' . site_url() . '/' . $attach . '">' . $file_name . '</a><br />';
               } else {
                 $invalidFileExts = array(
                   'gif',
@@ -3671,9 +3808,9 @@ class FMModelForm_maker {
               $element = isset( $_POST[ 'wdform_' . $key . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $key . "_element" . $id . $j ] : NULL;
               if ( isset( $element ) ) {
                 if ( $j == $other_element_id ) {
-                  $new_value = $new_value . (isset( $_POST[ 'wdform_' . $key . "_other_input" . $id ] ) ? $_POST[ 'wdform_' . $key . "_other_input" . $id ] : "") . '<br>';
+                  $new_value = $new_value . ($mail_mode == 1 ? '<p>' : '') . (isset( $_POST[ 'wdform_' . $key . "_other_input" . $id ] ) ? $_POST[ 'wdform_' . $key . "_other_input" . $id ] : "") . ($mail_mode == 1 ? '</p>' : ', ');
                 } else {
-                  $new_value = $new_value . $element . '<br>';
+                  $new_value = $new_value . ($mail_mode == 1 ? '<p>' : '') . $element . ($mail_mode == 1 ? '</p>' : ', ');
                 }
               }
             }
@@ -3751,7 +3888,7 @@ class FMModelForm_maker {
             for ( $j = $start; $j < 100; $j++ ) {
               $element = isset( $_POST[ 'wdform_' . $key . "_element" . $id . $j ] ) ? $_POST[ 'wdform_' . $key . "_element" . $id . $j ] : NULL;
               if ( isset( $element ) ) {
-                $new_value = $new_value . (isset( $_POST[ 'wdform_' . $key . "_element" . $id . $j . "_label" ] ) ? $_POST[ 'wdform_' . $key . "_element" . $id . $j . "_label" ] : "") . ' - ' . (isset( $element ) ? $form_currency . ($element == '' ? '0' : $element) : "") . '<br>';
+                $new_value = $new_value . ($mail_mode == 1 ? '<p>' : '') . (isset( $_POST[ 'wdform_' . $key . "_element" . $id . $j . "_label" ] ) ? $_POST[ 'wdform_' . $key . "_element" . $id . $j . "_label" ] : "") . ' - ' . (isset( $element ) ? $form_currency . ($element == '' ? '0' : $element) : "") . ($mail_mode == 1 ? '</p>' : ', ');
               }
             }
           }
@@ -3759,12 +3896,12 @@ class FMModelForm_maker {
           $element_quantity_label = isset( $_POST[ 'wdform_' . $key . "_element_quantity_label" . $id ] ) ? $_POST[ 'wdform_' . $key . "_element_quantity_label" . $id ] : NULL;
           $element_quantity = (isset( $_POST[ 'wdform_' . $key . "_element_quantity" . $id ] ) && $_POST[ 'wdform_' . $key . "_element_quantity" . $id ]) ? $_POST[ 'wdform_' . $key . "_element_quantity" . $id ] : NULL;
           if ( $is_element_quantity ) {
-            $new_value .= $element_quantity_label . ': ' . ( (!empty($element_quantity)) ? $element_quantity : 0 );
+            $new_value .= ($mail_mode == 1 ? '<p>' : '') . $element_quantity_label . ': ' . ( (!empty($element_quantity)) ? $element_quantity : 0 ) . ($mail_mode == 1 ? '</p>' : ', ');
           }
           for ( $k = 0; $k < 50; $k++ ) {
             $temp_val = isset( $_POST[ 'wdform_' . $key . "_property" . $id . $k ] ) ? $_POST[ 'wdform_' . $key . "_property" . $id . $k ] : NULL;
             if ( isset( $temp_val ) ) {
-              $new_value .= '<br/>' . (isset( $_POST[ 'wdform_' . $key . "_element_property_label" . $id . $k ] ) ? $_POST[ 'wdform_' . $key . "_element_property_label" . $id . $k ] : "") . ': ' . $temp_val;
+              $new_value .= ($mail_mode == 1 ? '<p>' : '') . (isset( $_POST[ 'wdform_' . $key . "_element_property_label" . $id . $k ] ) ? $_POST[ 'wdform_' . $key . "_element_property_label" . $id . $k ] : "") . ': ' . $temp_val . ($mail_mode == 1 ? '</p>' : ', ');
             }
           }
           break;
@@ -3908,7 +4045,7 @@ class FMModelForm_maker {
    */
   public function empty_field( $element = '', $mail_emptyfields = '' ) {
     if ( !$mail_emptyfields ) {
-      if ( empty( $element ) ) {
+      if ( isset( $element ) && $element === '' ) {
         return 0;
       }
     }
@@ -3947,12 +4084,38 @@ class FMModelForm_maker {
    *
    * @return bool
    */
-  public function fm_empty_field_validation( $form_id ) {
-    $hash  = md5( WDFMInstance(self::PLUGIN)->prefix .''. $form_id);
+  private function fm_empty_field_validation( $form_id ) {
+    WDW_FM_Library(self::PLUGIN)->start_session();
+    $hash = $_SESSION['fm_empty_field_validation' . $form_id];
     $value = WDW_FM_Library(self::PLUGIN)->get('fm_empty_field_validation' . $form_id, '');
     if ( !empty($value) && $value === $hash ) {
       return TRUE;
     }
+
     return FALSE;
   }
+
+  /**
+   * Check http_referer
+   *
+   * @return bool
+   */
+  private function check_http_referer() {
+    if ( !empty($_SERVER['HTTP_REFERER']) && strtolower(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST)) === strtolower($_SERVER['HTTP_HOST']) ) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+	private function ip_exceeded_limit( $id, $ip ) {
+		global $wpdb;
+		$max_second = 20;
+		$row = $wpdb->get_var($wpdb->prepare('SELECT count(DISTINCT(group_id)) FROM `' . $wpdb->prefix . 'formmaker_submits` WHERE form_id=%d AND ip="%s" AND date>=("' . date('Y-m-d H:i:s', time() - $max_second) . '")', $id, $ip));
+		if ( $row >= 4) {
+			if ( ! $wpdb->get_var($wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'formmaker_blocked WHERE ip="%s"', $ip )) ) {
+				$wpdb->insert($wpdb->prefix . 'formmaker_blocked', array('ip' => $ip), array('%s') );
+			}
+		}
+	}
 }

@@ -37,10 +37,67 @@
                     div.className = containerClass;
                     div.style.position = 'absolute';
                     div.style.display = 'none';
+                    div.setAttribute('unselectable','on');
                     return div;
-                }
+                },
+                highlight: function (suggestionValue, phrase) {
+
+                    if (dgwt_wcas.is_premium) {
+                        var i;
+                        var tokens = phrase.split(/ /);
+
+                        if(tokens) {
+                            tokens = tokens.sort(function (a, b) {
+                                return b.length - a.length;
+                            });
+                            for (i = 0; i < tokens.length; i++) {
+                                if (tokens[i] && tokens[i].length > 1) {
+                                    var pattern = '(' + utils.escapeRegExChars(tokens[i].trim()) + ')';
+                                    suggestionValue = suggestionValue.replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
+                                }
+                            }
+                        }
+                    } else {
+                        var pattern = '(' + utils.escapeRegExChars(phrase) + ')';
+                        suggestionValue = suggestionValue.replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
+                    }
+
+                    return suggestionValue;
+                },
+                debounce: function (func, wait) {
+                    var timeout,
+                        debounceID = new Date().getUTCMilliseconds();
+
+                    // First query in the chain
+                    if(ajaxDebounceState.id.length === 0){
+                        ajaxDebounceState.id = debounceID;
+                        func();
+                        return;
+                    }
+
+                    ajaxDebounceState.id = debounceID;
+
+                    timeout = setTimeout(function(){
+
+                        if(debounceID !== ajaxDebounceState.id){
+                            clearTimeout(timeout);
+                            return;
+                        }
+
+                        // Last query in the chain
+                        func();
+                        ajaxDebounceState.id = '';
+
+                    }, wait);
+                },
             };
         }() ),
+        ajaxDebounceState = {
+            id: '',
+            callback: null,
+            ajaxSettings: null,
+            object: null,
+        },
         keys = {
             ESC: 27,
             TAB: 9,
@@ -49,69 +106,11 @@
             UP: 38,
             RIGHT: 39,
             DOWN: 40
-        };
+        },
+        noop = $.noop;
 
     function Autocomplete(el, options) {
-        var noop = $.noop,
-            that = this,
-            defaults = {
-                ajaxSettings: {},
-                autoSelectFirst: false,
-                appendTo: document.body,
-                serviceUrl: null,
-                lookup: null,
-                onSelect: null,
-                onMouseOver: null,
-                onMouseLeave: null,
-                width: 'auto',
-                containerDetailsWidth: 'auto',
-                showDetailsPanel: false,
-                showImage: false,
-                showPrice: false,
-                showSKU: false,
-                showDescription: false,
-                showSaleBadge: false,
-                showFeaturedBadge: false,
-                saleBadgeText: 'sale',
-                featuredBadgeText: 'featured',
-                minChars: 3,
-                maxHeight: 600,
-                deferRequestBy: 0,
-                params: {},
-                formatResult: Autocomplete.formatResult,
-                delimiter: null,
-                zIndex: 9999,
-                type: 'GET',
-                noCache: false,
-                is_rtl: false,
-                onSearchStart: noop,
-                onSearchComplete: noop,
-                onSearchError: noop,
-                preserveInput: false,
-                searchFormClass: 'dgwt-wcas-search-wrapp',
-                containerClass: 'dgwt-wcas-suggestions-wrapp',
-                containerDetailsClass: 'dgwt-wcas-details-wrapp',
-                searchInputClass: 'dgwt-wcas-search-input',
-                preloaderClass: 'dgwt-wcas-preloader',
-                closeTrigger: 'dgwt-wcas-close',
-                tabDisabled: false,
-                dataType: 'text',
-                currentRequest: null,
-                triggerSelectOnValidInput: true,
-                preventBadQueries: true,
-                lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
-                    return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;
-                },
-                paramName: 'query',
-                transformResult: function (response) {
-                    return typeof response === 'string' ? $.parseJSON(response) : response;
-                },
-                showNoSuggestionNotice: false,
-                noSuggestionNotice: 'No results',
-                orientation: 'bottom',
-                forceFixPosition: false,
-                positionFixed: false
-            };
+        var that = this;
 
         // Shared variables:
         that.element = el;
@@ -120,17 +119,17 @@
         that.badQueries = [];
         that.selectedIndex = -1;
         that.currentValue = that.element.value;
-        that.intervalId = 0;
+        that.timeoutId = null;
         that.cachedResponse = {};
         that.cachedDetails = {};
         that.detailsRequestsSent = [];
-        that.onChangeInterval = null;
+        that.onChangeTimeout = null;
         that.onChange = null;
         that.isLocal = false;
         that.suggestionsContainer = null;
         that.detailsContainer = null;
         that.noSuggestionsContainer = null;
-        that.options = $.extend({}, defaults, options);
+        that.options = $.extend(true, {}, Autocomplete.defaults, options);
         that.classes = {
             selected: 'dgwt-wcas-suggestion-selected',
             suggestion: 'dgwt-wcas-suggestion',
@@ -139,35 +138,103 @@
         that.hint = null;
         that.hintValue = '';
         that.selection = null;
+        that.overlayMobileState = 'off';
 
         // Initialize and set options:
         that.initialize();
         that.setOptions(options);
+
     }
 
     Autocomplete.utils = utils;
 
     $.Autocomplete = Autocomplete;
 
-    Autocomplete.formatResult = function (suggestionValue, currentValue) {
+    Autocomplete.defaults = {
+        ajaxSettings: {},
+        autoSelectFirst: false,
+        appendTo: 'body',
+        serviceUrl: null,
+        lookup: null,
+        onSelect: null,
+        onMouseOver: null,
+        onMouseLeave: null,
+        width: 'auto',
+        containerDetailsWidth: 'auto',
+        showDetailsPanel: false,
+        showImage: false,
+        showPrice: false,
+        showSKU: false,
+        showDescription: false,
+        showSaleBadge: false,
+        showFeaturedBadge: false,
+        saleBadgeText: 'sale',
+        featuredBadgeText: 'featured',
+        minChars: 3,
+        maxHeight: 600,
+        deferRequestBy: 0,
+        params: {},
+        formatResult: _formatResult,
+        delimiter: null,
+        zIndex: 999999999,
+        type: 'GET',
+        noCache: false,
+        isRtl: false,
+        onSearchStart: noop,
+        onSearchComplete: noop,
+        onSearchError: noop,
+        preserveInput: false,
+        searchFormClass: 'dgwt-wcas-search-wrapp',
+        containerClass: 'dgwt-wcas-suggestions-wrapp',
+        containerDetailsClass: 'dgwt-wcas-details-wrapp',
+        searchInputClass: 'dgwt-wcas-search-input',
+        preloaderClass: 'dgwt-wcas-preloader',
+        closeTrigger: 'dgwt-wcas-close',
+        tabDisabled: false,
+        dataType: 'text',
+        currentRequest: null,
+        triggerSelectOnValidInput: true,
+        isPremium: false,
+        overlayMobile: false,
+        preventBadQueries: true,
+        lookupFilter: _lookupFilter,
+        paramName: 'query',
+        transformResult: _transformResult,
+        showNoSuggestionNotice: false,
+        noSuggestionNotice: 'No results',
+        orientation: 'bottom',
+        forceFixPosition: false,
+        positionFixed: false,
+        debounceWaitMs: 400
+    };
 
+    function _lookupFilter(suggestion, originalQuery, queryLowerCase) {
+        return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;
+    };
+
+    function _transformResult(response) {
+        return typeof response === 'string' ? $.parseJSON(response) : response;
+    };
+
+    function _formatResult(suggestionValue, currentValue) {
         // Do not replace anything if there current value is empty
         if (!currentValue) {
             return suggestionValue;
         }
-        var pattern = '(' + utils.escapeRegExChars(currentValue) + ')';
 
-        return suggestionValue
-            .replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>')
-            .replace(/&/g, '&amp;')
+        suggestionValue =  utils.highlight(suggestionValue, currentValue);
+
+        return suggestionValue.replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
+            .replace(/&lt;sup/g, '<sup')
+            .replace(/&lt;\/sup/g, '</sup')
+            .replace(/sup&gt;/g, 'sup>')
             .replace(/&lt;(\/?strong)&gt;/g, '<$1>');
     };
 
     Autocomplete.prototype = {
-        killerFn: null,
         initialize: function () {
             var that = this,
                 suggestionSelector = '.' + that.classes.suggestion,
@@ -175,20 +242,11 @@
                 options = that.options,
                 container,
                 containerDetails,
-                closeTrigger = '.' + options.closeTrigger;
+                closeTrigger = '.' + options.closeTrigger,
+                formWrapper = that.getFormWrapper();
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
-
-            that.killerFn = function (e) {
-                if (
-                    $(e.target).closest('.' + that.options.containerClass).length === 0 &&
-                    $(e.target).closest('.' + that.options.containerDetailsClass).length === 0
-                ) {
-                    that.killSuggestions();
-                    that.disableKillerFn();
-                }
-            };
 
             var context = that.el.closest('.' + options.searchFormClass).data('wcas-context');
 
@@ -203,7 +261,7 @@
             container.attr('data-wcas-context', context);
             container.addClass('woocommerce');
 
-            container.appendTo('body');
+            container.appendTo(options.appendTo || 'body');
 
             // Add conditiona classes
             if (options.showImage === true)
@@ -249,17 +307,44 @@
 
             // Listen for click event on suggestions list:
             $(document).on('click.autocomplete', closeTrigger, function (e) {
-                that.killerFn(e);
+                that.hide();
                 that.clear(false);
                 $(this).removeClass(options.closeTrigger);
                 $(this).closest('.' + options.searchFormClass).find('.' + options.searchInputClass).val('').focus();
             });
 
+            // Mobile mode
+            if(
+                that.options.overlayMobile
+                && that.isMobileMode()
+            ){
+
+                formWrapper.prepend('<div class="js-dgwt-wcas-enable-mobile-form dgwt-wcas-enable-mobile-form"></div>');
+
+                var $el = formWrapper.find('.js-dgwt-wcas-enable-mobile-form');
+                $el.on('click', function (e) {
+                   that.enableOverlayMobile();
+                });
+
+            }
+
             // Listen for click close button:
             container.on('click.autocomplete', suggestionSelector, function () {
                 that.select($(this).data('index'));
-                return false;
             });
+
+            container.on('click.autocomplete', function () {
+                clearTimeout(that.blurTimeoutId);
+            })
+
+            if (that.canShowDetailsBox()) {
+                containerDetails.on('click.autocomplete', function () {
+                    clearTimeout(that.blurTimeoutId);
+                })
+            }
+
+            that.hideAfterClickOutsideListener();
+
 
             $(document).on('change', '[name="js-dgwt-wcas-quantity"]', function (e) {
                 var $input = $(this).closest('.js-dgwt-wcas-pd-addtc').find('[data-quantity]');
@@ -275,6 +360,25 @@
             };
 
             $(window).on('resize.autocomplete', that.fixPositionCapture);
+
+            $(window).on('scroll', function () {
+
+                if (that.suggestions.length > 0 && that.elementOrParentIsFixed(that.getFormWrapper())) {
+                    if ($(window).scrollTop() === 0) {
+                        var timeSteps = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 120, 140, 170, 200, 250, 400, 700, 1000, 2000];
+
+                        timeSteps.forEach(function (offset) {
+                            setTimeout(function () {
+                                that.fixHeight();
+                                that.fixPositionCapture();
+                            }, offset);
+                        });
+                    } else {
+                        that.fixHeight();
+                        that.fixPositionCapture();
+                    }
+                }
+            });
 
             that.el.on('keydown.autocomplete', function (e) {
                 that.onKeyPress(e);
@@ -297,13 +401,28 @@
         },
         onFocus: function () {
             var that = this;
+
             that.fixPositionCapture();
             if (that.el.val().length >= that.options.minChars) {
                 that.onValueChange();
             }
+
         },
         onBlur: function () {
-            this.enableKillerFn();
+            var that = this,
+                options = that.options,
+                value = that.el.val(),
+                query = that.getQuery(value);
+
+            // If user clicked on a suggestion, hide() will
+            // be canceled, otherwise close suggestions
+            that.blurTimeoutId = setTimeout(function () {
+                that.hide();
+
+                if (that.selection && that.currentValue !== query) {
+                    (options.onInvalidateSelection || $.noop).call(that.element);
+                }
+            }, 200);
         },
         abortAjax: function () {
             var that = this;
@@ -315,11 +434,10 @@
         setOptions: function (suppliedOptions) {
             var that = this,
                 $suggestionsContainer = that.getSuggestionsContainer(),
-                options = that.options;
 
-            $.extend(options, suppliedOptions);
+            options = $.extend({}, that.options, suppliedOptions);
 
-            that.isLocal = $.isArray(options.lookup);
+            that.isLocal = Array.isArray(options.lookup);
 
             if (that.isLocal) {
                 options.lookup = that.verifySuggestionsFormat(options.lookup);
@@ -345,11 +463,14 @@
                 $('body').addClass('dgwt-wcas-is-details');
             }
 
-            that.options.onSearchComplete = function () {
+            options.onSearchComplete = function () {
+                var searchForm = that.getFormWrapper();
+                searchForm.removeClass('dgwt-wcas-processing');
                 that.preloader('hide', 'form', 'dgwt-wcas-inner-preloader');
                 that.preloader('show', 'form', options.closeTrigger);
             };
 
+            this.options = options;
         },
         clearCache: function () {
             this.cachedResponse = {};
@@ -366,7 +487,7 @@
         disable: function () {
             var that = this;
             that.disabled = true;
-            clearInterval(that.onChangeInterval);
+            clearTimeout(that.onChangeTimeout);
             that.abortAjax();
         },
         enable: function () {
@@ -399,7 +520,7 @@
                 return false;
             }
 
-            var borderCorrection = that.options.is_rtl === true ? 1 : 2;
+            var borderCorrection = that.options.isRtl === true ? 1 : 2;
             var leftOffset = Math.round(offset.left);
             offset.left = leftOffset + Math.round($containerSuggestions.width() + borderCorrection);
 
@@ -413,7 +534,7 @@
                 $('body').removeClass('dgwt-wcas-details-right');
                 $('body').removeClass('dgwt-wcas-details-left');
 
-                if (that.options.is_rtl === true) {
+                if (that.options.isRtl === true) {
                     $containerSuggestions.css('left', leftOffset + Math.round($containerDetails.width() + borderCorrection) + 'px');
                     $containerDetails.css('left', (nativeOffsetLeft) + 'px');
                 }
@@ -428,7 +549,7 @@
             $('body').addClass('dgwt-wcas-details-outside');
 
 
-            if (that.options.is_rtl === true) {
+            if (that.options.isRtl === true) {
                 offset.left = offset.left + 1;
             }
 
@@ -476,29 +597,30 @@
                 return false;
             }
 
-            $('.' + options.containerClass).css('height', 'auto');
-            $('.' + options.containerDetailsClass).css('height', 'auto');
+            var $suggestionsWrapp = that.getSuggestionsContainer(),
+                $detailsWrapp = that.getDetailsContainer();
 
-            var contSuggestions = $('.' + options.containerClass),
-                contDetails = $('.' + options.containerDetailsClass),
-                sH = contSuggestions.outerHeight(),
-                dH = contDetails.outerHeight(),
+            $suggestionsWrapp.css('height', 'auto');
+            $detailsWrapp.css('height', 'auto');
+
+            var sH = $suggestionsWrapp.outerHeight(),
+                dH = $detailsWrapp.outerHeight(),
                 minHeight = 340;
 
-            contSuggestions.find('.dgwt-wcas-suggestion:last-child').removeClass('dgwt-wcas-suggestion-no-border-bottom');
+            $suggestionsWrapp.find('.dgwt-wcas-suggestion:last-child').removeClass('dgwt-wcas-suggestion-no-border-bottom');
 
             if (sH <= minHeight && dH <= minHeight) {
                 return false;
             }
 
-            contSuggestions.find('.dgwt-wcas-suggestion:last-child').addClass('dgwt-wcas-suggestion-no-border-bottom');
+            $suggestionsWrapp.find('.dgwt-wcas-suggestion:last-child').addClass('dgwt-wcas-suggestion-no-border-bottom');
 
             if (dH < sH) {
-                contDetails.css('height', (sH) + 'px');
+                $detailsWrapp.css('height', (sH) + 'px');
             }
 
             if (sH < dH) {
-                contSuggestions.css('height', dH + 'px');
+                $suggestionsWrapp.css('height', dH + 'px');
             }
 
             return false;
@@ -529,7 +651,7 @@
                     ft = $form[0].getBoundingClientRect().top;
 
                 $suggestionsContainer.css('height', 'auto');
-                if(ft < $suggestionsContainer.height()){
+                if (ft < $suggestionsContainer.height()) {
                     $suggestionsContainer.height(ft - 10);
                 }
                 styles.top += -$suggestionsContainer.outerHeight();
@@ -566,37 +688,6 @@
             var that = this,
                 $el = that.getSuggestionsContainer();
             $el[0].scrollTop = $el[0].scrollHeight;
-        },
-        enableKillerFn: function () {
-            var that = this;
-            $(document).on('click.autocomplete', that.killerFn);
-        },
-        disableKillerFn: function () {
-            var that = this;
-            $(document).off('click.autocomplete', that.killerFn);
-        },
-        killSuggestions: function () {
-            var that = this;
-
-            that.stopKillSuggestions();
-            that.intervalId = window.setInterval(function () {
-                if (that.visible) {
-
-                    // No need to restore value when 
-                    // preserveInput === true, 
-                    // because we did not change it
-                    if (!that.options.preserveInput) {
-                        that.el.val(that.currentValue);
-                    }
-
-                    that.hide();
-                }
-
-                that.stopKillSuggestions();
-            }, 50);
-        },
-        stopKillSuggestions: function () {
-            window.clearInterval(this.intervalId);
         },
         isCursorAtEnd: function () {
             var that = this,
@@ -686,13 +777,13 @@
                     return;
             }
 
-            clearInterval(that.onChangeInterval);
+            clearTimeout(that.onChangeTimeout);
 
             if (that.currentValue !== that.el.val()) {
                 that.findBestHint();
                 if (that.options.deferRequestBy > 0) {
                     // Defer lookup in case when value changes very quickly:
-                    that.onChangeInterval = setInterval(function () {
+                    that.onChangeTimeout = setTimeout(function () {
                         that.onValueChange();
                     }, that.options.deferRequestBy);
                 } else {
@@ -701,6 +792,11 @@
             }
         },
         onValueChange: function () {
+            if (this.ignoreValueChange) {
+                this.ignoreValueChange = false;
+                return;
+            }
+
             var that = this,
                 options = that.options,
                 value = that.el.val(),
@@ -711,7 +807,7 @@
                 ( options.onInvalidateSelection || $.noop ).call(that.element);
             }
 
-            clearInterval(that.onChangeInterval);
+            clearTimeout(that.onChangeTimeout);
             that.currentValue = value;
             that.selectedIndex = -1;
 
@@ -736,7 +832,11 @@
         canShowDetailsBox: function () {
             var that = this;
 
-            return that.options.showDetailsPanel == true && $(window).width() >= 992 && !( 'ontouchend' in document );
+            return that.options.showDetailsPanel == true && !that.isMobileMode();
+        },
+        isMobileMode: function(){
+            var that = this;
+            return $(window).width() < that.options.mobileBreakpoint || ( 'ontouchend' in document )
         },
         getQuery: function (value) {
             var delimiter = this.options.delimiter,
@@ -773,18 +873,21 @@
                 that = this,
                 options = that.options,
                 serviceUrl = options.serviceUrl,
+                searchForm = that.getFormWrapper(),
                 params,
                 cacheKey,
                 ajaxSettings;
 
             options.params[options.paramName] = q;
-            params = options.ignoreParams ? null : options.params;
 
             that.preloader('show', 'form', 'dgwt-wcas-inner-preloader');
+            searchForm.addClass('dgwt-wcas-processing');
 
             if (options.onSearchStart.call(that.element, options.params) === false) {
                 return;
             }
+
+            params = options.ignoreParams ? null : options.params;
 
             if ($.isFunction(options.lookup)) {
                 options.lookup(q, function (data) {
@@ -806,7 +909,7 @@
                 response = that.cachedResponse[cacheKey];
             }
 
-            if (response && $.isArray(response.suggestions)) {
+            if (response && Array.isArray(response.suggestions)) {
                 that.suggestions = response.suggestions;
                 that.suggest();
                 that.getDetails(response.suggestions[0]);
@@ -823,22 +926,34 @@
 
                 $.extend(ajaxSettings, options.ajaxSettings);
 
-                that.currentRequest = $.ajax(ajaxSettings).done(function (data) {
-                    var result;
-                    that.currentRequest = null;
-                    result = options.transformResult(data, q);
+                ajaxDebounceState.object = that;
+                ajaxDebounceState.ajaxSettings = ajaxSettings;
 
-                    if (typeof result.suggestions !== 'undefined') {
-                        that.processResponse(result, q, cacheKey);
-                        that.getDetails(result.suggestions[0]);
-                    }
+                utils.debounce(function () {
 
-                    that.fixPositionCapture();
+                    var that = ajaxDebounceState.object,
+                        ajaxSettings = ajaxDebounceState.ajaxSettings;
 
-                    options.onSearchComplete.call(that.element, q, result.suggestions);
-                }).fail(function (jqXHR, textStatus, errorThrown) {
-                    options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
-                });
+                    that.currentRequest = $.ajax(ajaxSettings).done(function (data) {
+                        var result;
+                        that.currentRequest = null;
+                        result = that.options.transformResult(data, q);
+
+                        if (typeof result.suggestions !== 'undefined') {
+                            that.processResponse(result, q, cacheKey);
+                            that.getDetails(result.suggestions[0]);
+                        }
+
+                        that.fixPositionCapture();
+
+                        that.options.onSearchComplete.call(that.element, q, result.suggestions);
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        that.options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
+                    });
+
+                }, options.debounceWaitMs);
+
+
             } else {
                 options.onSearchComplete.call(that.element, q, []);
             }
@@ -858,6 +973,12 @@
             if (suggestion == null) {
                 return;
             }
+
+            // Disable on more product suggestion
+            if (typeof suggestion.more_products == 'string' && suggestion.more_products === 'more_products') {
+                return;
+            }
+
 
             var cacheKey,
                 containerDetails = $('.' + options.containerDetailsClass),
@@ -956,7 +1077,7 @@
 
             that.visible = false;
             that.selectedIndex = -1;
-            clearInterval(that.onChangeInterval);
+            clearTimeout(that.onChangeTimeout);
             $container.hide();
             $container.removeClass(that.classes.suggestionsContainerOrientTop);
             $containerDetails.hide();
@@ -965,6 +1086,42 @@
             $('body').removeClass('dgwt-wcas-block-scroll');
 
             that.signalHint(null);
+        },
+        hideAfterClickOutsideListener: function(){
+            var that = this;
+            if(!that.isMobileMode()){
+
+                $(document).mouseup(function(e)
+                {
+                    if(!that.visible){
+                        return;
+                    }
+
+                    var $container = that.getSuggestionsContainer(),
+                        $containerDetails = that.getDetailsContainer(),
+                        outsideForm = !($(e.target).closest('.' + that.options.searchFormClass).length > 0 || $(e.target).hasClass(that.options.searchFormClass)),
+                        outsideContainer = !($(e.target).closest('.' + that.options.containerClass).length > 0 || $(e.target).hasClass(that.options.containerClass));
+
+
+                    if(!that.canShowDetailsBox()){
+
+                        if(outsideForm && outsideContainer){
+                            that.hide();
+                        }
+
+                    }else{
+
+                        var outsidecontainerDetails = !($(e.target).closest('.' + that.options.containerDetailsClass).length > 0 || $(e.target).hasClass(that.options.containerDetailsClass));
+
+                        if(outsideForm && outsideContainer && outsidecontainerDetails){
+                            that.hide();
+                        }
+
+                    }
+
+                });
+
+            }
         },
         suggest: function () {
             if (!this.suggestions.length) {
@@ -1021,26 +1178,41 @@
 
                     var dataUrl = '',
                         classes = className,
-                        extraText = '';
+                        innerClass = 'dgwt-wcas-st',
+                        prepend = '',
+                        append = '',
+                        title = '';
 
                     if (suggestion.taxonomy === 'product_cat') {
                         classes += ' dgwt-wcas-suggestion-cat';
-                        extraText += '<span class="dgwt-wcas-st--tax">' + dgwt_wcas.t.category + '</span>';
+                        prepend += '<span class="dgwt-wcas-st--tax">' + dgwt_wcas.t.category + '</span>';
+                        if (typeof suggestion.breadcrumbs != 'undefined' && suggestion.breadcrumbs) {
+                            title = suggestion.breadcrumbs + ' &gt; ' + suggestion.value;
+                            append += '<span class="dgwt-wcas-st-breadcrumbs">' + dgwt_wcas.copy_in_category + ' ' + suggestion.breadcrumbs + '</span>';
+                            //@TODO RTL support
+                        }
+
                     } else if (suggestion.taxonomy === 'product_tag') {
                         classes += ' dgwt-wcas-suggestion-tag';
-                        extraText += '<span class="dgwt-wcas-st--tax">' + dgwt_wcas.t.tag + '</span>';
+                        prepend += '<span class="dgwt-wcas-st--tax">' + dgwt_wcas.t.tag + '</span>';
+                    } else if (options.isPremium && suggestion.taxonomy === options.taxonomyBrands) {
+                        classes += ' dgwt-wcas-suggestion-brand';
+                        prepend += '<span class="dgwt-wcas-st--tax">' + dgwt_wcas.t.brand + '</span>';
+                    } else if (typeof suggestion.type != 'undefined' && suggestion.type === 'more_products') {
+                        classes += ' js-dgwt-wcas-suggestion-more dgwt-wcas-suggestion-more';
+                        innerClass = 'dgwt-wcas-st-more';
+                        suggestion.value = dgwt_wcas.copy_show_more + ' (' + suggestion.total + ')';
                     } else {
                         classes += ' dgwt-wcas-suggestion-nores';
+                        suggestion.value = dgwt_wcas.copy_no_result;
                     }
+
+                    title = title.length > 0 ? ' title="' + title + '"' : '';
 
                     html += '<div class="' + classes + '" data-index="' + i + '">';
-                    html += '<span class="dgwt-wcas-st">' + extraText + formatResult(suggestion.value, value) + '</span>';
+                    html += '<span' + title + ' class="' + innerClass + '">' + prepend + formatResult(suggestion.value, value) + append + '</span>';
                     html += '</div>';
                 } else {
-
-                    if (typeof suggestion.parents != 'undefined') {
-                        parent = suggestion.parents;
-                    }
 
                     // Image
                     if (options.showImage === true && typeof suggestion.thumb_html != 'undefined') {
@@ -1064,21 +1236,23 @@
 
                     // Title
                     html += '<span class="dgwt-wcas-st">';
-                    html += '<span>' + formatResult(suggestion.value, value) + parent + '</span>'
+                    html += '<span class="dgwt-wcas-st-title">' + formatResult(suggestion.value, value) + parent + '</span>';
+
                     // SKU
                     if (options.showSKU === true && typeof suggestion.sku != 'undefined' && suggestion.sku.length > 0) {
-                        html += '<span class="dgwt-wcas-sku">(SKU: ' + formatResult(suggestion.sku, value) + ')</span>';
-                    }
-                    html += '</span>';
-
-                    // Price
-                    if (options.showPrice === true && typeof suggestion.price != 'undefined') {
-                        html += '<span class="dgwt-wcas-sp">' + suggestion.price + '</span>';
+                        html += '<span class="dgwt-wcas-sku">(' + dgwt_wcas.t.sku_label + ' ' + formatResult(suggestion.sku, value) + ')</span>';
                     }
 
                     // Description
                     if (options.showDescription === true && typeof suggestion.desc != 'undefined' && suggestion.desc) {
                         html += '<span class="dgwt-wcas-sd">' + formatResult(suggestion.desc, value) + '</span>';
+                    }
+
+                    html += '</span>';
+
+                    // Price
+                    if (options.showPrice === true && typeof suggestion.price != 'undefined') {
+                        html += '<span class="dgwt-wcas-sp">' + suggestion.price + '</span>';
                     }
 
                     // On sale product badge
@@ -1127,7 +1301,7 @@
 
             that.visible = true;
 
-            if(that.options.orientation === 'top') {
+            if (that.options.orientation === 'top') {
                 that.getSuggestionsContainer().addClass(that.classes.suggestionsContainerOrientTop);
                 $('body').addClass('dgwt-wcas-block-scroll');
                 setTimeout(function () {
@@ -1139,14 +1313,21 @@
         },
         noSuggestions: function () {
             var that = this,
+                beforeRender = that.options.beforeRender,
                 container = that.getSuggestionsContainer(),
                 noSuggestionsContainer = $(that.noSuggestionsContainer);
 
             // Some explicit steps. Be careful here as it easy to get
             // noSuggestionsContainer removed from DOM if not detached properly.
             noSuggestionsContainer.detach();
-            container.empty(); // clean suggestions if any
+
+            // clean suggestions if any
+            container.empty();
             container.append(noSuggestionsContainer);
+
+            if ($.isFunction(beforeRender)) {
+                beforeRender.call(that.element, container, that.suggestions);
+            }
 
             that.fixPositionCapture();
 
@@ -1193,7 +1374,7 @@
                     container.removeClass('dgwt-wcas-details-left');
                     container.removeClass('dgwt-wcas-details-right');
 
-                    if (options.is_rtl === true) {
+                    if (options.isRtl === true) {
                         containerDetails.css('left', '0');
                     } else {
                         containerSugg.css('left', (realWidth / 2 + offset.left) + 'px');
@@ -1240,7 +1421,7 @@
         },
         /*
          * Manages preloader
-         * 
+         *
          * @param action (show or hide)
          * @param container (parent selector)
          * @param cssClass
@@ -1284,8 +1465,9 @@
 
             // Action show
             if (action === 'show') {
-                html = '<div class="' + cssClasses + '"><div class="dgwt-wcas-default-preloader"></div></div>';
-
+                // html = '<div class="' + cssClasses + '"><div class="dgwt-wcas-default-preloadera"></div></div>';
+                var rtlSuffix = that.options.isRtl ? '-rtl' : '';
+                html = '<div class="' + cssClasses + '"><img class="dgwt-wcas-placeholder-preloader" src="' + dgwt_wcas.img_url + 'placeholder' + rtlSuffix + '.png" /></div>';
                 container.html(html);
             }
         },
@@ -1328,7 +1510,7 @@
                 return;
             }
 
-            if(that.options.orientation === 'top'){
+            if (that.options.orientation === 'top') {
                 result.suggestions.reverse();
             }
 
@@ -1364,7 +1546,6 @@
             var that = this;
             that.hide();
             that.onSelect(i);
-            that.disableKillerFn();
         },
         moveUp: function () {
             var that = this;
@@ -1374,8 +1555,9 @@
             }
 
             if (that.selectedIndex === 0) {
-                that.getSuggestionsContainer().children().first().removeClass(that.classes.selected);
+                that.getSuggestionsContainer().children('.' + that.classes.suggestion).first().removeClass(that.classes.selected);
                 that.selectedIndex = -1;
+                that.ignoreValueChange = false;
                 that.el.val(that.currentValue);
                 that.findBestHint();
                 return;
@@ -1417,6 +1599,11 @@
             }
 
             if (!that.options.preserveInput) {
+                // During onBlur event, browser will trigger "change" event,
+                // because value has changed, to avoid side effect ignore,
+                // that event, so that correct suggestion can be selected
+                // when clicking on suggestion with a mouse
+                that.ignoreValueChange = true;
                 that.el.val(that.getValue(that.suggestions[index].value));
             }
             that.signalHint(null);
@@ -1426,13 +1613,18 @@
                 onSelectCallback = that.options.onSelect,
                 suggestion = that.suggestions[index];
 
+            if (typeof suggestion.type != 'undefined' && suggestion.type === 'more_products') {
+                that.el.closest('form').trigger('submit');
+                return;
+            }
+
             that.currentValue = that.getValue(suggestion.value);
 
             if (that.currentValue !== that.el.val() && !that.options.preserveInput) {
                 that.el.val(that.currentValue);
             }
 
-            if (suggestion.id != -1) {
+            if (suggestion.url.length > 0) {
                 window.location.href = suggestion.url;
             }
 
@@ -1487,10 +1679,101 @@
         dispose: function () {
             var that = this;
             that.el.off('.autocomplete').removeData('autocomplete');
-            that.disableKillerFn();
             $(window).off('resize.autocomplete', that.fixPositionCapture);
             $('.' + that.options.containerClass).remove();
             $('.' + that.options.containerDetailsClass).remove();
+        },
+        enableOverlayMobile: function () {
+            var that = this;
+
+            if (that.overlayMobileState === 'on') {
+                return;
+            }
+
+            that.overlayMobileState = 'on';
+
+            var zIndex = 999999,
+                $wrapper = that.getFormWrapper(),
+                $suggestionsWrapp = that.getSuggestionsContainer(),
+                $overlayWrap,
+                html = '';
+
+            $('body').addClass('dgwt-wcas-overlay-mobile-on');
+            html += '<div class="js-dgwt-wcas-overlay-mobile dgwt-wcas-overlay-mobile">';
+            html += '<div class="dgwt-wcas-om-bar js-dgwt-wcas-om-bar">';
+            html += '<span class="dgwt-wcas-om-return js-dgwt-wcas-om-return">';
+            html += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" color="#FFF">';
+            html += '<path fill="#FFF" d="M14 6.125H3.351l4.891-4.891L7 0 0 7l7 7 1.234-1.234L3.35 7.875H14z" fill-rule="evenodd"></path>';
+            html += '</svg>';
+            html += '</span>';
+            html += '</div>';
+            html += '</div>';
+
+            // Create overlay
+            $(that.options.mobileOverlayWrapper).append(html);
+            $overlayWrap = $('.js-dgwt-wcas-overlay-mobile');
+            $overlayWrap.css('zIndex', zIndex);
+
+            $wrapper.after('<span class="js-dgwt-wcas-om-hook"></span>');
+            $wrapper.appendTo('.js-dgwt-wcas-om-bar');
+            $suggestionsWrapp.appendTo('.js-dgwt-wcas-om-bar');
+            $wrapper.addClass('dgwt-wcas-search-wrapp-mobile');
+
+            if($wrapper.hasClass('dgwt-wcas-has-submit')){
+                $wrapper.addClass('dgwt-wcas-has-submit-off');
+                $wrapper.removeClass('dgwt-wcas-has-submit');
+            }
+
+            $wrapper.find('.' + that.options.searchInputClass).focus();
+
+            $(document).on('click', '.js-dgwt-wcas-om-return', function (e) {
+                that.disableOverlayMobile($overlayWrap);
+            });
+        },
+        disableOverlayMobile: function($overlayWrap){
+            var that = this;
+
+            var $suggestionsWrapp = that.getSuggestionsContainer();
+
+            var $clonedForm = $('.js-dgwt-wcas-om-bar').find('.' + that.options.searchFormClass);
+
+            if($clonedForm.hasClass('dgwt-wcas-has-submit-off')){
+                $clonedForm.removeClass('dgwt-wcas-has-submit-off');
+                $clonedForm.addClass('dgwt-wcas-has-submit');
+            }
+
+            $clonedForm.removeClass('dgwt-wcas-search-wrapp-mobile');
+            $('body').removeClass('dgwt-wcas-overlay-mobile-on');
+            $suggestionsWrapp.appendTo('body');
+            $suggestionsWrapp.removeAttr('body-scroll-lock-ignore');
+            $('.js-dgwt-wcas-om-hook').after($clonedForm);
+            $('.js-dgwt-wcas-overlay-mobile').remove();
+            $('.js-dgwt-wcas-om-hook').remove();
+
+            setTimeout(function(){
+                $clonedForm.find('.' + that.options.searchInputClass).val('');
+                var $closeBtn = $clonedForm.find('.dgwt-wcas-close');
+                if($clonedForm.length > 0){
+                    $closeBtn.removeClass('dgwt-wcas-close');
+                }
+            }, 150);
+
+
+            that.overlayMobileState = 'off';
+        },
+        elementOrParentIsFixed: function ($element) {
+
+            var $checkElements = $element.add($element.parents());
+            var isFixed = false;
+
+            $checkElements.each(function () {
+
+                if ($(this).css("position") === "fixed") {
+                    isFixed = true;
+                    return false;
+                }
+            });
+            return isFixed;
         }
     };
 
@@ -1523,6 +1806,10 @@
         });
     };
 
+    // Don't overwrite if it already exists
+    if (!$.fn.autocomplete) {
+        $.fn.autocomplete = $.fn.dgwtWcasAutocomplete;
+    }
 
     ( function () {
 
@@ -1552,9 +1839,10 @@
              /* Fire autocomplete
              /*------------ -----------------------------------------------------*/
             var showDetailsPanel = dgwt_wcas.show_details_box == 1 ? true : false;
+            var mobileBreakpoint = dgwt_wcas.mobile_breakpoint;
 
             // Disable details panel on small screens
-            if (jQuery(window).width() < 992 || ( 'ontouchend' in document )) {
+            if (jQuery(window).width() < mobileBreakpoint || ( 'ontouchend' in document )) {
                 showDetailsPanel = false;
             }
 
@@ -1574,8 +1862,52 @@
                 showFeaturedBadge: dgwt_wcas.show_featured_badge == 1 ? true : false,
                 saleBadgeText: dgwt_wcas.t.sale_badge,
                 featuredBadgeText: dgwt_wcas.t.featured_badge,
-                is_rtl: dgwt_wcas.is_rtl == 1 ? true : false
+                isRtl: dgwt_wcas.is_rtl == 1 ? true : false,
+                isPremium: dgwt_wcas.is_premium == 1 ? true : false,
+                taxonomyBrands: dgwt_wcas.taxonomy_brands,
+                overlayMobile: dgwt_wcas.overlay_mobile == 1 ? true : false,
+                mobileBreakpoint: mobileBreakpoint,
+                mobileOverlayWrapper: dgwt_wcas.mobile_overlay_wrapper,
+                debounceWaitMs: dgwt_wcas.debounce_wait_ms
             });
+
+        });
+
+        /*-----------------------------------------------------------------
+        /* Fix duplicate instances
+        /*------------ -----------------------------------------------------*/
+        $(window).on('load', function () {
+
+
+            var $searchWrapps = $('.dgwt-wcas-search-wrapp[data-wcas-context]');
+
+            var uniqueContext = [];
+
+            if ($searchWrapps.length > 0) {
+                $searchWrapps.each(function () {
+                    var context = $(this).attr('data-wcas-context');
+
+                    if ($.inArray(context, uniqueContext) == -1) {
+                        uniqueContext.push(context);
+                    } else {
+                        var newContext = Math.random().toString(36).substring(2, 6);
+
+                        var suggestionsContainer = $('.dgwt-wcas-suggestions-wrapp[data-wcas-context="' + context + '"]');
+                        var detailsContainer = $('.dgwt-wcas-details-wrapp[data-wcas-context="' + context + '"]');
+
+                        $(this).attr('data-wcas-context', newContext);
+
+
+                        if (suggestionsContainer.length > 0) {
+                            $(suggestionsContainer[suggestionsContainer.length - 1]).attr('data-wcas-context', newContext);
+                        }
+
+                        if (detailsContainer.length > 0) {
+                            $(detailsContainer[detailsContainer.length - 1]).attr('data-wcas-context', newContext);
+                        }
+                    }
+                });
+            }
 
         });
 

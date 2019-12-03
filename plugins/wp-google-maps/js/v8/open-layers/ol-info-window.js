@@ -14,7 +14,7 @@ jQuery(function($) {
 		
 		Parent.call(this, mapObject);
 		
-		this.element = $("<div class='ol-info-window-container ol-info-window-plain'></div>")[0];
+		this.element = $("<div class='wpgmza-infowindow ol-info-window-container ol-info-window-plain'></div>")[0];
 			
 		$(this.element).on("click", ".ol-info-window-close", function(event) {
 			self.close();
@@ -39,14 +39,18 @@ jQuery(function($) {
 		var self = this;
 		var latLng = mapObject.getPosition();
 		
-		if(!WPGMZA.InfoWindow.prototype.open.call(this, map, mapObject))
+		if(!Parent.prototype.open.call(this, map, mapObject))
 			return false;
+		
+		// Set parent for events to bubble up
+		this.parent = map;
 		
 		if(this.overlay)
 			this.mapObject.map.olMap.removeOverlay(this.overlay);
 			
 		this.overlay = new ol.Overlay({
-			element: this.element
+			element: this.element,
+			stopEvent: false
 		});
 		
 		this.overlay.setPosition(ol.proj.fromLonLat([
@@ -57,7 +61,17 @@ jQuery(function($) {
 		
 		$(this.element).show();
 		
-		this.dispatchEvent("infowindowopen");
+		if(WPGMZA.OLMarker.renderMode == WPGMZA.OLMarker.RENDER_MODE_VECTOR_LAYER)
+		{
+			WPGMZA.getImageDimensions(mapObject.getIcon(), function(size) {
+				
+				$(self.element).css({left: Math.round(size.width / 2) + "px"});
+				
+			});
+		}
+		
+		this.trigger("infowindowopen");
+		this.trigger("domready");
 	}
 	
 	WPGMZA.OLInfoWindow.prototype.close = function(event)
@@ -70,6 +84,8 @@ jQuery(function($) {
 		
 		WPGMZA.InfoWindow.prototype.close.call(this);
 		
+		this.trigger("infowindowclose");
+		
 		this.mapObject.map.olMap.removeOverlay(this.overlay);
 		this.overlay = null;
 	}
@@ -81,9 +97,6 @@ jQuery(function($) {
 	
 	WPGMZA.OLInfoWindow.prototype.setOptions = function(options)
 	{
-		if(WPGMZA.settings.developer_mode)
-			console.log(options);
-		
 		if(options.maxWidth)
 		{
 			$(this.element).css({"max-width": options.maxWidth + "px"});

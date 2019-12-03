@@ -20,7 +20,7 @@ class FMViewFMShortocde extends FMAdminView {
       wp_print_styles(WDFMInstance(self::PLUGIN)->handle_prefix . '-jquery-ui');
     }
     else {
-      wp_print_styles( WDFMInstance(self::PLUGIN)->handle_prefix . '-pricing' );
+      wp_print_styles( WDFMInstance(self::PLUGIN)->handle_prefix . '-topbar' );
       wp_print_styles( WDFMInstance(self::PLUGIN)->handle_prefix . '-roboto' );
     }
   }

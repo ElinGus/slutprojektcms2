@@ -39,7 +39,12 @@ class FMControllerForm_maker {
    * @return string|void
    */
   public function execute( $id = 0, $type = 'embedded' ) {
-    return $this->display($id, $type);
+    $action = WDW_FM_Library(self::PLUGIN)->get('action');
+    if ( method_exists($this, $action) ) {
+      $this->$action();
+    } else {
+      return $this->display($id, $type);
+    }
   }
 
   /**
@@ -51,19 +56,26 @@ class FMControllerForm_maker {
    * @return string|void
    */
   public function display( $id = 0, $type = '' ) {
-    $fm_settings = get_option(WDFMInstance(self::PLUGIN)->is_free == 2 ? 'fmc_settings' : 'fm_settings');
+    if ( !$this->form_preview && $id && !isset($_GET[ "succes" ]) && !isset( $_POST[ "save_or_submit" . $id ] ) ) {
+      // Increment views count.
+      $this->model->increment_views_count($id);
+    }
+
+    $fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+    /* Use for ajax submit */
+    if( WDW_FM_Library(self::PLUGIN)->get('formType') != '' ) {
+      $type = WDW_FM_Library(self::PLUGIN)->get('formType');
+      $id = WDW_FM_Library(self::PLUGIN)->get('current_id');
+    }
+
     if ( $type == 'embedded' ) {
       $result = $this->model->showform($id, $type);
       if ( !$result ) {
         return;
       }
-      if ( $this->fm_bot_validation( $id ) ) {
-          $ok = $this->model->savedata($result[0], $id);
-          if ( is_numeric($ok) ) {
-            $this->model->remove($ok);
-          }
-          $this->model->increment_views_count($id);
-      }
+      $result[0]->fm_ajax_submit = isset($fm_settings['fm_ajax_submit']) ? $fm_settings['fm_ajax_submit'] : 0;
+      $this->model->savedata($result[0], $id);
+
       return $this->view->display($result, $fm_settings, $id, $type);
     }
     else {
@@ -82,6 +94,7 @@ class FMControllerForm_maker {
    */
   public function autoload_form( $forms = array(), $fm_settings = array() ) {
     $fm_forms = array();
+    WDW_FM_Library(self::PLUGIN)->start_session();
     foreach ($forms as $key => $form) {
       $display_on_this = FALSE;
       $error = 'success';
@@ -183,13 +196,7 @@ class FMControllerForm_maker {
       if ( !$form_result ) {
         continue;
       }
-      if ( $this->fm_bot_validation( $id ) ) {
-        $ok = $this->model->savedata($form_result[0], $id);
-        if ( is_numeric($ok) ) {
-          $this->model->remove($ok);
-        }
-        $this->model->increment_views_count($id);
-      }
+      $this->model->savedata($form_result[0], $id);
       $params = array();
       $params['id'] = $id;
       $params['type'] = $type;
@@ -206,20 +213,65 @@ class FMControllerForm_maker {
     return implode($fm_forms);
   }
 
-  /**
-   * Bot validation.
-   *
-   * @param int $form_id
-   *
-   * @return bool
-   */
-  public function fm_bot_validation( $form_id ) {
-    if ( (isset( $_POST[ "fm_bot_validation" . $form_id ] ) && $_POST[ "fm_bot_validation" . $form_id ] != '') || (isset($_POST["counter" . $form_id]) && !isset($_POST[ "fm_bot_validation" . $form_id ])) ){
-      WDW_FM_Library(self::PLUGIN)->start_session();
-      $_SESSION['massage_after_submit' . $form_id] = addslashes(addslashes(__('Error, something went wrong.', WDFMInstance(self::PLUGIN)->prefix)));
-      $_SESSION['error_or_no' . $form_id] = TRUE;
-      return false;
-    }
-    return true;
+  public function fm_reload_input() {
+	global $wpdb;
+	$form_id  = WDW_FM_Library::get('form_id');
+	$inputs = WDW_FM_Library::get('inputs');
+	$json = array();
+	if ( !empty($form_id) && !empty($inputs) ) {
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'formmaker WHERE id="%d"' . (!WDFMInstance(self::PLUGIN)->is_free ? '' : ' AND id' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option( 'contact_form_forms', '' ) != '' ? get_option( 'contact_form_forms' ) : 0) . ')'), $form_id ) );
+		$id1s = array();
+		$types = array();
+		$labels = array();
+		$paramss = array();
+		$fields = explode('*:*new_field*:*', $row->form_fields);
+		$fields = array_slice($fields, 0, count($fields) - 1);
+		foreach ( $fields as $field ) {
+			$temp = explode('*:*id*:*', $field);
+			array_push($id1s, $temp[0]);
+			$temp = explode('*:*type*:*', $temp[1]);
+			array_push($types, $temp[0]);
+			$temp = explode('*:*w_field_label*:*', $temp[1]);
+			array_push($labels, $temp[0]);
+			array_push($paramss, $temp[1]);
+		}
+
+		$ids = array();
+		$reset_fields = array();
+		foreach ( $inputs as $input_key => $input_val ) {
+				list( $row_id, $type, $input_id) = explode('|', $input_key);
+				$key = $row_id . '|'. $type;
+				$ids[$key][] = $input_id.'|'.$input_val;
+
+				if ( empty($input_val) ) {
+          $reset_fields[] = $row_id;
+        }
+		}
+		if ( !empty($ids) ) {
+			foreach ( $ids as $row_key => $row_values ) {
+				list($row_id, $type) = explode('|', $row_key);
+
+				$index = array_search($row_id, $id1s);
+				$label = $labels[$index];
+				$params = $paramss[$index];
+				$param = array();
+				$param['label'] = $label;
+				$param['attributes'] = '';
+				$param['reset_fields'] = $reset_fields;
+				foreach ( $row_values as $val ) {
+							list($input_id, $input_val) = explode('|', $val);
+							$str_key = '{'. $input_id .'}';
+							if ( strpos($params, $str_key) > -1 ) {
+								$params = str_replace( $str_key, $input_val, $params );
+							}
+				}
+				$html = $this->view->$type( $params, $row, $form_id, $row_id, $type, $param );
+				$json[$row_id] = array('html' => $html);
+			}
+		}
+	} else {
+		$json['error'] = 1;
+	}
+	echo json_encode($json); exit;
   }
 }

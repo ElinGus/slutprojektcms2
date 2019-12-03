@@ -110,40 +110,150 @@
 
     var AJAX_BUILD_INDEX = {
         actionTriggerClass: 'js-ajax-build-index',
+        actionStopTriggerClass: 'js-ajax-stop-build-index',
+        indexingWrappoerClass: 'js-dgwt-wcas-indexing-wrapper',
+        getWrapper: function () {
+            var _this = this;
+
+            return $('.' + _this.indexingWrappoerClass).closest('.dgwt-wcas-settings-info');
+        },
         registerListeners: function () {
             var _this = this;
 
-            jQuery(document).on('click', '.' + _this.actionTriggerClass, function (e) {
+            $(document).on('click', '.' + _this.actionTriggerClass, function (e) {
                 e.preventDefault();
 
                 var $btn = $(this);
 
                 $btn.attr('disabled', 'disabled');
-                if ($('.dgwt-wcas-index-logs').length > 0) {
-                    $('.dgwt-wcas-index-logs').remove();
+
+                $('.dgwt-wcas-settings-info').addClass('wcas-ajax-build-index-wait');
+
+                var emergency = $btn.hasClass('js-ajax-build-index-emergency') ? true : false;
+
+                if(emergency){
+
+                    $('.dgwt-wcas-indexing-header__title').text('[Emergency mode] Wait... Indexing in progress');
+                    $('.dgwt-wcas-indexing-header__troubleshooting, .dgwt-wcas-indexing-header__actions, .js-dgwt-wcas-indexer-details').hide();
                 }
 
-                jQuery.ajax({
+                $.ajax({
                     url: ajaxurl,
                     type: 'post',
                     data: {
                         action: 'dgwt_wcas_build_index',
+                        emergency: emergency
                     },
                     success: function (response) {
-                        var logsHTML = '<div class="dgwt-wcas-index-logs">' + response.data.message + '</div>';
+                        if (typeof response != 'undefined' && response.success) {
+                            _this.getWrapper().html(response.data.html);
+                            _this.heartbeat();
+                        }
+                    },
+                    complete: function () {
+                        $btn.removeAttr('disabled');
+                        $('.dgwt-wcas-settings-info').removeClass('wcas-ajax-build-index-wait');
+                        if(emergency){
+                            window.location.reload();
+                        }
+                    }
+                });
+            })
 
-                        $btn.after(logsHTML);
+            $(document).on('click', '.' + _this.actionStopTriggerClass, function (e) {
+                e.preventDefault();
+
+                var $btn = $(this);
+
+                $btn.attr('disabled', 'disabled');
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'post',
+                    data: {
+                        action: 'dgwt_wcas_stop_build_index',
+                    },
+                    success: function (response) {
+                        if (typeof response != 'undefined' && response.success) {
+                            _this.getWrapper().html(response.data.html);
+                            _this.heartbeat();
+                        }
                     },
                     complete: function () {
                         $btn.removeAttr('disabled');
                     }
                 });
             })
+        },
+        heartbeat: function () {
+            var _this = this;
+
+            setTimeout(function () {
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'post',
+                    data: {
+                        action: 'dgwt_wcas_build_index_heartbeat',
+                    },
+                    success: function (response) {
+                        if (typeof response != 'undefined' && response.success) {
+                            _this.getWrapper().html(response.data.html);
+
+                            if (response.data.loop) {
+                                _this.heartbeat();
+                            }
+
+                        }
+                    }
+                });
+
+            }, 1000);
+        },
+        detailsToggle: function () {
+            var _this = this,
+                display;
+
+
+            $(document).on('click', '.js-dgwt-wcas-indexing-details-trigger', function (e) {
+                e.preventDefault();
+
+                var $details = $('.js-dgwt-wcas-indexer-details');
+
+                if ($details.hasClass('show')) {
+                    $details.removeClass('show');
+                    $details.addClass('hide');
+                    $('.js-dgwt-wcas-indexing__showd').addClass('show').removeClass('hide');
+                    $('.js-dgwt-wcas-indexing__hided').addClass('hide').removeClass('show');
+                    display = false;
+                } else {
+                    $details.addClass('show');
+                    $details.removeClass('hide');
+                    $('.js-dgwt-wcas-indexing__showd').addClass('hide').removeClass('show');
+                    $('.js-dgwt-wcas-indexing__hided').addClass('show').removeClass('hide');
+                    display = true;
+                }
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'post',
+                    data: {
+                        action: 'dgwt_wcas_index_details_toggle',
+                        display: display
+                    }
+                });
+            });
+
 
         },
         init: function () {
             var _this = this;
             _this.registerListeners();
+
+            if ($('.' + _this.indexingWrappoerClass).length > 0) {
+                _this.heartbeat();
+            }
+            _this.detailsToggle();
         }
     };
 
@@ -171,7 +281,7 @@
                     },
                     success: function (response) {
 
-                        if(typeof response.success != 'undefined' && response.success){
+                        if (typeof response.success != 'undefined' && response.success) {
 
                             $('.dgwt_wcas_basic-tab').click();
 
@@ -210,27 +320,27 @@
                 },
                 success: function (response) {
 
-                    if(typeof response.success != 'undefined' && response.success) {
+                    if (typeof response.success != 'undefined' && response.success) {
                         visualChange();
-                        if(state === 'disable' ){
-                        _this.flashStepsContainer();
+                        if (state === 'disable') {
+                            _this.flashStepsContainer();
                         }
-                        setTimeout(function(){
+                        setTimeout(function () {
                             $successNotice.removeClass('dgwt-wcas-hidden');
                         }, 500);
-                        setTimeout(function(){
+                        setTimeout(function () {
                             $successNotice.addClass('dgwt-wcas-hidden');
                         }, 2000);
 
 
-                    }else{
+                    } else {
                         $switcher.removeClass('dgwt-wcas-non-events');
                         $spinner.addClass('dgwt-wcas-hidden');
                         $errorNotice.removeClass('dgwt-wcas-hidden');
                     }
 
                 },
-                error: function(){
+                error: function () {
                     $errorNotice.removeClass('dgwt-wcas-hidden');
                 },
                 complete: function () {
@@ -243,7 +353,7 @@
         enableBC: function () {
             var _this = this;
 
-            _this.switchAjaxRequest('enable', function(){
+            _this.switchAjaxRequest('enable', function () {
                 $('.' + _this.switcherClass).attr('checked', true);
                 $('.' + _this.switchLeftLabelClass).addClass('dgwt-wcas-toggler--is-active');
                 $('.' + _this.switchRightLabelClass).removeClass("dgwt-wcas-toggler--is-active");
@@ -258,7 +368,7 @@
         disableBC: function () {
             var _this = this;
 
-            _this.switchAjaxRequest('disable', function(){
+            _this.switchAjaxRequest('disable', function () {
                 $('.' + _this.switcherClass).attr('checked', false);
                 $('.' + _this.switchRightLabelClass).addClass('dgwt-wcas-toggler--is-active');
                 $('.' + _this.switchLeftLabelClass).removeClass("dgwt-wcas-toggler--is-active");
@@ -269,7 +379,7 @@
             });
 
         },
-        remindMeLater: function(){
+        remindMeLater: function () {
             jQuery.ajax({
                 url: ajaxurl,
                 type: 'post',
@@ -278,7 +388,7 @@
                 },
                 success: function (response) {
 
-                    if(typeof response.success != 'undefined' && response.success){
+                    if (typeof response.success != 'undefined' && response.success) {
                         $('.js-dgwt-wcas-bc-notice').fadeOut(400, function () {
                             $(this).remove();
                         });
@@ -287,13 +397,13 @@
                 }
             });
         },
-        flashStepsContainer: function(){
+        flashStepsContainer: function () {
             var _this = this,
                 $container = $('.dgwt-wcas-bc-todo-wrapp');
-                $container.addClass('dgwt-wcas-anim-shake');
-                setTimeout(function(){
-                    $container.removeClass('dgwt-wcas-anim-shake');
-                }, 2000)
+            $container.addClass('dgwt-wcas-anim-shake');
+            setTimeout(function () {
+                $container.removeClass('dgwt-wcas-anim-shake');
+            }, 2000)
         },
         switchListeners: function () {
             var _this = this;
@@ -320,7 +430,7 @@
             $('.' + _this.remindMeLaterClass).on('click', function (e) {
                 e.preventDefault();
 
-               _this.remindMeLater();
+                _this.remindMeLater();
             });
 
         },
@@ -330,6 +440,58 @@
             _this.switchListeners();
         }
     };
+
+    var SELECTIZE = {
+        init: function () {
+            var _this = this;
+            var $inputs = $('.dgwt-wcas-selectize');
+
+            if($inputs.length > 0){
+                $inputs.each(function(){
+
+                    var $input = $(this);
+                    var optionsRaw = $input.data('options');
+                    var options = [];
+
+                    if(optionsRaw.length > 0){
+                        optionsRaw = JSON.parse('["' + decodeURI(optionsRaw.replace(/&/g, "\",\"").replace(/=/g,"\",\"")) + '"]');
+
+                        var lastKey = '';
+
+                        optionsRaw.forEach(function (el, i) {
+
+                            if((i+1)%2 === 0){
+                                var obj = {value: el, label: lastKey};
+                                options.push(obj);
+                                lastKey = '';
+                            }
+                            lastKey = el;
+                        });
+
+                    }
+
+                    $(this).selectize({
+                        persist: false,
+                        maxItems: null,
+                        valueField: 'value',
+                        labelField: 'label',
+                        searchField: ['value', 'label'],
+                        create: function(input) {
+                            return {
+                                value: input,
+                                label: input
+                            }
+                        },
+                        options: options,
+                    });
+
+                });
+            }
+
+
+
+        }
+    }
 
     function automateSettingsColspan() {
         var $el = $('.js-dgwt-wcas-sgs-autocolspan');
@@ -348,7 +510,9 @@
         AJAX_CLOSE_BACKWARD_COMPATIBILITY.init();
 
         AJAX_BUILD_INDEX.init();
+        SELECTIZE.init();
     });
 
 
 })(jQuery);
+

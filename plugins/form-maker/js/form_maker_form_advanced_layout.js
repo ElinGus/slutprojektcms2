@@ -1,11 +1,11 @@
-var editor = CodeMirror.fromTextArea(document.getElementById("source"), {
-	lineNumbers: true,
-	lineWrapping: true,
-	mode: "htmlmixed",
-	value: form_front
-});
-jQuery(document).ready(function () {
-	
+var editor;
+jQuery(document).on('fm_tab_layout_loaded', function () {
+  editor = CodeMirror.fromTextArea(document.getElementById("source"), {
+    lineNumbers: true,
+    lineWrapping: true,
+    mode: "htmlmixed",
+    value: form_front
+  });
 	if (custom_front == '') {
 		custom_front = form_front;
 	}
@@ -26,15 +26,16 @@ jQuery(document).ready(function () {
 	autoFormat();
 });
 	
-function fm_apply_advanced_layout(task) {
-	if (jQuery('#autogen_layout').is(':checked')) {
-		jQuery('#custom_front').val(custom_front.replace(/\s+/g, ' ').replace(/> </g, '><'));
+function fm_apply_advanced_layout() {
+	var tabs_loaded = JSON.parse(jQuery('#fm_tabs_loaded').val());
+	if ( inArray('form_layout_tab', tabs_loaded) ) {
+		if (jQuery('#autogen_layout').is(':checked')) {
+			jQuery('#custom_front').val(custom_front.replace(/\s+/g, ' ').replace(/> </g, '><'));
+		} else {
+			jQuery('#custom_front').val(editor.getValue().replace(/\s+/g, ' ').replace(/> </g, '><'));
+		}
 	}
-	else {
-		jQuery('#custom_front').val(editor.getValue().replace(/\s+/g, ' ').replace(/> </g, '><'));
-	}
-	fm_set_input_value('task', task);
-	document.getElementById('fm_ApplyLayoutForm').submit();
+	return true;
 }
 	
 function insertAtCursor_form(myId, myLabel) {

@@ -25,6 +25,7 @@ class WPForms_Form_Handler {
 
 		// Add wpforms to new-content admin bar menu.
 		add_action( 'admin_bar_menu', array( $this, 'admin_bar' ), 99 );
+
 	}
 
 	/**
@@ -47,6 +48,7 @@ class WPForms_Form_Handler {
 				'query_var'           => false,
 				'can_export'          => false,
 				'supports'            => array( 'title' ),
+				'capability_type'     => wpforms_get_capability_manage_options(),
 			)
 		);
 
@@ -59,7 +61,7 @@ class WPForms_Form_Handler {
 	 *
 	 * @since 1.1.7.2
 	 *
-	 * @param object $wp_admin_bar
+	 * @param WP_Admin_Bar $wp_admin_bar WP_Admin_Bar instance, passed by reference.
 	 */
 	public function admin_bar( $wp_admin_bar ) {
 
@@ -69,7 +71,7 @@ class WPForms_Form_Handler {
 
 		$args = array(
 			'id'     => 'wpforms',
-			'title'  => esc_html__( 'WPForms', 'wpforms' ),
+			'title'  => esc_html__( 'WPForms', 'wpforms-lite' ),
 			'href'   => admin_url( 'admin.php?page=wpforms-builder' ),
 			'parent' => 'new-content',
 		);
@@ -81,8 +83,8 @@ class WPForms_Form_Handler {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param mixed $id
-	 * @param array $args
+	 * @param mixed $id   Form ID.
+	 * @param array $args Additional arguments array.
 	 *
 	 * @return array|bool|null|WP_Post
 	 */
@@ -100,8 +102,8 @@ class WPForms_Form_Handler {
 			// If ID is provided, we get a single form
 			$forms = get_post( absint( $id ) );
 
-			if ( ! empty( $args['content_only'] ) && ! empty( $forms ) && 'wpforms' === $forms->post_type ) {
-				$forms = wpforms_decode( $forms->post_content );
+			if ( ! empty( $args['content_only'] ) ) {
+				$forms = ! empty( $forms ) && 'wpforms' === $forms->post_type ? wpforms_decode( $forms->post_content ) : false;
 			}
 		} else {
 
@@ -133,7 +135,7 @@ class WPForms_Form_Handler {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $ids
+	 * @param array $ids Form IDs.
 	 *
 	 * @return boolean
 	 */
@@ -154,7 +156,7 @@ class WPForms_Form_Handler {
 
 			$form = wp_delete_post( $id, true );
 
-			if ( class_exists( 'WPForms_Entry_Handler' ) ) {
+			if ( class_exists( 'WPForms_Entry_Handler', false ) ) {
 				wpforms()->entry->delete_by( 'form_id', $id );
 				wpforms()->entry_meta->delete_by( 'form_id', $id );
 				wpforms()->entry_fields->delete_by( 'form_id', $id );
@@ -164,6 +166,8 @@ class WPForms_Form_Handler {
 				return false;
 			}
 		}
+
+		do_action( 'wpforms_delete_form', $ids );
 
 		return true;
 	}
@@ -191,6 +195,12 @@ class WPForms_Form_Handler {
 			return false;
 		}
 
+		// This filter breaks forms if they contain HTML.
+		remove_filter( 'content_save_pre', 'balanceTags', 50 );
+
+		// Add filter of the link rel attr to avoid JSON damage.
+		add_filter( 'wp_targeted_link_rel', '__return_empty_string', 50, 1 );
+
 		$args = apply_filters( 'wpforms_create_form_args', $args, $data );
 
 		$form_content = array(
@@ -213,6 +223,35 @@ class WPForms_Form_Handler {
 		);
 		$form_id = wp_insert_post( $form );
 
+		// If the form is created outside the context of the WPForms form
+		// builder, then we define some additional default values.
+		if ( ! empty( $form_id ) && isset( $data['builder'] ) && $data['builder'] === false ) {
+			$form_data                                       = json_decode( wp_unslash( $form['post_content'] ), true );
+			$form_data['id']                                 = $form_id;
+			$form_data['settings']['submit_text']            = esc_html__( 'Submit', 'wpforms-lite' );
+			$form_data['settings']['submit_text_processing'] = esc_html__( 'Sending...', 'wpforms-lite' );
+			$form_data['settings']['notification_enable']    = '1';
+			$form_data['settings']['notifications']          = array(
+				'1' => array(
+					'email'          => '{admin_email}',
+					'subject'        => sprintf( esc_html__( 'New Entry: %s', 'wpforms-lite' ), esc_html( $title ) ),
+					'sender_name'    => get_bloginfo( 'name' ),
+					'sender_address' => '{admin_email}',
+					'replyto'        => '{field_id="1"}',
+					'message'        => '{all_fields}',
+				),
+			);
+			$form_data['settings']['confirmations']          = array(
+				'1' => array(
+					'type'           => 'message',
+					'message'        => esc_html__( 'Thanks for contacting us! We will be in touch with you shortly.', 'wpforms-lite' ),
+					'message_scroll' => '1',
+				),
+			);
+
+			$this->update( $form_id, $form_data );
+		}
+
 		do_action( 'wpforms_create_form', $form_id, $form, $data );
 
 		return $form_id;
@@ -234,6 +273,9 @@ class WPForms_Form_Handler {
 
 		// This filter breaks forms if they contain HTML.
 		remove_filter( 'content_save_pre', 'balanceTags', 50 );
+
+		// Add filter of the link rel attr to avoid JSON damage.
+		add_filter( 'wp_targeted_link_rel', '__return_empty_string', 50, 1 );
 
 		// Check for permissions.
 		if ( ! wpforms_current_user_can() ) {
@@ -284,17 +326,20 @@ class WPForms_Form_Handler {
 
 		// Sanitize - don't allow tags for users who do not have appropriate cap.
 		// If we don't do this, forms for these users can get corrupt due to
-		// conflicts with wp_kses.
+		// conflicts with wp_kses().
 		if ( ! current_user_can( 'unfiltered_html' ) ) {
 			$data = map_deep( $data, 'wp_strip_all_tags' );
 		}
 
 		// Sanitize notification names.
-		foreach ( $data['settings']['notifications'] as $id => &$notification ) {
-			if ( ! empty( $notification['notification_name'] ) ) {
-				$notification['notification_name'] = sanitize_text_field( $notification['notification_name'] );
+		if ( isset( $data['settings']['notifications'] ) ) {
+			foreach ( $data['settings']['notifications'] as $id => &$notification ) {
+				if ( ! empty( $notification['notification_name'] ) ) {
+					$notification['notification_name'] = sanitize_text_field( $notification['notification_name'] );
+				}
 			}
 		}
+		unset( $notification );
 
 		$form = apply_filters(
 			'wpforms_save_form_args',
@@ -325,6 +370,12 @@ class WPForms_Form_Handler {
 	 * @return boolean
 	 */
 	public function duplicate( $ids = array() ) {
+
+		// Add filter of the link rel attr to avoid JSON damage.
+		add_filter( 'wp_targeted_link_rel', '__return_empty_string', 50, 1 );
+
+		// This filter breaks forms if they contain HTML.
+		remove_filter( 'content_save_pre', 'balanceTags', 50 );
 
 		// Check for permissions.
 		if ( ! wpforms_current_user_can() ) {
@@ -410,8 +461,15 @@ class WPForms_Form_Handler {
 		) );
 
 		if ( ! empty( $form['field_id'] ) ) {
+
 			$field_id = absint( $form['field_id'] );
-			$form['field_id'] ++;
+
+			if ( ! empty( $form['fields'] ) && max( array_keys( $form['fields'] ) ) > $field_id ) {
+				$field_id = max( array_keys( $form['fields'] ) ) + 1;
+			}
+
+			$form['field_id'] = $field_id + 1;
+
 		} else {
 			$field_id         = '0';
 			$form['field_id'] = '1';
@@ -427,10 +485,10 @@ class WPForms_Form_Handler {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $form_id
-	 * @param string $field
+	 * @param string $form_id Form ID.
+	 * @param string $field   Field.
 	 *
-	 * @return bool
+	 * @return false|array
 	 */
 	public function get_meta( $form_id, $field = '' ) {
 
@@ -438,9 +496,12 @@ class WPForms_Form_Handler {
 			return false;
 		}
 
-		$data = $this->get( $form_id, array(
-			'content_only' => true,
-		) );
+		$data = $this->get(
+			$form_id,
+			array(
+				'content_only' => true,
+			)
+		);
 
 		if ( isset( $data['meta'] ) ) {
 			if ( empty( $field ) ) {
@@ -465,6 +526,12 @@ class WPForms_Form_Handler {
 	 * @return bool
 	 */
 	public function update_meta( $form_id, $meta_key, $meta_value ) {
+
+		// Add filter of the link rel attr to avoid JSON damage.
+		add_filter( 'wp_targeted_link_rel', '__return_empty_string', 50, 1 );
+
+		// This filter breaks forms if they contain HTML.
+		remove_filter( 'content_save_pre', 'balanceTags', 50 );
 
 		// Check for permissions.
 		if ( ! wpforms_current_user_can() ) {
@@ -509,6 +576,12 @@ class WPForms_Form_Handler {
 	 * @return bool
 	 */
 	public function delete_meta( $form_id, $meta_key ) {
+
+		// Add filter of the link rel attr to avoid JSON damage.
+		add_filter( 'wp_targeted_link_rel', '__return_empty_string', 50, 1 );
+
+		// This filter breaks forms if they contain HTML.
+		remove_filter( 'content_save_pre', 'balanceTags', 50 );
 
 		// Check for permissions.
 		if ( ! wpforms_current_user_can() ) {

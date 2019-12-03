@@ -77,6 +77,14 @@ jQuery(function($) {
 		return true;
 	}
 	
+	WPGMZA.LatLng.isLatLngString = function(str)
+	{
+		if(typeof str != "string")
+			return false;
+		
+		return str.match(WPGMZA.LatLng.REGEXP) ? true : false;
+	}
+	
 	/**
 	 * The latitude, guaranteed to be a number
 	 * @property lat
@@ -109,6 +117,19 @@ jQuery(function($) {
 		}
 	});
 	
+	WPGMZA.LatLng.prototype.fromString = function(string)
+	{
+		if(!WPGMZA.LatLng.isLatLngString(string))
+			throw new Error("Not a valid latlng string");
+		
+		var m = string.match(WPGMZA.LatLng.REGEXP);
+		
+		return new WPGMZA.LatLng({
+			lat: parseFloat(m[1]),
+			lng: parseFloat(m[3])
+		});
+	}
+	
 	/**
 	 * Returns this latitude and longitude as a string
 	 * @method
@@ -118,6 +139,53 @@ jQuery(function($) {
 	WPGMZA.LatLng.prototype.toString = function()
 	{
 		return this._lat + ", " + this._lng;
+	}
+	
+	/**
+	 * Queries the users current location and passes it to a callback, you can pass
+	 * geocodeAddress through options if you would like to also receive the address
+	 * @method
+	 * @memberof WPGMZA.LatLng
+	 * @param {function} A callback to receive the WPGMZA.LatLng
+	 * @param {object} An object of options, only geocodeAddress is currently supported
+	 * @return void
+	 */
+	WPGMZA.LatLng.fromCurrentPosition = function(callback, options)
+	{
+		if(!options)
+			options = {};
+		
+		if(!callback)
+			return;
+		
+		WPGMZA.getCurrentPosition(function(position) {
+			
+			var latLng = new WPGMZA.LatLng({
+				lat: position.coords.latitude,
+				lng: position.coords.longitude
+			});
+			
+			if(options.geocodeAddress)
+			{
+				var geocoder = WPGMZA.Geocoder.createInstance();
+				
+				geocoder.getAddressFromLatLng({
+					latLng: latLng
+				}, function(results) {
+					
+					if(results.length)
+						latLng.address = results[0];
+					
+					callback(latLng);
+					
+				});
+				
+				
+			}	
+			else
+				callback(latLng);
+			
+		});
 	}
 	
 	/**
@@ -136,6 +204,25 @@ jQuery(function($) {
 		);
 	}
 	
+	WPGMZA.LatLng.toGoogleLatLngArray = function(arr)
+	{
+		var result = [];
+		
+		arr.forEach(function(nativeLatLng) {
+			
+			if(! (nativeLatLng instanceof WPGMZA.LatLng || ("lat" in nativeLatLng && "lng" in nativeLatLng)) )
+				throw new Error("Unexpected input");
+			
+			result.push(new google.maps.LatLng({
+				lat: parseFloat(nativeLatLng.lat),
+				lng: parseFloat(nativeLatLng.lng)
+			}));
+			
+		});
+		
+		return result;
+	}
+	
 	/**
 	 * Returns an instance of google.maps.LatLng with the same coordinates as this object
 	 * @method
@@ -148,6 +235,14 @@ jQuery(function($) {
 			lat: this.lat,
 			lng: this.lng
 		});
+	}
+	
+	WPGMZA.LatLng.prototype.toLatLngLiteral = function()
+	{
+		return {
+			lat: this.lat,
+			lng: this.lng
+		};
 	}
 	
 	/**
@@ -180,6 +275,45 @@ jQuery(function($) {
 		
 		this.lat		= phi2 * 180 / Math.PI;
 		this.lng		= lambda2 * 180 / Math.PI;
+	}
+	
+	/**
+	 * @function getGreatCircleDistance
+	 * @summary Uses the haversine formula to get the great circle distance between this and another LatLng / lat & lng pair
+	 * @param arg1 [WPGMZA.LatLng|Object|Number] Either a WPGMZA.LatLng, an object representing a lat/lng literal, or a latitude
+	 * @param arg2 (optional) If arg1 is a Number representing latitude, pass arg2 to represent the longitude
+	 * @return number The distance "as the crow files" between this point and the other
+	 */
+	WPGMZA.LatLng.prototype.getGreatCircleDistance = function(arg1, arg2)
+	{
+		var lat1 = this.lat;
+		var lon1 = this.lng;
+		var other;
+		
+		if(arguments.length == 1)
+			other = new WPGMZA.LatLng(arg1);
+		else if(arguments.length == 2)
+			other = new WPGMZA.LatLng(arg1, arg2);
+		else
+			throw new Error("Invalid number of arguments");
+		
+		var lat2 = other.lat;
+		var lon2 = other.lng;
+		
+		var R = 6371; // Kilometers
+		var phi1 = lat1.toRadians();
+		var phi2 = lat2.toRadians();
+		var deltaPhi = (lat2-lat1).toRadians();
+		var deltaLambda = (lon2-lon1).toRadians();
+
+		var a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+				Math.cos(phi1) * Math.cos(phi2) *
+				Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+		var d = R * c;
+		
+		return d;
 	}
 	
 });

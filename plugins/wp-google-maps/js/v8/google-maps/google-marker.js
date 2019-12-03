@@ -14,6 +14,8 @@ jQuery(function($) {
 		
 		Parent.call(this, row);
 		
+		this._opacity = 1.0;
+		
 		var settings = {};
 		if(row)
 		{
@@ -23,9 +25,10 @@ jQuery(function($) {
 				{
 					settings[name] = row[name].toGoogleLatLng();
 				}
-				else if(row[name] instanceof WPGMZA.Map)
+				else if(row[name] instanceof WPGMZA.Map || name == "icon")
 				{
-					// Do nothing (ignore)
+					// NB: Ignore map here, it's not a google.maps.Map, Google would throw an exception
+					// NB: Ignore icon here, it conflicts with updateIcon in Pro
 				}
 				else
 					settings[name] = row[name];
@@ -42,6 +45,8 @@ jQuery(function($) {
 			
 		this.googleMarker.setLabel(this.settings.label);
 		
+		if(this.anim)
+			this.googleMarker.setAnimation(this.anim);
 		if(this.animation)
 			this.googleMarker.setAnimation(this.animation);
 			
@@ -78,6 +83,20 @@ jQuery(function($) {
 	WPGMZA.GoogleMarker.prototype = Object.create(Parent.prototype);
 	WPGMZA.GoogleMarker.prototype.constructor = WPGMZA.GoogleMarker;
 	
+	Object.defineProperty(WPGMZA.GoogleMarker.prototype, "opacity", {
+		
+		"get": function() {
+			return this._opacity;
+		},
+		
+		"set": function(value) {
+			console.log(value);
+			this._opacity = value;
+			this.googleMarker.setOpacity(value);
+		}
+		
+	});
+	
 	WPGMZA.GoogleMarker.prototype.setLabel = function(label)
 	{
 		if(!label)
@@ -111,12 +130,17 @@ jQuery(function($) {
 	 * Sets the position offset of a marker
 	 * @return void
 	 */
-	WPGMZA.GoogleMarker.prototype.setOffset = function(x, y)
+	WPGMZA.GoogleMarker.prototype.updateOffset = function()
 	{
 		var self = this;
 		var icon = this.googleMarker.getIcon();
 		var img = new Image();
 		var params;
+		var x = this._offset.x;
+		var y = this._offset.y;
+		
+		if(!icon)
+			icon = WPGMZA.settings.default_marker_icon;
 		
 		if(typeof icon == "string")
 			params = {
@@ -163,12 +187,22 @@ jQuery(function($) {
 	{
 		Parent.prototype.setVisible.call(this, visible);
 		
-		this.googleMarker.setVisible(visible);
+		this.googleMarker.setVisible(visible ? true : false);
+	}
+	
+	WPGMZA.GoogleMarker.prototype.getVisible = function(visible)
+	{
+		return this.googleMarker.getVisible();
 	}
 	
 	WPGMZA.GoogleMarker.prototype.setDraggable = function(draggable)
 	{
 		this.googleMarker.setDraggable(draggable);
+	}
+	
+	WPGMZA.GoogleMarker.prototype.setOpacity = function(opacity)
+	{
+		this.googleMarker.setOpacity(opacity);
 	}
 	
 });

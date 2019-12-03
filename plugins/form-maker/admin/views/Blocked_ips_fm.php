@@ -7,11 +7,15 @@ class FMViewBlocked_ips_fm extends FMAdminView {
    * FMViewBlocked_ips_fm constructor.
    */
   public function __construct() {
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-layout');
-
-    wp_enqueue_script('jquery');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+   $fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+	if ( $fm_settings['fm_developer_mode'] ) {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+	}
+	else {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-styles');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-scripts');
+	}
   }
 
   /**
