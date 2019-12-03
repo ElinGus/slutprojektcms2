@@ -185,4 +185,14 @@ class Bulmascores_Nav_Walker extends Walker_Nav_Menu
     }
 }
 
+/* --- my account, yasmine --*/
+add_filter ( 'woocommerce_account_menu_items', 'misha_remove_my_account_links' );
+function misha_remove_my_account_links( $menu_links ){
+  unset( $menu_links['dashboard'] ); // remove Dashboard from my account menu
+	//unset( $menu_links['payment-methods'] ); // remove Payment Methods from my account menu
+  unset( $menu_links['downloads'] ); //remove downloads from my account menu
+
+	return $menu_links;
+}
+
 ?>

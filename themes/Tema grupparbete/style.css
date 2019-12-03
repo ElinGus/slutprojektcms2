@@ -94,6 +94,54 @@ h1 {
   font-size: 10rem;
 }
 
+/* ---- my account ---- */
+.login-register {
+  background-color: #eee;
+  width: 100%;
+  max-width: 100%;
+  padding: 5%;
+  font-family: BreadText;
+}
+
+.woocommerce form.checkout_coupon, .woocommerce form.login, .woocommerce form.register {
+  border-radius: 0px;
+  background-color: #fff;
+}
+
+.col2-set h2, .myaccount-title {
+  font-size: 1.6rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.woocommerce-account .addresses .title h3 {
+  font-family: BreadText;
+  font-size: 1.6rem;
+}
+
+.myaccount-title {
+  margin-bottom: 5%;
+}
+
+/*--- logged in user ---*/
+.woocommerce-account .woocommerce-MyAccount-navigation {
+  padding: 0 5% 0 10%;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li {
+  line-height: 3;
+  border-bottom: 1px #8f609f solid;
+}
+
+.woocommerce-account .woocommerce-MyAccount-content {
+  padding-right: 15%;
+}
+
+a.edit {
+  font-size: 1.2rem;
+}
+
 /* ----- Elins kod ----- */
 /* ---- Yasmine & Elin ----- */
 .kontaktTitle {
