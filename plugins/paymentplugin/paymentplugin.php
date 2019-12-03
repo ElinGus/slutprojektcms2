@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /*
 Plugin Name: Fakturabetalning
@@ -16,12 +16,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
     // Vänta tills plugin är laddade innan payment gatewayen skapas
     add_action('plugins_loaded', 'iths_add_payment_gateway');
-    function iths_add_payment_gateway()
-    {
-        class WC_fakturabetalning_Payment_Gateway extends WC_Payment_Gateway
-        {
-            function __construct()
-            {
+    function iths_add_payment_gateway() {
+
+        class WC_fakturabetalning_Payment_Gateway extends WC_Payment_Gateway {
+
+            function __construct() {
                 // Sätter upp basparametrarna för modulen
                 $this->id = "fakturabetalning-payments";
                 $this->method_title = __("Fakturabetalning", "fakturabetalning");
@@ -40,8 +39,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
             }
 
-            function init_form_fields()
-            {
+            function init_form_fields() {
                 // Sätter upp de formulärsfält som behövs
                 $this->form_fields = [
                     'enabled' => [
@@ -50,11 +48,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         'type' => 'checkbox',
                         'default' => 'no'
                     ],
-                    // 'accepted_name' => [
-                    //     'title' => __('Godkänt namn', 'iths'),
-                    //     'label' => __('Godkänt namn', 'iths'),
-                    //     'type' => 'text'
-                    // ]
                 ];
             }
 
@@ -68,15 +61,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 // Skapar ett orderobjekt från det givna IDt
                 $order = new WC_Order($order_id);
 
-                // Hämtar ut kundens "Billing First Name"
-                $givenName = $order->get_billing_first_name();
-
-                // Hämtar ut vårt konfigurerade godkända namn
-                $acceptedName = $this->settings['accepted_name'];
 
                 if (strtolower($givenName) == strtolower($acceptedName)) {
-                    // Om namnen stämmer överens så lägger vi till en ny note, markerar ordern som betald och tömmer
-                    // varukorgen
+                    // Om namnen stämmer överens så lägger vi till en ny note, markerar ordern som betald och tömmer varukorgen
                     $order->add_order_note(__("Betalningen lyckades", "fakturabetalning"));
                     $order->payment_complete();
                     $woocommerce->cart->empty_cart();
@@ -95,7 +82,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             }
         }
 
-
         // Lägger till vår nyskapade gateway
         add_filter('woocommerce_payment_gateways', 'iths_load_payment_gateway');
         function iths_load_payment_gateway($methods)
@@ -105,4 +91,5 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 }
+
 ?>
