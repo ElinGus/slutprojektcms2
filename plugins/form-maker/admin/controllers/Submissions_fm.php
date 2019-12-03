@@ -200,8 +200,8 @@ class FMControllerSubmissions_fm extends FMAdminController {
 		$params['searched_ids'] = $labels_parameters[8] ? implode(',', $labels_parameters[8]) : '';		
 		$params['groupids']	= $labels_parameters[8] ? array_reverse($labels_parameters[8]) : array();
 
-		$params['order_by']   	= $order_by 	= WDW_FM_Library(self::PLUGIN)->get('order_by', 'group_id');
-		$params['asc_or_desc'] 	= $asc_or_desc  = WDW_FM_Library(self::PLUGIN)->get('asc_or_desc', 'desc');
+		$params['order_by'] = $order_by = WDW_FM_Library(self::PLUGIN)->get('order_by', 'group_id');
+		$params['asc_or_desc'] = $asc_or_desc = (WDW_FM_Library(self::PLUGIN)->get('asc_or_desc', 'desc') == 'desc' ? 'desc' : 'asc');
 		
 		$lists = $labels_parameters[2];
 		$params['lists'] = $lists;
@@ -210,8 +210,8 @@ class FMControllerSubmissions_fm extends FMAdminController {
 		$params['style_ip'] = $this->model->hide_or_not($lists['hide_label_list'], '@submitterip@');
 		$params['style_username'] = $this->model->hide_or_not($lists['hide_label_list'], '@submitterusername@');
 		$params['style_useremail'] = $this->model->hide_or_not($lists['hide_label_list'], '@submitteremail@');
-		$params['style_payment_info'] = $this->model->hide_or_not($lists['hide_label_list'], '@payment_info@');   
-	
+		$params['style_payment_info'] = $this->model->hide_or_not($lists['hide_label_list'], '@payment_info@');
+
 		$params['oder_class_default'] = "manage-column column-autor sortable desc";
 		$params['oder_class'] = "manage-column column-autor column-title sorted " . $params['asc_or_desc'];
 		$params['m'] = count($params['sorted_label_names']);
@@ -230,7 +230,7 @@ class FMControllerSubmissions_fm extends FMAdminController {
 		if ( !empty($_POST['order_by']) || !empty($_POST['asc_or_desc']) ) {
 			$is_sort	 = true;
 			$order_by	 = $_POST['order_by'];
-			$asc_or_desc = $_POST['asc_or_desc'];
+			$asc_or_desc = ($_POST['asc_or_desc'] == 'desc' ? 'desc' : 'asc');
 		}
 		if ( !empty($is_search) || $is_sort || isset($_POST['current_page']) ) {
 			if ( !empty($_POST['fm_is_search']) ) {
@@ -276,17 +276,17 @@ class FMControllerSubmissions_fm extends FMAdminController {
 			$redirect = add_query_arg( array_merge( $pagination_url, array('paged' => 1) ), admin_url('admin.php') );
 			WDW_FM_Library(self::PLUGIN)->fm_redirect( $redirect );
 		}
-		
-		$option_key = (WDFMInstance(self::PLUGIN)->is_free == 2 ? 'fmc_settings' : 'fm_settings');
-		$params['fm_settings'] = get_option($option_key);
 
-		// Check is active pdf-integration add-on.
+		$params['fm_settings'] = WDFMInstance(self::PLUGIN)->fm_settings;
+
+		// Check is active pdf-integration extension.
 		$params['pdf_data'] = array();
 		if ( defined('WD_FM_PDF') && is_plugin_active(constant('WD_FM_PDF')) ) {
 			require_once(WD_FM_PDF_DIR . '/model.php');	
 			$params['pdf_data'] = WD_FM_PDF_model::get_pdf_data( $id );
 		}
-		
+
+    $params['webhook_data'] = apply_filters( 'fmwh_webhook_status', $params['id'] );
 		$this->view->display($params);
 	}
 

@@ -30,6 +30,11 @@
   vertical-align: top !important;
 }
 
+div[type="type_submit_reset"],
+div[type="type_button"] {
+  justify-content: flex-end;
+}
+
 div[type="type_captcha"] .wdform-element-section * {
   vertical-align: middle;
 }
@@ -551,6 +556,9 @@ div[type="type_file_upload"] .wdform-element-section {
 	.fm-popover-content {
 		width: 95% !important;
 	}
+	.fm-form-container .fm-scrollbox {
+		width: 97% !important;
+	}
 }
 
 @media screen and (max-width: 480px){
@@ -577,6 +585,13 @@ div[type="type_file_upload"] .wdform-element-section {
 	.image_left_right .fm-header-text,
 	.image_left_right .fm-header-img {
     display: block;
+	}
+
+	.fm-form .g-recaptcha:not([data-size="invisible"]) {
+		transform: scale(0.77);
+		-webkit-transform: scale(0.77);
+		transform-origin: 0 0;
+		-webkit-transform-origin: 0 0;
 	}
 }
 
@@ -766,6 +781,10 @@ div[type="type_file_upload"] .wdform-element-section {
 	font-size: 20px;
 }
 
+.rtl .fm-form .wd-calendar-button {
+	margin: 0 -25px 0 0;
+}
+
 input[type=number].wd-type-number::-webkit-inner-spin-button,
 input[type=number].wd-type-number::-webkit-outer-spin-button {
 	-webkit-appearance: none;
@@ -780,6 +799,7 @@ input[type=number].wd-type-number {
 .fm-form .button-submit,
 .fm-form .button-reset:not(:last-child) {
 	margin-right: 15px;
+	position: relative;
 }
 
 .fm-form .ui-spinner input[type="number"] {
@@ -816,6 +836,9 @@ input[type=number].wd-type-number {
 	display: block;
 	background: transparent;
 	border: none !important;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
 }
 .fm-form-container .fm-form .image_left_right.fm-header {
     padding: 0 !important;
@@ -1038,4 +1061,129 @@ div[type="type_slider"] .label {
 .fm-form-container .fm-form .fm-gdpr-checkbox {
 	display: initial !important;
 	margin-right: 5px;
+}
+.fm-form .wdform_row {
+    position: relative;
+}
+
+.fm-form-builder .wdform_page {
+	display: flex;
+}
+.fm-form-builder .wdform_section {
+	flex-direction: column;
+	flex: 1;
+}
+.fm-form-builder .wdform_row {
+	flex: 1;
+	max-width: 100%;
+}
+.wdform_column {
+	display: flex;
+	flex-direction: column;
+}
+.fm-form-builder .wdform_column {
+  width: initial !important;
+	flex-direction: row;
+}
+.fm-form-builder .wdform_section {
+	display: inline-block;
+	flex-wrap: unset;
+  vertical-align: top;
+}
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(1) {
+  width: 100%;
+}
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(2),
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(2) ~ .wdform_section {
+  width: 100%;
+}
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(3),
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(3) ~ .wdform_section {
+  width: 50%;
+}
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(4),
+.fm-form .fm-form-builder .wdform_section:first-child:nth-last-child(4) ~ .wdform_section {
+  width: 33.33%;
+}
+
+@media screen  and (max-width: 768px) {
+  .fm-form .fm-form-builder .wdform_section,
+  .fm-form .fm-form-builder .wdform_column {
+    width: 100% !important;
+  }
+  .fm-form-container .fm-form-builder .fm-form .wdform-label-section,
+  .fm-form-container .fm-form-builder .fm-form .wdform-element-section {
+    width: 100%;
+  }
+}
+
+.fm-loading {
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	position: absolute;
+	background-color: rgba(0, 0, 0, 0.25);
+	background-image: url(../images/spinner.gif);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 10%;
+	z-index: 100100;
+}
+
+.fm-submit-loading {
+	display: none;
+	margin: 0 5px;
+	position: relative;
+	vertical-align: top;
+}
+
+.fm-submit-loading.spinner:before {
+	right: 0;
+}
+
+@keyframes spinner {
+	to {transform: rotate(360deg);}
+}
+
+.fm-submit-loading.spinner:before {
+	box-sizing: border-box;
+	position: absolute;
+	animation: spinner .6s linear infinite;
+}
+
+.fm-col-1 {
+	flex: 0 1 100% !important;;
+	width: 100% !important;;
+}
+.fm-col-2 {
+	flex: 0 1 50% !important;;
+	width: 50% !important;;
+}
+.fm-col-3 {
+	flex: 0 1 33.33% !important;;
+	width: 33.33% !important;;
+}
+.fm-col-4 {
+	flex: 0 1 25% !important;
+	width: 25% !important;;
+}
+
+#div_percentage,
+.wdform_percentage_arrow,
+.wdform_percentage_title {
+	display: inline-block;
+}
+
+.wdform_percentage_title {
+	margin-left: 5px;
+}
+.button-submit[disabled] {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.StripeElement {
+	padding: 10px 12px !important;
+	margin: 10px !important;
 }

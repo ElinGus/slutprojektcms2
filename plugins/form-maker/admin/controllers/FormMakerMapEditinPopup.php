@@ -24,7 +24,7 @@ class FMControllerFormmakermapeditinpopup extends FMAdminController {
     require_once WDFMInstance(self::PLUGIN)->plugin_dir . "/admin/views/FMMapEditinPopup.php";
     $this->view = new FMViewFrommapeditinpopup();
     // Get form maker settings.
-    $fm_settings = get_option(WDFMInstance(self::PLUGIN)->is_free == 2 ? 'fmc_settings' : 'fm_settings');
+    $fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
     // Set params for view.
     $params = array();
     $params['map_key'] = !empty($fm_settings['map_key']) ? '&key=' . $fm_settings['map_key'] : '';

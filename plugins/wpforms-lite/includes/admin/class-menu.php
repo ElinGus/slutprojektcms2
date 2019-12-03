@@ -36,8 +36,8 @@ class WPForms_Admin_Menu {
 
 		// Default Forms top level menu item.
 		add_menu_page(
-			esc_html__( 'WPForms', 'wpforms' ),
-			esc_html__( 'WPForms', 'wpforms' ),
+			esc_html__( 'WPForms', 'wpforms-lite' ),
+			esc_html__( 'WPForms', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-overview',
 			array( $this, 'admin_page' ),
@@ -48,8 +48,8 @@ class WPForms_Admin_Menu {
 		// All Forms sub menu item.
 		add_submenu_page(
 			'wpforms-overview',
-			esc_html__( 'WPForms', 'wpforms' ),
-			esc_html__( 'All Forms', 'wpforms' ),
+			esc_html__( 'WPForms', 'wpforms-lite' ),
+			esc_html__( 'All Forms', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-overview',
 			array( $this, 'admin_page' )
@@ -58,8 +58,8 @@ class WPForms_Admin_Menu {
 		// Add New sub menu item.
 		add_submenu_page(
 			'wpforms-overview',
-			esc_html__( 'WPForms Builder', 'wpforms' ),
-			esc_html__( 'Add New', 'wpforms' ),
+			esc_html__( 'WPForms Builder', 'wpforms-lite' ),
+			esc_html__( 'Add New', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-builder',
 			array( $this, 'admin_page' )
@@ -68,20 +68,26 @@ class WPForms_Admin_Menu {
 		// Entries sub menu item.
 		add_submenu_page(
 			'wpforms-overview',
-			esc_html__( 'Form Entries', 'wpforms' ),
-			esc_html__( 'Entries', 'wpforms' ),
+			esc_html__( 'Form Entries', 'wpforms-lite' ),
+			esc_html__( 'Entries', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-entries',
 			array( $this, 'admin_page' )
 		);
 
-		do_action( 'wpform_admin_menu', $this );
+		do_action_deprecated(
+			'wpform_admin_menu',
+			array( $this ),
+			'1.5.5 of the WPForms plugin',
+			'wpforms_admin_menu'
+		);
+		do_action( 'wpforms_admin_menu', $this );
 
 		// Settings sub menu item.
 		add_submenu_page(
 			'wpforms-overview',
-			esc_html__( 'WPForms Settings', 'wpforms' ),
-			esc_html__( 'Settings', 'wpforms' ),
+			esc_html__( 'WPForms Settings', 'wpforms-lite' ),
+			esc_html__( 'Settings', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-settings',
 			array( $this, 'admin_page' )
@@ -90,8 +96,8 @@ class WPForms_Admin_Menu {
 		// Tools sub menu item.
 		add_submenu_page(
 			'wpforms-overview',
-			esc_html__( 'WPForms Tools', 'wpforms' ),
-			esc_html__( 'Tools', 'wpforms' ),
+			esc_html__( 'WPForms Tools', 'wpforms-lite' ),
+			esc_html__( 'Tools', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-tools',
 			array( $this, 'admin_page' )
@@ -100,8 +106,8 @@ class WPForms_Admin_Menu {
 		// Hidden placeholder paged used for misc content.
 		add_submenu_page(
 			'wpforms-settings',
-			esc_html__( 'WPForms', 'wpforms' ),
-			esc_html__( 'Info', 'wpforms' ),
+			esc_html__( 'WPForms', 'wpforms-lite' ),
+			esc_html__( 'Info', 'wpforms-lite' ),
 			$menu_cap,
 			'wpforms-page',
 			array( $this, 'admin_page' )
@@ -110,10 +116,30 @@ class WPForms_Admin_Menu {
 		// Addons submenu page.
 		add_submenu_page(
 			'wpforms-overview',
-			esc_html__( 'WPForms Addons', 'wpforms' ),
-			'<span style="color:#f18500">' . esc_html__( 'Addons', 'wpforms' ) . '</span>',
+			esc_html__( 'WPForms Addons', 'wpforms-lite' ),
+			'<span style="color:#f18500">' . esc_html__( 'Addons', 'wpforms-lite' ) . '</span>',
 			$menu_cap,
 			'wpforms-addons',
+			array( $this, 'admin_page' )
+		);
+
+		// About submenu page.
+		add_submenu_page(
+			'wpforms-overview',
+			esc_html__( 'About WPForms', 'wpforms-lite' ),
+			esc_html__( 'About Us', 'wpforms-lite' ),
+			$menu_cap,
+			WPForms_About::SLUG,
+			array( $this, 'admin_page' )
+		);
+
+		// Community submenu page.
+		add_submenu_page(
+			'wpforms-overview',
+			esc_html__( 'Community', 'wpforms-lite' ),
+			esc_html__( 'Community', 'wpforms-lite' ),
+			$menu_cap,
+			WPForms\Admin\Pages\Community::SLUG,
 			array( $this, 'admin_page' )
 		);
 	}
@@ -148,7 +174,7 @@ class WPForms_Admin_Menu {
 		$setting_link = sprintf(
 			'<a href="%s">%s</a>',
 			$admin_link,
-			esc_html__( 'Settings', 'wpforms' )
+			esc_html__( 'Settings', 'wpforms-lite' )
 		);
 
 		array_unshift( $links, $setting_link );
@@ -156,4 +182,5 @@ class WPForms_Admin_Menu {
 		return $links;
 	}
 }
+
 new WPForms_Admin_Menu();

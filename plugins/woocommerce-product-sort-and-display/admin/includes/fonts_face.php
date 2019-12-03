@@ -355,6 +355,12 @@ class WC_PSAD_Fonts_Face extends WC_PSAD_Admin_UI
 	/* Fonts Face Constructor */
 	/*-----------------------------------------------------------------------------------*/
 	public function __construct() {
+		parent::__construct();
+
+		if ( ! $this->is_load_google_fonts ) {
+			$this->google_fonts = array();
+			return;
+		}
 
 		// Enable Google Font API Key
 		if ( isset( $_POST[ $this->google_api_key_option . '_enable' ] ) ) {
@@ -362,7 +368,7 @@ class WC_PSAD_Fonts_Face extends WC_PSAD_Admin_UI
 
 			update_option( $this->google_api_key_option . '_enable', 1 );
 
-			$option_value = trim( $_POST[ $this->google_api_key_option ] );
+			$option_value = trim( sanitize_text_field( $_POST[ $this->google_api_key_option ] ) );
 
 			$old_google_api_key_option = get_option( $this->google_api_key_option );
 
@@ -380,7 +386,7 @@ class WC_PSAD_Fonts_Face extends WC_PSAD_Admin_UI
 
 			update_option( $this->google_api_key_option . '_enable', 0 );
 
-			$option_value = trim( $_POST[ $this->google_api_key_option ] );
+			$option_value = trim( sanitize_text_field( $_POST[ $this->google_api_key_option ] ) );
 			update_option( $this->google_api_key_option, $option_value );
 
 			if ( 0 != $old_google_api_key_enable ) {
@@ -413,6 +419,10 @@ class WC_PSAD_Fonts_Face extends WC_PSAD_Admin_UI
 
 	public function is_valid_google_api_key( $cache=true ) {
 		$is_valid = false;
+
+		if ( ! $this->is_load_google_fonts ) {
+			return false;
+		}
 
 		$this->google_api_key  = get_option( $this->google_api_key_option, '' );
 		$google_api_key_enable = get_option( $this->google_api_key_option . '_enable', 0 );
@@ -455,8 +465,9 @@ class WC_PSAD_Fonts_Face extends WC_PSAD_Admin_UI
 
 				// Get font list from default webfonts.json file of plugin
 				if ( 'invalid' == $google_api_key_status && file_exists( $this->admin_plugin_dir() . '/assets/webfonts/webfonts.json' ) ) {
-					$webfonts  = wp_remote_fopen( $this->admin_plugin_url() . '/assets/webfonts/webfonts.json' );
-					if ( false != $webfonts ) {
+					$response = wp_remote_get( $this->admin_plugin_url() . '/assets/webfonts/webfonts.json', array( 'timeout' => 120 ) );
+					$webfonts = wp_remote_retrieve_body( $response );
+					if ( ! empty( $webfonts ) ) {
 						$json_string = get_magic_quotes_gpc() ? stripslashes( $webfonts ) : $webfonts;
 						$response_fonts = json_decode( $json_string, true );
 					}
@@ -508,8 +519,9 @@ class WC_PSAD_Fonts_Face extends WC_PSAD_Admin_UI
 
 				// Get font list from default webfonts.json file of plugin
 				if ( file_exists( $this->admin_plugin_dir() . '/assets/webfonts/webfonts.json' ) ) {
-					$webfonts  = wp_remote_fopen( $this->admin_plugin_url() . '/assets/webfonts/webfonts.json' );
-					if ( false != $webfonts ) {
+					$response = wp_remote_get( $this->admin_plugin_url() . '/assets/webfonts/webfonts.json', array( 'timeout' => 120 ) );
+					$webfonts = wp_remote_retrieve_body( $response );
+					if ( ! empty( $webfonts ) ) {
 						$json_string = get_magic_quotes_gpc() ? stripslashes( $webfonts ) : $webfonts;
 						$response_fonts = json_decode( $json_string, true );
 					}

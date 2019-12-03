@@ -1,4 +1,23 @@
-<div id="wpgmza-gdpr-compliance">
+<?php
+
+if(!defined('ABSPATH'))
+	return;
+
+?><div id="wpgmza-gdpr-compliance">
+	
+	<div>
+		<h3><?php _e( 'GDPR Compliance', 'wpgooglemaps' ); ?></h3>
+		<p>
+			<?php
+			_e('Our GDPR notice will be displayed whenever the agreement cookie is not set. Agreeing to the notice will set this cookie.', 'wp-google-maps');
+			?>
+		</p>
+		<p>
+			<?php
+			_e('Some caching and optimization plugins will continue to serve your map page with the GDPR agreement, disregarding this cookie. In this instance, clicking "I Agree" will reload the page and appear to have no effect. To solve this issue, we recommend you exclude your map page from caching and optimization.', 'wp-google-maps');
+			?>
+		</p>
+	</div>
 	
 	<div id="wpgmza-gpdr-general-compliance">
 	
@@ -7,6 +26,7 @@
 		</h2>
 		
 		<fieldset>
+		
 			<label for="wpgmza_gdpr_require_consent_before_load">
 				<?php
 				_e('Require consent before loading Maps API', 'wp-google-maps');

@@ -10,7 +10,7 @@ class FMAdminView {
    */
   const PLUGIN = 1;
 
-  private $premium_link = 'https://web-dorado.com/files/fromFormMaker.php';
+  private $premium_link = 'https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin';
 
   /**
    * Generate form.
@@ -219,14 +219,14 @@ class FMAdminView {
         <?php
         if ( $page_number == 1 ) {
           ?>
-          <span class="tablenav-pages-navspan" aria-hidden="true">«</span>
-          <span class="tablenav-pages-navspan" aria-hidden="true">‹</span>
+          <span class="tablenav-pages-navspan button disabled" aria-hidden="true">«</span>
+          <span class="tablenav-pages-navspan button disabled" aria-hidden="true">‹</span>
           <?php
         }
         else {
           ?>
-          <a href="<?php echo add_query_arg(array('paged' => 1), $page_url); ?>" class="first-page"><span class="screen-reader-text"><?php _e('First page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">«</span></a>
-          <a href="<?php echo add_query_arg(array('paged' => ($page_number == 1 ? 1 : ($page_number - 1))), $page_url); ?>" class="previous-page"><span class="screen-reader-text"><?php _e('Previous page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">‹</span></a>
+          <a href="<?php echo add_query_arg(array('paged' => 1), $page_url); ?>" class="first-page button"><span class="screen-reader-text"><?php _e('First page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">«</span></a>
+          <a href="<?php echo add_query_arg(array('paged' => ($page_number == 1 ? 1 : ($page_number - 1))), $page_url); ?>" class="previous-page button"><span class="screen-reader-text"><?php _e('Previous page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">‹</span></a>
           <?php
         }
         ?>
@@ -241,14 +241,14 @@ class FMAdminView {
         <?php
         if ( $page_number >= $pages_count ) {
           ?>
-          <span class="tablenav-pages-navspan" aria-hidden="true">›</span>
-          <span class="tablenav-pages-navspan" aria-hidden="true">»</span>
+          <span class="tablenav-pages-navspan button disabled" aria-hidden="true">›</span>
+          <span class="tablenav-pages-navspan button disabled" aria-hidden="true">»</span>
           <?php
         }
         else {
           ?>
-          <a href="<?php echo add_query_arg(array('paged' => ($page_number >= $pages_count ? $pages_count : ($page_number + 1))), $page_url); ?>" class="next-page"><span class="screen-reader-text"><?php _e('Next page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">›</span></a>
-          <a href="<?php echo add_query_arg(array('paged' => $pages_count), $page_url); ?>" class="last-page"><span class="screen-reader-text"><?php _e('Last page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">»</span></a>
+          <a href="<?php echo add_query_arg(array('paged' => ($page_number >= $pages_count ? $pages_count : ($page_number + 1))), $page_url); ?>" class="next-page button"><span class="screen-reader-text"><?php _e('Next page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">›</span></a>
+          <a href="<?php echo add_query_arg(array('paged' => $pages_count), $page_url); ?>" class="last-page button"><span class="screen-reader-text"><?php _e('Last page', WDFMInstance(self::PLUGIN)->prefix); ?></span><span aria-hidden="true">»</span></a>
           <?php
         }
         ?>
@@ -302,27 +302,28 @@ class FMAdminView {
    * @return string Top bar html.
    */
   protected function topbar() {
+	$fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
     $page = isset($_GET['page']) ? esc_html($_GET['page']) : '';
     $page = str_replace(WDFMInstance(self::PLUGIN)->menu_postfix, '', $page);
     $task = isset($_REQUEST['task']) ? esc_html($_REQUEST['task']) : '';
-    $user_guide_link = 'https://web-dorado.com/wordpress-form-maker/';
+    $user_guide_link = 'https://help.10web.io/hc/en-us/sections/360002133951-Form-Maker-Documentation?utm_source=form_maker&utm_medium=free_plugin';
     $show_content = true;
     $show_guide_link = true;
     $show_head = false;
     switch ($page) {
       case 'blocked_ips': {
-        $user_guide_link .= 'submissions.html';
+        $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360015499752-Eliminating-Spam-Submissions?utm_source=form_maker&utm_medium=free_plugin';
         break;
       }
       case 'options': {
-        $user_guide_link .= 'themes-and-options.html';
+        $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360016112771-General-Options?utm_source=form_maker&utm_medium=free_plugin';
         break;
       }
       case 'pricing': {
         $show_content = false;
         $show_guide_link = false;
         $show_head = true;
-        $user_guide_link .= '';
+        $user_guide_link = 'https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin';
         break;
       }
       case 'manage': {
@@ -330,20 +331,20 @@ class FMAdminView {
           case 'add':
           case 'edit':
           case 'edit_old': {
-            $user_guide_link .= 'form-fields/basic-fields.html';
+            $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360015244232-Creating-a-Form?utm_source=form_maker&utm_medium=free_plugin';
             break;
           }
           case 'form_options':
           case 'form_options_old': {
-            $user_guide_link .= 'form-options/general-options.html';
+            $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360015862812-Form-Options-General?utm_source=form_maker&utm_medium=free_plugin';
             break;
           }
           case 'display_options': {
-            $user_guide_link .= 'display-options-publishing/configuring-display-options.html';
+            $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360015862692-Display-Options-and-Publishing?utm_source=form_maker&utm_medium=free_plugin';
             break;
           }
           default: {
-            $user_guide_link .= 'creating-form.html';
+            $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360015435831-Introduction?utm_source=form_maker&utm_medium=free_plugin';
             $show_content = false;
             $show_head = true;
           }
@@ -351,17 +352,17 @@ class FMAdminView {
         break;
       }
       case 'submissions': {
-        $user_guide_link .= 'submissions.html';
+        $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360015863292-Managing-Form-Submissions?utm_source=form_maker&utm_medium=free_plugin';
         break;
       }
       case 'themes': {
-        $user_guide_link .= 'themes-and-options.html';
+        $user_guide_link = 'https://help.10web.io/hc/en-us/articles/360016083071-Configuring-Form-Maker-Themes?utm_source=form_maker&utm_medium=free_plugin';
         break;
       }
       case 'addons': {
         $show_content = false;
         $show_head = true;
-        $user_guide_link .= '';
+        $user_guide_link = 'https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin#plugin_extensions';
         break;
       }
       default: {
@@ -369,10 +370,15 @@ class FMAdminView {
       }
     }
     $show_content = $show_content && WDFMInstance(self::PLUGIN)->is_free;
-    $support_forum_link = 'https://wordpress.org/support/plugin/' . (WDFMInstance(self::PLUGIN)->is_free == 2 ? 'contact-form-maker' : 'form-maker');
+    $support_forum_link = 'https://wordpress.org/support/plugin/' . (WDFMInstance(self::PLUGIN)->is_free == 2 ? 'contact-form-maker' : 'form-maker') . '/#new-post';
     $premium_link = $this->premium_link;
     wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-roboto');
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-pricing');
+    if ( $fm_settings['fm_developer_mode'] ) {
+      wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-topbar');
+    }
+    else {
+      wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-styles');
+    }
     ob_start();
     ?>
 	<div class="wrap">
@@ -397,49 +403,56 @@ class FMAdminView {
 			<?php
 		  }
 		  ?>
-		  <div class="fm-topbar fm-topbar-links">
-			<div class="fm-topbar-links-container">
-			  <?php if ( $show_guide_link ) { ?>
-				  <a href="<?php echo $user_guide_link; ?>" target="_blank">
-					<div class="fm-topbar-links-item">
-					  <?php _e('User guide', WDFMInstance(self::PLUGIN)->prefix); ?>
-					</div>
-				  </a>
-			  <?php
-			  }
-			  if (WDFMInstance(self::PLUGIN)->is_free) {
-				  if ( $show_guide_link ) {
-				?>
-					<span class="fm-topbar-separator"></span>
-				<?php } ?>
-				  <a href="<?php echo $support_forum_link; ?>" target="_blank">
-					<div class="fm-topbar-links-item">
-					  <?php _e('Support Forum', WDFMInstance(self::PLUGIN)->prefix); ?>
-					</div>
-				  </a>
-				<?php
-			  }
-			  ?>
-			</div>
-		  </div>
+      <div class="fm-topbar_cont">
+        <div class="fm-topbar fm-topbar-links">
+          <div class="fm-topbar-links-container">
+            <?php if ( $show_guide_link ) { ?>
+              <a href="<?php echo $user_guide_link; ?>" target="_blank" class="fm-topbar_user_guid">
+                <div class="fm-topbar-links-item">
+                  <?php _e('User guide', WDFMInstance(self::PLUGIN)->prefix); ?>
+                </div>
+              </a>
+            <?php
+            }?>
+          </div>
+        </div>
+        <?php
+        if (WDFMInstance(self::PLUGIN)->is_free) {
+        ?>
+        <div class="fm-topbar fm-topbar-links fm-topbar_support_forum">
+          <div class="fm-topbar-links-container">
+            <a href="<?php echo $support_forum_link; ?>" target="_blank" class="fm-topbar_support_forum">
+                <div class="fm-topbar-links-item">
+                <img src="<?php echo WDFMInstance(self::PLUGIN)->plugin_url . '/css/images/help.svg'; ?>" class="help_icon">
+                <?php _e('Ask a question', WDFMInstance(self::PLUGIN)->prefix); ?>
+                </div>
+              </a>
+          </div>
+        </div>
+        <?php
+        }
+        ?>
+      </div>
 		</div>
 		<?php if ( $show_head ) {
 		  $menus = array(
         'manage' => array(
           'href' => add_query_arg( array('page' => 'manage' . WDFMInstance(self::PLUGIN)->menu_postfix ), admin_url('admin.php')),
+          'target' => '_self',
           'name' => __('Forms', WDFMInstance(self::PLUGIN)->prefix)
         ),
         'addons' => array(
-          'href' => add_query_arg( array('page' => 'addons' . WDFMInstance(self::PLUGIN)->menu_postfix ), admin_url('admin.php')),
-          'name' => __('Add-ons', WDFMInstance(self::PLUGIN)->prefix)
+          'href' => 'https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin#plugin_extensions',
+          'target' => '_blank',
+          'name' => __('Extensions', WDFMInstance(self::PLUGIN)->prefix)
         ),
         'pricing' => array(
-          'href' => add_query_arg( array('page' => 'pricing' . WDFMInstance(self::PLUGIN)->menu_postfix ), admin_url('admin.php')),
+          'href' => 'https://10web.io/plugins/wordpress-form-maker/?utm_source=form_maker&utm_medium=free_plugin',
+          'target' => '_blank',
           'name' => __('Premium Version', WDFMInstance(self::PLUGIN)->prefix) .' <span class="fm-upgrade">' . __('Upgrade', WDFMInstance(self::PLUGIN)->prefix) . '</span>'
         ),
 		  );
 		  ?>
-		  <style>#wpbody-content>div:not(.wrap), .wrap .notice:not(#wd_bp_notice_cont) { display: none; }</style>
 		  <div class="fm-head">
 			<div><img src="<?php echo WDFMInstance(self::PLUGIN)->plugin_url . '/images/FormMaker.png'; ?>"></div>
         <ul class="fm-breadcrumbs">
@@ -450,7 +463,7 @@ class FMAdminView {
             }
             ?>
             <li class="fm-breadcrumb-item">
-              <a class="fm-breadcrumb-item-link<?php echo ( $key == $page ) ? ' fm-breadcrumb-item-link-active' : ''; ?>" href="<?php echo $item['href']; ?>"><?php echo $item['name']; ?></a>
+              <a class="fm-breadcrumb-item-link<?php echo ( $key == $page ) ? ' fm-breadcrumb-item-link-active' : ''; ?>" href="<?php echo $item['href']; ?>" target="<?php echo $item['target']; ?>"><?php echo $item['name']; ?></a>
             </li>
             <?php
           }
@@ -538,7 +551,7 @@ class FMAdminView {
     <div class="fm-limitation-alert-container fm-hidden">
       <div class="fm-limitation-alert-overlay"></div>
       <div class="fm-limitation-alert">
-        <span class="dashicons dashicons-no-alt"></span>
+        <span class="fm-ico-delete"></span>
         <div class="fm-limitation-alert-header">
           <?php _e('The free version is limited up to 7 fields.', WDFMInstance(self::PLUGIN)->prefix); ?>
         </div>
@@ -571,7 +584,7 @@ class FMAdminView {
         }
       }
       jQuery(document).ready(function() {
-        jQuery('.fm-limitation-alert-overlay, .fm-limitation-alert .dashicons-no-alt').on('click', function() {
+        jQuery('.fm-limitation-alert-overlay, .fm-limitation-alert .fm-ico-delete').on('click', function() {
           fm_limitation_alert(false);
         });
       });

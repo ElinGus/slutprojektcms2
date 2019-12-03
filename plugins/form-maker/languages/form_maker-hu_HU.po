@@ -1112,7 +1112,7 @@ msgstr ""
 
 #: form-maker.php:404
 msgid ""
-"To use this feature, please go to Form Options > Payment Options and select "
+"To use this feature, please go to Settings > Payment Options and select "
 "\"Stripe\" as the Payment Method."
 msgstr ""
 
@@ -1734,8 +1734,8 @@ msgstr "érték között kell lennie "
 #: form-maker.php:819
 msgid ""
 "Oops! Seems like you installed the update over a quite old version of Form "
-"Maker. Unfortunately, this version is deprecated.<br />Please contact Web-"
-"Dorado support team at support@web-dorado.com. We will take care of this "
+"Maker. Unfortunately, this version is deprecated.<br />Please contact 10Web "
+"support team at support@10web.io. We will take care of this "
 "issue as soon as possible."
 msgstr ""
 

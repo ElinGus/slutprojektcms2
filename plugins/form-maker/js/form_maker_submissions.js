@@ -17,8 +17,12 @@ jQuery(document).ready(function() {
 });
 
 jQuery(window).scroll(function () {
+	var wrapperTop = 0;
 	var scrollTop = jQuery(this).scrollTop();
-	var wrapperTop = jQuery('.tablenav').offset().top;
+	var tablenav = jQuery('.tablenav');
+	if (tablenav.length) {
+		wrapperTop = tablenav.offset().top;
+	}
 	if ( scrollTop > wrapperTop ) {
 		jQuery('.table-wrapper-1').addClass('fixed').css({'width': jQuery('#admin_form').width() + 'px' });
 	} else {

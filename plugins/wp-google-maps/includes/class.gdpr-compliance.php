@@ -2,28 +2,28 @@
 
 namespace WPGMZA;
 
+if(!defined('ABSPATH'))
+	return;
+
 /**
  * This module handles all GDPR functionality for the plugin, including
  * displaying notices, settings and handling logic
  */
 class GDPRCompliance
 {
-	/**
-	 * Constructor
-	 */
+	private static $filtersBound = false;
+	
 	public function __construct()
 	{
-		add_filter('wpgmza_global_settings_tabs', array($this, 'onGlobalSettingsTabs'));
-		add_filter('wpgmza_global_settings_tab_content', array($this, 'onGlobalSettingsTabContent'), 10, 1);
-		
-		add_filter('wpgmza_plugin_get_default_settings', array($this, 'onPluginGetDefaultSettings'));
-		
-		add_action('wp_ajax_wpgmza_gdpr_privacy_policy_notice_dismissed', array($this, 'onPrivacyPolicyNoticeDismissed'));
-		
-		//add_action('admin_notices', array($this, 'onAdminNotices'));
-		//add_action('admin_post_wpgmza_dismiss_admin_gdpr_warning', array($this, 'onDismissAdminWarning'));
-		
-		//$this->setDefaultSettings();
+		if(!GDPRCompliance::$filtersBound)
+		{
+			add_filter('wpgmza_global_settings_tabs', array($this, 'onGlobalSettingsTabs'));
+			add_filter('wpgmza_global_settings_tab_content', array($this, 'onGlobalSettingsTabContent'), 10, 1);
+			
+			add_filter('wpgmza_plugin_get_default_settings', array($this, 'onPluginGetDefaultSettings'));
+			
+			GDPRCompliance::$filtersBound = true;
+		}
 	}
 	
 	/**
@@ -67,24 +67,6 @@ class GDPRCompliance
 	public function onPluginGetDefaultSettings($settings)
 	{
 		return array_merge($settings, $this->getDefaultSettings());
-	}
-	
-	/**
-	 * Called when the user dismisses the "check our updated privacy policy" admin notice, this call is made over AJAX. This sets a flag so the notice isn't displayed again.
-	 * @return void
-	 */
-	public function onPrivacyPolicyNoticeDismissed()
-	{
-		$wpgmza_other_settings = get_option('WPGMZA_OTHER_SETTINGS');
-		$wpgmza_other_settings['privacy_policy_notice_dismissed'] = true;
-		
-		update_option('WPGMZA_OTHER_SETTINGS', $wpgmza_other_settings);
-		
-		wp_send_json(array(
-			'success' => 1
-		));
-		
-		exit;
 	}
 	
 	/**
@@ -137,6 +119,9 @@ class GDPRCompliance
 		
 		$html = apply_filters('wpgmza_gdpr_notice_html', $html);
 		
+		if(empty($html))
+			return "";
+		
 		$document = new DOMDocument();
 		@$document->loadHTML( utf8_decode($html) );
 		$document->populate($wpgmza_other_settings);
@@ -151,6 +136,9 @@ class GDPRCompliance
 	public function getPrivacyPolicyNoticeHTML()
 	{
 		global $wpgmza;
+		
+		// Dropped in 7.11.*
+		return '';
 		
 		if(!empty($wpgmza->settings->privacy_policy_notice_dismissed))
 			return '';
@@ -168,7 +156,7 @@ class GDPRCompliance
 	 */
 	public function getConsentPromptHTML()
 	{
-		return '<div>' . $this->getNoticeHTML(false) . "<p class='wpgmza-centered'><button class='wpgmza-api-consent'>" . __('I agree', 'wp-google-maps') . "</button></div></p>";
+		return '<div class="wpgmza-gdpr-compliance">' . $this->getNoticeHTML(false) . "<p class='wpgmza-centered'><button class='wpgmza-api-consent'>" . __('I agree', 'wp-google-maps') . "</button></div></p>";
 	}
 	
 	/**

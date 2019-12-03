@@ -87,11 +87,13 @@ class Personalization  {
             <?php echo!empty( $bg_submit_color ) ? 'border-right-color: ' . sanitize_text_field( $bg_submit_color ) . ';' : ''; ?>
             }
 
-            .dgwt-wcas-search-wrapp .dgwt-wcas-sf-wrapp .dgwt-wcas-search-submit {
+            .dgwt-wcas-search-wrapp .dgwt-wcas-sf-wrapp .dgwt-wcas-search-submit,
+            .dgwt-wcas-om-bar .dgwt-wcas-om-return {
             <?php echo!empty( $bg_submit_color ) ? 'background-color: ' . sanitize_text_field( $bg_submit_color ) . ';' : ''; ?><?php echo!empty( $text_submit_color ) ? 'color: ' . sanitize_text_field( $text_submit_color ) . ';' : ''; ?>
             }
 
-            .dgwt-wcas-search-wrapp .dgwt-wcas-ico-magnifier {
+            .dgwt-wcas-search-wrapp .dgwt-wcas-ico-magnifier,
+            .dgwt-wcas-om-bar .dgwt-wcas-om-return svg path{
             <?php echo!empty( $text_submit_color ) ? 'fill: ' . sanitize_text_field( $text_submit_color ) . ';' : ''; ?>
             }
 

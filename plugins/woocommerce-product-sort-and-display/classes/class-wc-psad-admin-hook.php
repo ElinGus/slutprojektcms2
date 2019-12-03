@@ -14,7 +14,9 @@
  * plugin_extra_links()
  */
 
-class WC_PSAD_Settings_Hook
+namespace A3Rev\WCPSAD;
+
+class Admin_Hook
 {
 	
 	public function __construct() {
@@ -155,7 +157,7 @@ class WC_PSAD_Settings_Hook
 		if ( $column == 'psad_shop_page' ) {
 			if ( $term && $term->parent == 0 ) {
 				$checked = '';
-				$psad_include_shop_page = get_woocommerce_term_meta( $id, 'psad_include_shop_page', true );
+				$psad_include_shop_page = get_term_meta( $id, 'psad_include_shop_page', true );
 				if ( '' == $psad_include_shop_page || 1 == $psad_include_shop_page ) {
 					$checked = 'checked="checked"';
 				}
@@ -181,7 +183,7 @@ class WC_PSAD_Settings_Hook
 		global $wpdb;
 		$wpdb->query( $wpdb->prepare( 'DELETE FROM '. $wpdb->options . ' WHERE option_name LIKE %s', '%a3_shop_cat%' ) );
 
-		update_woocommerce_term_meta( $_POST['tax_id'], 'psad_include_shop_page', esc_attr( $_POST['psad_include_shop_page'] ) );
+		update_term_meta( absint( $_POST['tax_id'] ), 'psad_include_shop_page', sanitize_text_field( $_POST['psad_include_shop_page'] ) );
 	}
 
 	public function feature_product() {
@@ -202,7 +204,7 @@ class WC_PSAD_Settings_Hook
 	
 	public function psad_yellow_message_dontshow() {
 		check_ajax_referer( 'psad_yellow_message_dontshow', 'security' );
-		$option_name   = $_REQUEST['option_name'];
+		$option_name   = sanitize_key( $_REQUEST['option_name'] );
 		update_option( $option_name, 1 );
 		die();
 	}
@@ -235,13 +237,13 @@ class WC_PSAD_Settings_Hook
             'css' => 'border: none; padding: 0; background: none;'
         );
 
-		$pro_box = '<a href="'.WC_PSAD_AUTHOR_URI.'" target="_blank" alt="'.__('WooCommerce Product Sort and Display Pro', 'woocommerce-product-sort-and-display' ).'"><img src="'.WC_PSAD_IMAGES_URL.'/product-sort-and-display-pro.png" /></a>';
+		$pro_box = '<a href="'.WC_PSAD_AUTHOR_URI.'" target="_blank" alt="'.__('WooCommerce Product Sort and Display Pro', 'woocommerce-product-sort-and-display' ).'"><img src="'.WC_PSAD_IMAGES_URL.'/product-sort-and-display-pro.jpg" /></a>';
 		$boxes[] = array(
 			'content' => $pro_box,
 			'css' => 'border: none; padding: 0; background: none;'
 		);
 
-		$free_woocommerce_box = '<a href="https://profiles.wordpress.org/a3rev/#content-plugins" target="_blank" alt="'.__('Free WooCommerce Plugins', 'woocommerce-product-sort-and-display' ).'"><img src="'.WC_PSAD_IMAGES_URL.'/free-woocommerce-plugins.png" /></a>';
+		$free_woocommerce_box = '<a href="https://profiles.wordpress.org/a3rev/#content-plugins" target="_blank" alt="'.__('Free WooCommerce Plugins', 'woocommerce-product-sort-and-display' ).'"><img src="'.WC_PSAD_IMAGES_URL.'/free-woocommerce-plugins.jpg" /></a>';
 
 		$boxes[] = array(
 			'content' => $free_woocommerce_box,
@@ -273,6 +275,3 @@ class WC_PSAD_Settings_Hook
 		return $actions;
 	}
 }
-
-$GLOBALS['wc_psad_settings_hook'] = new WC_PSAD_Settings_Hook();
-?>

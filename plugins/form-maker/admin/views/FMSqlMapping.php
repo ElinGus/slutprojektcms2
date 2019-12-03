@@ -2,7 +2,9 @@
 
 class FMViewFormMakerSQLMapping extends FMAdminView {
 
+  private $fm_nonce = null;
   public function __construct() {
+    $this->fm_nonce = wp_create_nonce('fm_ajax_nonce');
     wp_print_scripts('jquery');
     wp_print_scripts('jquery-ui-tooltip');
     wp_print_styles(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
@@ -91,7 +93,10 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
       $cond .= '<option>' . str_replace("'", "SingleQuot", $col->Field) . '</option>';
     }
     $cond .= '</select>';
-    $cond .= '<select id="op_condid"><option value="=" selected="selected">=</option><option value="!=">!=</option><option value=">">&gt;</option><option value="<">&lt;</option><option value=">=">&gt;=</option><option value="<=">&lt;=</option><option value="%..%">Like</option><option value="%..">Starts with</option><option value="..%">Ends with</option></select><input id="val_condid" style="width:170px" type="text" /><select id="andor_condid" style="visibility: hidden;"><option value="AND">AND</option><option value="OR">OR</option></select><img src="' . WDFMInstance(self::PLUGIN)->plugin_dir . '/images/delete.png?ver=' . WDFMInstance(self::PLUGIN)->plugin_version . '" onclick="delete_cond(&quot;condid&quot;)" style="vertical-align: middle;"></div>';
+    $cond .= '<select id="op_condid"><option value="=" selected="selected">=</option><option value="!=">!=</option><option value=">">&gt;</option><option value="<">&lt;</option><option value=">=">&gt;=</option><option value="<=">&lt;=</option><option value="%..%">Like</option><option value="..%">Starts with</option><option value="%..">Ends with</option></select>';
+	$cond .= '<input autocomplete="off" id="val_condid" style="width:170px" type="text" class="fm-where-input" />';
+	$cond .= '<select id="andor_condid" style="visibility: hidden;"><option value="AND">AND</option><option value="OR">OR</option></select>';
+	$cond .= '<img src="' . WDFMInstance(self::PLUGIN)->plugin_url . '/images/delete.png?ver=' . WDFMInstance(self::PLUGIN)->plugin_version . '" onclick="delete_cond(&quot;condid&quot;)" style="vertical-align: middle;"></div>';
     ?>
     <script>
       jQuery(document).ready(function() {
@@ -148,7 +153,7 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
       jQuery(document).ready(function () {
         jQuery("#tables").change(function () {
           jQuery("#struct").removeClass("fm_loading");
-          jQuery("#table_struct").load('index.php?option=com_formmaker&task=db_table_struct&name=' + jQuery(this).val() + '&con_type=' + jQuery('input[name=con_type]:checked').val() + '&con_method=' + jQuery('input[name=con_method]:checked').val() + '&host=' + jQuery('#host_rem').val() + '&port=' + jQuery('#port_rem').val() + '&username=' + jQuery('#username_rem').val() + '&password=' + jQuery('#password_rem').val() + '&database=' + jQuery('#database_rem').val() + '&format=row&id=' + jQuery("#form_id").val());
+          jQuery("#table_struct").load('index.php?option=com_formmaker&task=db_table_struct&name=' + jQuery(this).val() + '&con_type=' + jQuery('input[name=con_type]:checked').val() + '&con_method=' + jQuery('input[name=con_method]:checked').val() + '&host=' + jQuery('#host_rem').val() + '&port=' + jQuery('#port_rem').val() + '&username=' + jQuery('#username_rem').val() + '&password=' + encodeURIComponent( jQuery('#password_rem').val() ) + '&database=' + jQuery('#database_rem').val() + '&format=row&id=' + jQuery("#form_id").val());
         });
         jQuery('html').click(function () {
           if (jQuery("#fieldlist").css('display') == "block") {
@@ -250,13 +255,15 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                                              'task' => 'update_query',
                                              'width' => '1000',
                                              'height' => '500',
+                                             'nonce' => $this->fm_nonce,
                                              'TB_iframe' => '1',
                                            ), admin_url('admin-ajax.php')); ?>",
             data: datatxt,
             success: function (data) {
               window.parent.wd_fm_apply_options('apply_form_options');
-              window.parent.tb_remove();
-			  window.parent.document.getElementById('adminForm').submit();
+              window.parent.FormManageSubmitButton();
+              window.parent.fm_set_input_value('task', 'apply');
+              window.parent.document.getElementById('manage_form').submit();
             }
           });
         }
@@ -323,12 +330,13 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
               if (jQuery('#op_' + i).val() == "%..%") {
                 op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '%"';
               }
-              else if (jQuery('#op_' + i).val() == "%..") {
-                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
-              }
               else if (jQuery('#op_' + i).val() == "..%") {
                 op_val = ' LIKE "' + jQuery('#val_' + i).val() + '%"';
               }
+              else if (jQuery('#op_' + i).val() == "%..") {
+                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
+              }
+
               else {
                 op_val = ' ' + jQuery('#op_' + i).val() + ' "' + jQuery('#val_' + i).val() + '"';
               }
@@ -348,12 +356,13 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
               if (jQuery('#op_' + i).val() == "%..%") {
                 op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '%"';
               }
-              else if (jQuery('#op_' + i).val() == "%..") {
-                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
-              }
               else if (jQuery('#op_' + i).val() == "..%") {
                 op_val = ' LIKE "' + jQuery('#val_' + i).val() + '%"';
               }
+              else if (jQuery('#op_' + i).val() == "%..") {
+                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
+              }
+
               else {
                 op_val = ' ' + jQuery('#op_' + i).val() + ' "' + jQuery('#val_' + i).val() + '"';
               }
@@ -844,7 +853,7 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                             <?php echo $title; ?>
                           </div>
                         </label>
-                        <input type="text" id="<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" <?php if ( !$col_checks[$key] )
+                        <input autocomplete="off" type="text" id="<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" <?php if ( !$col_checks[$key] )
                           echo 'disabled="disabled"' ?> value="<?php echo $col_vals[$key]; ?>" />
                         <input id="ch_<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" type="checkbox" onClick="dis('<?php echo str_replace("'", "SingleQuot", $col->Field); ?>', this.checked)" <?php if ( $col_checks[$key] )
                           echo 'checked="checked"' ?> />
@@ -866,7 +875,7 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                         $temp = explode('***val***', $temp[1]);
                         $val = $temp[0];
                         $andor = $temp[1];
-                        echo 'jQuery(".cols").append(conds.replace(/condid/g, cond_id++).replace(\'SingleQuot\', "\'"));	update_vis();
+                        echo 'jQuery(".cols").append(conds.replace(/condid/g, cond_id++).replace(\'SingleQuot\', "\'")); update_vis();
 											jQuery("#sel_"+(cond_id-1)).val("' . html_entity_decode($sel, ENT_QUOTES) . '");
 											jQuery("#op_"+(cond_id-1)).val("' . $op . '");
 											jQuery("#val_"+(cond_id-1)).val("' . $val . '");
@@ -975,9 +984,10 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                                            'task' => 'db_tables',
                                            'width' => '1000',
                                            'height' => '500',
+                                           'nonce' => $this->fm_nonce,
                                            'TB_iframe' => '1',
                                          ), admin_url('admin-ajax.php')); ?>",
-          data: 'con_type=' + jQuery('input[name=con_type]:checked').val() + '&con_method=' + jQuery('input[name=con_method]:checked').val() + '&host=' + jQuery('#host_rem').val() + '&port=' + jQuery('#port_rem').val() + '&username=' + jQuery('#username_rem').val() + '&password=' + jQuery('#password_rem').val() + '&database=' + jQuery('#database_rem').val() + '&format=row',
+          data: 'con_type=' + jQuery('input[name=con_type]:checked').val() + '&con_method=' + jQuery('input[name=con_method]:checked').val() + '&host=' + jQuery('#host_rem').val() + '&port=' + jQuery('#port_rem').val() + '&username=' + jQuery('#username_rem').val() + '&password=' + encodeURIComponent(jQuery('#password_rem').val()) + '&database=' + jQuery('#database_rem').val() + '&format=row&nonce=<?php echo $this->fm_nonce; ?>',
           success: function (data) {
             jQuery("#struct").removeClass("fm_loading");
             if (data == 1) {
@@ -1201,9 +1211,10 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                                            'task' => 'db_table_struct',
                                            'width' => '1000',
                                            'height' => '500',
+                                           'nonce' => $this->fm_nonce,
                                            'TB_iframe' => '1',
                                          ), admin_url('admin-ajax.php')); ?>",
-          data: 'name=' + jQuery(this).val() + '&con_type=' + jQuery('input[name=con_type]:checked').val() + '&con_method=' + jQuery('input[name=con_method]:checked').val() + '&host=' + jQuery('#host_rem').val() + '&port=' + jQuery('#port_rem').val() + '&username=' + jQuery('#username_rem').val() + '&password=' + jQuery('#password_rem').val() + '&database=' + jQuery('#database_rem').val() + '&format=row',
+          data: 'name=' + jQuery(this).val() + '&con_type=' + jQuery('input[name=con_type]:checked').val() + '&con_method=' + jQuery('input[name=con_method]:checked').val() + '&host=' + jQuery('#host_rem').val() + '&port=' + jQuery('#port_rem').val() + '&username=' + jQuery('#username_rem').val() + '&password=' + encodeURIComponent( jQuery('#password_rem').val()) + '&database=' + jQuery('#database_rem').val() + '&format=row&nonce=<?php echo $this->fm_nonce; ?>',
           success: function (data) {
             jQuery("#table_struct").removeClass("fm_loading");
             jQuery("#table_struct").html(data);
@@ -1275,7 +1286,10 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
       $cond .= '<option>' . str_replace("'", "SingleQuot", $col->Field) . '</option>';
     }
     $cond .= '</select>';
-    $cond .= '<select id="op_condid"><option value="=" selected="selected">=</option><option value="!=">!=</option><option value=">">&gt;</option><option value="<">&lt;</option><option value=">=">&gt;=</option><option value="<=">&lt;=</option><option value="%..%">Like</option><option value="%..">Starts with</option><option value="..%">Ends with</option></select><input id="val_condid" style="width:170px" type="text" /><select id="andor_condid" style="visibility: hidden;"><option value="AND">AND</option><option value="OR">OR</option></select><img src="' . WDFMInstance(self::PLUGIN)->plugin_url . '/images/delete.png?ver=' . WDFMInstance(self::PLUGIN)->plugin_version . '" onclick="delete_cond(&quot;condid&quot;)" style="vertical-align: middle;"></div>';
+    $cond .= '<select id="op_condid"><option value="=" selected="selected">=</option><option value="!=">!=</option><option value=">">&gt;</option><option value="<">&lt;</option><option value=">=">&gt;=</option><option value="<=">&lt;=</option><option value="%..%">Like</option><option value="..%">Starts with</option><option value="%..">Ends with</option></select>';
+	$cond .= '<input autocomplete="off" id="val_condid" style="width:170px" class="fm-where-input" type="text" />';
+	$cond .= '<select id="andor_condid" style="visibility: hidden;"><option value="AND">AND</option><option value="OR">OR</option></select>';
+	$cond .= '<img src="' . WDFMInstance(self::PLUGIN)->plugin_url . '/images/delete.png?ver=' . WDFMInstance(self::PLUGIN)->plugin_version . '" onclick="delete_cond(&quot;condid&quot;)" style="vertical-align: middle;"></div>';
     ?>
     <script>
       jQuery(document).ready(function() {
@@ -1323,7 +1337,7 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
             }
           });
         }
-      });
+	  });
       var selected_field = '';
       var isvisible = 1;
       var cond_id = 1;
@@ -1357,36 +1371,45 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
           }
         }
       }
-      function delete_cond(id) {
+
+	  function delete_cond(id) {
         jQuery('#' + id).remove();
         update_vis();
       }
-      jQuery('.add_cond').click(function () {
-        jQuery('.cols').append(conds.replace(/condid/g, cond_id++).replace('SingleQuot', "'"));
-        update_vis();
-      });
-      jQuery('html').click(function () {
-        if (jQuery("#fieldlist").css('display') == "block") {
-          jQuery("#fieldlist").hide();
-        }
-      });
-      jQuery('.cols input[type="text"]').on('click', function (event) {
-        event.stopPropagation();
-        jQuery("#fieldlist").css("top", jQuery(this).offset().top + jQuery(this).height() + 2);
-        jQuery("#fieldlist").css("left", jQuery(this).offset().left);
-        jQuery("#fieldlist").slideDown('fast');
-        selected_field = this.id;
-      });
-      jQuery('#query_txt').click(function (event) {
-        event.stopPropagation();
-        jQuery("#fieldlist").css("top", jQuery(this).offset().top + jQuery(this).height() + 2);
-        jQuery("#fieldlist").css("left", jQuery(this).offset().left);
-        jQuery("#fieldlist").slideDown('fast');
-        selected_field = this.id;
-      });
-      jQuery('#fieldlist').click(function (event) {
-        event.stopPropagation();
-      });
+
+		jQuery('.add_cond').click(function () {
+			jQuery('.cols').append(conds.replace(/condid/g, cond_id++).replace('SingleQuot', "'"));
+			update_vis();
+		});
+		jQuery('html').click(function () {
+			if (jQuery("#fieldlist").css('display') == "block") {
+				jQuery("#fieldlist").hide();
+			}
+		});
+		jQuery(document).on("click", ".fm-where-input", function(e) {
+			e.stopPropagation();
+			jQuery("#fieldlist").css("top", jQuery(this).offset().top + jQuery(this).height() + 2);
+			jQuery("#fieldlist").css("left", jQuery(this).offset().left);
+			jQuery("#fieldlist").slideDown('fast');
+			selected_field = this.id;
+		});
+		jQuery('.cols input[type="text"]').on('click', function (event) {
+			event.stopPropagation();
+			jQuery("#fieldlist").css("top", jQuery(this).offset().top + jQuery(this).height() + 2);
+			jQuery("#fieldlist").css("left", jQuery(this).offset().left);
+			jQuery("#fieldlist").slideDown('fast');
+			selected_field = this.id;
+		});
+		jQuery('#query_txt').click(function (event) {
+			event.stopPropagation();
+			jQuery("#fieldlist").css("top", jQuery(this).offset().top + jQuery(this).height() + 2);
+			jQuery("#fieldlist").css("left", jQuery(this).offset().left);
+			jQuery("#fieldlist").slideDown('fast');
+			selected_field = this.id;
+		});
+		jQuery('#fieldlist').click(function (event) {
+			event.stopPropagation();
+		});
       function save_query() {
         con_type = jQuery('input[name=con_type]:checked').val();
         con_method = jQuery('input[name=con_method]:checked').val();
@@ -1412,7 +1435,7 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
           gen_query();
         }
         jQuery('#details').val(str);
-        var datatxt = jQuery("#query_form").serialize() + '&form_id=' + jQuery("#form_id").val();
+        var datatxt = jQuery("#query_form").serialize() + '&form_id=' + jQuery("#form_id").val()+'&nonce=<?php echo $this->fm_nonce?>';
         if (jQuery('#query_txt').val()) {
           jQuery('.c1').html('<div class="fm-loading-container"><div class="fm-loading-content"></div></div>');
           jQuery.ajax({
@@ -1424,13 +1447,15 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                                              'task' => 'save_query',
                                              'width' => '1000',
                                              'height' => '500',
+                                             'nonce' => $this->fm_nonce,
                                              'TB_iframe' => '1',
                                            ), admin_url('admin-ajax.php')); ?>",
             data: datatxt,
             success: function (data) {
               window.parent.wd_fm_apply_options('apply_form_options');
-              window.parent.tb_remove();
-			  window.parent.document.getElementById('adminForm').submit();
+              window.parent.FormManageSubmitButton();
+              window.parent.fm_set_input_value('task', 'apply');
+              window.parent.document.getElementById('manage_form').submit();
             }
           });
         }
@@ -1497,11 +1522,11 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
               if (jQuery('#op_' + i).val() == "%..%") {
                 op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '%"';
               }
-              else if (jQuery('#op_' + i).val() == "%..") {
-                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
-              }
               else if (jQuery('#op_' + i).val() == "..%") {
                 op_val = ' LIKE "' + jQuery('#val_' + i).val() + '%"';
+              }
+              else if (jQuery('#op_' + i).val() == "%..") {
+                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
               }
               else {
                 op_val = ' ' + jQuery('#op_' + i).val() + ' "' + jQuery('#val_' + i).val() + '"';
@@ -1522,11 +1547,11 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
               if (jQuery('#op_' + i).val() == "%..%") {
                 op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '%"';
               }
-              else if (jQuery('#op_' + i).val() == "%..") {
-                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
-              }
               else if (jQuery('#op_' + i).val() == "..%") {
                 op_val = ' LIKE "' + jQuery('#val_' + i).val() + '%"';
+              }
+              else if (jQuery('#op_' + i).val() == "%..") {
+                op_val = ' LIKE "%' + jQuery('#val_' + i).val() + '"';
               }
               else {
                 op_val = ' ' + jQuery('#op_' + i).val() + ' "' + jQuery('#val_' + i).val() + '"';
@@ -1811,7 +1836,7 @@ class FMViewFormMakerSQLMapping extends FMAdminView {
                   <?php echo $title; ?>
                 </div>
               </label>
-              <input type="text" id="<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" disabled="disabled" /><input id="ch_<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" type="checkbox" onClick="dis('<?php echo str_replace("'", "SingleQuot", $col->Field); ?>', this.checked)" />
+              <input autocomplete="off" type="text" id="<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" disabled="disabled" /><input id="ch_<?php echo str_replace("'", "SingleQuot", $col->Field); ?>" type="checkbox" onClick="dis('<?php echo str_replace("'", "SingleQuot", $col->Field); ?>', this.checked)" />
             </div>
             <?php
           }

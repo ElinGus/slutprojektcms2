@@ -34,7 +34,7 @@ class FMControllerThemes_fm extends FMAdminController {
     $this->model = new FMModelThemes_fm();
     require_once WDFMInstance(self::PLUGIN)->plugin_dir . "/admin/views/Themes_fm.php";
     $this->view = new FMViewThemes_fm();
-    $this->page = WDW_FM_Library(self::PLUGIN)->get('page');
+    $this->page = WDW_FM_Library(self::PLUGIN)->get('page', '', 'sanitize_text_field');
 	  $this->bulk_action_name = 'bulk_action';
 	
     $this->actions = array(
@@ -53,16 +53,17 @@ class FMControllerThemes_fm extends FMAdminController {
    * Execute.
    */
   public function execute() {
-    $task = WDW_FM_Library(self::PLUGIN)->get('task');
-    $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0);
+    $task = WDW_FM_Library(self::PLUGIN)->get('task','','sanitize_text_field');
+    $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0, 'intval');
     if ( method_exists($this, $task) ) {
       if ( $task != 'add' && $task != 'edit' && $task != 'display' ) {
         check_admin_referer(WDFMInstance(self::PLUGIN)->nonce, WDFMInstance(self::PLUGIN)->nonce);
       }
       $block_action = $this->bulk_action_name;
-      $action = WDW_FM_Library(self::PLUGIN)->get($block_action, -1);
-		  if ( $action != -1 ) {
-			$this->$block_action($action);
+
+      $action = WDW_FM_Library(self::PLUGIN)->get($block_action, '','sanitize_text_field');
+      if ( $action != '' ) {
+			  $this->$block_action($action);
 		  }
       else {
         $this->$task($id);
@@ -82,18 +83,18 @@ class FMControllerThemes_fm extends FMAdminController {
     $params['page'] = $this->page;
     $params['page_title'] = __('Themes', WDFMInstance(self::PLUGIN)->prefix);
     $params['actions'] = $this->actions;
-    $params['order'] = WDW_FM_Library(self::PLUGIN)->get('order', 'desc');
-    $params['orderby'] = WDW_FM_Library(self::PLUGIN)->get('orderby', 'default');
+    $params['order'] = WDW_FM_Library(self::PLUGIN)->get('order', 'desc', 'sanitize_text_field');
+    $params['orderby'] = WDW_FM_Library(self::PLUGIN)->get('orderby', 'default', 'sanitize_text_field');
     // To prevent SQL injections.
     $params['order'] = ($params['order'] == 'desc') ? 'desc' : 'asc';
     if ( !in_array($params['orderby'], array( 'title', 'default' )) ) {
       $params['orderby'] = 'default';
     }
     $params['items_per_page'] = $this->items_per_page;
-    $page = (int) WDW_FM_Library(self::PLUGIN)->get('paged', 1);
+    $page = (int) WDW_FM_Library(self::PLUGIN)->get('paged', 1, 'intval');
     $page_num = $page ? ($page - 1) * $params['items_per_page'] : 0;
     $params['page_num'] = $page_num;
-    $params['search'] = WDW_FM_Library(self::PLUGIN)->get('s', '');;
+    $params['search'] = WDW_FM_Library(self::PLUGIN)->get('s', '', 'sanitize_text_field');
     $params['total'] = $this->model->total();
     $params['rows_data'] = $this->model->get_rows_data($params);
     $this->view->display($params);
@@ -108,8 +109,10 @@ class FMControllerThemes_fm extends FMAdminController {
 		$message = 0;
 		$successfully_updated = 0;
 
-		$check = WDW_FM_Library(self::PLUGIN)->get('check', '');
-
+		$check = WDW_FM_Library(self::PLUGIN)->get('check', '', '');
+		if( !empty($check) ) {
+      $check = array_map( 'sanitize_text_field', $check );
+    }
 		if ( $check ) {
 		  foreach ( $check as $form_id => $item ) {
         if ( method_exists($this, $task) ) {
@@ -185,6 +188,7 @@ class FMControllerThemes_fm extends FMAdminController {
     if ( $row ) {
       $row = (array) $row;
       unset($row['id']);
+	  $row['title'] = $row['title'] . ' - ' . __('Copy', WDFMInstance(self::PLUGIN)->prefix);
       $row['default'] = 0;
       $inserted = $this->model->insert_data_to_db($table, (array) $row);
       if ( $inserted !== FALSE ) {
@@ -2941,10 +2945,11 @@ class FMControllerThemes_fm extends FMAdminController {
    */
   public function apply() {
     $data = $this->save_db();
-    $page = WDW_FM_Library(self::PLUGIN)->get('page');
-    $active_tab = WDW_FM_Library(self::PLUGIN)->get('active_tab');
-    $pagination = WDW_FM_Library(self::PLUGIN)->get('pagination-type');
-    $form_type = WDW_FM_Library(self::PLUGIN)->get('form_type');
+    $page = WDW_FM_Library(self::PLUGIN)->get('page','','sanitize_text_field');
+    $active_tab = WDW_FM_Library(self::PLUGIN)->get('active_tab','','sanitize_text_field');
+    $pagination = WDW_FM_Library(self::PLUGIN)->get('pagination-type','','sanitize_text_field');
+    $form_type = WDW_FM_Library(self::PLUGIN)->get('form_type','','sanitize_text_field');
+
     WDW_FM_Library(self::PLUGIN)->fm_redirect(add_query_arg(array(
                                                 'page' => $page,
                                                 'task' => 'edit',
@@ -2963,11 +2968,18 @@ class FMControllerThemes_fm extends FMAdminController {
    */
   public function save_db() {
     global $wpdb;
-    $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0);
-    $title = (isset($_POST['title']) ? esc_html(stripslashes($_POST['title'])) : '');
+    $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0, 'intval');
+    $title = WDW_FM_Library::get('title','','sanitize_text_field');
     $version = 2;
-    $params = (isset($_POST['params']) ? stripslashes(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $_POST['params'])) : '');
-    $default = (isset($_POST['default']) ? esc_html(stripslashes($_POST['default'])) : 0);
+    $params = array();
+    $paramsTemp = WDW_FM_Library::get('params','','');
+    if( !empty( $paramsTemp ) ) {
+      $paramsTemp = stripslashes(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $paramsTemp));
+      $paramsTemp = json_decode($paramsTemp, true);
+      $params = array_map('sanitize_text_field', $paramsTemp);
+      $params = json_encode($params);
+    }
+    $default = WDW_FM_Library::get('default', 0, 'intval');
     if ( $id != 0 ) {
       $save = $this->model->update_formmaker_themes(array(
                                                       'title' => $title,
@@ -3013,7 +3025,7 @@ class FMControllerThemes_fm extends FMAdminController {
 		else {
 		  $message = 2;
 		}
-		$page = WDW_FM_Library(self::PLUGIN)->get('page');
+		$page = WDW_FM_Library(self::PLUGIN)->get('page','','sanitize_text_field');
 		WDW_FM_Library(self::PLUGIN)->fm_redirect(add_query_arg(array(
 													'page' => $page,
 													'task' => 'display',

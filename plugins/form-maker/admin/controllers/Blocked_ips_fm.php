@@ -31,7 +31,6 @@ class FMControllerBlocked_ips_fm extends FMAdminController {
   public function execute() {
     $task = WDW_FM_Library(self::PLUGIN)->get('task');
     $id = (int) WDW_FM_Library(self::PLUGIN)->get('current_id', 0);
-
     if ( method_exists($this, $task) ) {
       check_admin_referer(WDFMInstance(self::PLUGIN)->nonce, WDFMInstance(self::PLUGIN)->nonce);
       $block_action = $this->bulk_action_name;
@@ -96,7 +95,6 @@ class FMControllerBlocked_ips_fm extends FMAdminController {
     }
     WDW_FM_Library(self::PLUGIN)->fm_redirect(add_query_arg(array(
                                                 'page' => $this->page,
-                                                'task' => 'display',
                                                 ($message === 2 ? 'message' : 'msg') => $message,
                                               ), admin_url('admin.php')));
   }
@@ -109,7 +107,6 @@ class FMControllerBlocked_ips_fm extends FMAdminController {
     $page = WDW_FM_Library(self::PLUGIN)->get('page');
 
     $ip = WDW_FM_Library(self::PLUGIN)->get('ip','');
-
     $insert = $this->model->insert_fm_blocked(array('ip' => $ip,), array('%s',));
     if( !$insert ){
       $message = 2;

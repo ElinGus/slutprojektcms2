@@ -5,14 +5,17 @@
 class  FMViewSubmissions_fm extends FMAdminView {
 
   private $model;
-
+  private $fm_nonce = null;
   public function __construct( $model = array() ) {
+    $this->fm_nonce = wp_create_nonce('fm_ajax_nonce');
     $this->model = $model;
     wp_enqueue_style('thickbox');
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
-    wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-jquery-ui');
-    wp_enqueue_style('jquery.fancybox');
-
+	$fm_settings = WDFMInstance(self::PLUGIN)->fm_settings;
+	if ( $fm_settings['fm_developer_mode'] ) {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-tables');
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-jquery-ui');
+		wp_enqueue_style('jquery.fancybox');
+	}
     wp_enqueue_script('thickbox');
     wp_enqueue_script('jquery');
     wp_enqueue_script('jquery-ui-progressbar');
@@ -29,10 +32,17 @@ class  FMViewSubmissions_fm extends FMAdminView {
     else {
       echo '<script>' . WDW_FM_Library(self::PLUGIN)->localize_ui_datepicker() . '</script>';
     }
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-manage');
-    wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-submissions');
-    wp_enqueue_script('jquery.fancybox.pack');
+
+	if ( $fm_settings['fm_developer_mode'] ) {
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-admin');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-manage');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-submissions');
+		wp_enqueue_script('jquery.fancybox.pack');
+	}
+	else {
+		wp_enqueue_style(WDFMInstance(self::PLUGIN)->handle_prefix . '-submission');
+		wp_enqueue_script(WDFMInstance(self::PLUGIN)->handle_prefix . '-submission');
+	}
   }
 
 	/**
@@ -93,7 +103,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 		$asc_or_desc = $params['asc_or_desc'];
 		$pagination_url_args = $params['pagination_url_args'];
 		ob_start();
-		$unexpected_error_message = sprintf( __('An unexpected error occurred while exporting data. %s Please contact Web-Dorado (10Web) Customer Care. %s', WDFMInstance(self::PLUGIN)->prefix), '<a href="https://web-dorado.com/support/contact-us.html" target="_blank">','</a>');
+		$unexpected_error_message = sprintf( __('An unexpected error occurred while exporting data. %s Please contact 10Web Customer Care. %s', WDFMInstance(self::PLUGIN)->prefix), '<a href="https://help.10web.io/hc/en-us/requests/new?utm_source=form_maker&utm_medium=free_plugin" target="_blank">','</a>');
 		echo '<div class="fm-unexpected_error_message fm-hide">' . WDW_FM_Library(self::PLUGIN)->message_id('', $unexpected_error_message, 'error') . '</div>';
 		echo $this->body($params);
 		// Pass the content to form.
@@ -193,10 +203,18 @@ class  FMViewSubmissions_fm extends FMAdminView {
 			</div>
 		</div>
 		<div class="fm-export-tools">
-			<?php $blocked_ips_link = add_query_arg(array( 'page' => 'blocked_ips' . WDFMInstance(self::PLUGIN)->menu_postfix ), $page_url); ?>
+			<?php
+        $blocked_ips_link = add_query_arg(array( 'page' => 'blocked_ips' . WDFMInstance(self::PLUGIN)->menu_postfix ), $page_url);
+        $xmllibactive = true;
+        if( !class_exists("SimpleXMLElement") ) {
+          $xmllibactive = false;
+        }
+        $msg = __('Form maker Export will not work correctly, as XML PHP extension is disabled on your website. Please contact your hosting provider and ask them to enable it.', WDFMInstance(self::PLUGIN)->prefix);
+
+      ?>
 			<a class="button" href="<?php echo $blocked_ips_link; ?>" target="_blank"><?php echo _e('Blocked IPs', WDFMInstance(self::PLUGIN)->prefix);?></a>
 			<button class="button" onclick="export_submissions('csv', 0); return false;"><?php echo _e('Export to CSV', WDFMInstance(self::PLUGIN)->prefix);?></button>
-			<button class="button" onclick="export_submissions('xml', 0); return false;"><?php echo _e('Export to XML', WDFMInstance(self::PLUGIN)->prefix);?></button>
+			<button class="button" onclick="<?php if( $xmllibactive ) { ?> export_submissions('xml', 0); <?php } else { ?> alert('<?php echo $msg ?>'); <?php } ?> return false;"><?php echo _e('Export to XML', WDFMInstance(self::PLUGIN)->prefix);?></button>
 		</div>
 	</div>
 	<div class="tablenav top">
@@ -292,7 +310,15 @@ class  FMViewSubmissions_fm extends FMAdminView {
 						  <span class="sorting-indicator"></span>
 						</a>
 					</th>
-					<?php
+          <?php
+          if( !empty($params['webhook_data']) && gettype($params['webhook_data']) == 'array' ) {
+            ?>
+            <th scope="col" id="webhook_fc" class="webhook_fc sortable">
+              <span><?php _e('Webhook Status', WDFMInstance(self::PLUGIN)->prefix);?></span>
+            </th>
+            <?php
+          }
+
 					  $stripe_paypal = false;
 					  for ( $i = 0; $i < count($sorted_label_names); $i++ ) {
 						$styleStr = $this->model->hide_or_not($lists['hide_label_list'], $sorted_labels_id[$i]);
@@ -479,6 +505,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 																  'form_id'  => $form_id,
 																  'width'	=> '600',
 																  'height' 	=> '500',
+																  'nonce' => $this->fm_nonce,
 																  'TB_iframe' => '1',
 																), admin_url('admin-ajax.php'));
 
@@ -492,6 +519,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 																	   'data_ip' => $data->ip,
 																	   'width' => '450',
 																	   'height' => '300',
+                                                                        'nonce' => $this->fm_nonce,
 																	   'TB_iframe' => '1',
 																	 ), admin_url('admin-ajax.php'));
 
@@ -525,7 +553,34 @@ class  FMViewSubmissions_fm extends FMAdminView {
 							<td id="submitteremail_fc" class="table_large_col submitteremail_fc sub-align" <?php echo $style_useremail; ?> data-colname="<?php _e('Submitter\'s Email Address', WDFMInstance(self::PLUGIN)->prefix);?>">
 								<p><?php echo $useremail; ?></p>
 							</td>
-							<?php
+              <?php
+              if( !empty($params['webhook_data']) && gettype($params['webhook_data']) == 'array' ) {
+              ?>
+                <td id="webhook_fc" class="table_large_col webhook_fc sub-align" data-colname="<?php _e('Webhook Status', WDFMInstance(self::PLUGIN)->prefix);?>">
+                    <?php
+                    if( isset($params['webhook_data'][$data->group_id]) && $params['webhook_data'][$data->group_id] ) {
+                      echo '<div class="fm_wh_status_row"><p>' .  __('Successfully Sent', WDFMInstance(self::PLUGIN)->prefix). '</p></div>';
+                    }
+                    elseif ( isset($params['webhook_data'][$data->group_id]) && !$params['webhook_data'][$data->group_id] ) {
+                    ?>
+                      <div class="fm_wh_status_row">
+                        <p><?php echo __('Failed', WDFMInstance(self::PLUGIN)->prefix); ?></p>
+                        <p>|</p>
+                        <p>
+                          <a href="#" onclick="fm_wh_resend(this); return false" data-form_id = "<?php echo $form_id; ?>" data-group_id = "<?php echo $data->group_id; ?>" data-formtitle = "<?php echo $params['forms'][$form_id]->title; ?>">
+                            <?php _e('Resend', WDFMInstance(self::PLUGIN)->prefix); ?>
+                            <img src="<?php echo WDFMInstance(self::PLUGIN)->plugin_url ?>/images/arrow_right.svg" alt="">
+                          </a>
+                        </p>
+                        <span class="fm_wh_spinner hidden"></span>
+                      </div>
+                    <?php
+                    }
+                    ?>
+                </td>
+              <?php
+              }
+
 							for ( $h = 0; $h < $m; $h++ ) {
 							  $ispaypal = false;
 							  if ( $sorted_label_types[$h] == 'type_stripe' ) {
@@ -549,6 +604,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 																								   'lat' => $map_params[1],
 																								   'width' => '620',
 																								   'height' => '550',
+                                                                                                    'nonce' => $this->fm_nonce,
 																								   'TB_iframe' => '1',
 																								 ), admin_url('admin-ajax.php')); ?>" title="<?php _e("Show on Map", WDFMInstance(self::PLUGIN)->prefix); ?>"><?php _e("Show on Map", WDFMInstance(self::PLUGIN)->prefix); ?></a>
 									</td>
@@ -588,6 +644,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 																								   'matrix_params' => str_replace('#', '%23', urlencode($temp[$g]->element_value)),
 																								   'width' => '620',
 																								   'height' => '550',
+                                                                                                    'nonce' => $this->fm_nonce,
 																								   'TB_iframe' => '1',
 																								 ), admin_url('admin-ajax.php')); ?>" title="<?php _e("Show Matrix", WDFMInstance(self::PLUGIN)->prefix); ?>"><?php _e("Show Matrix", WDFMInstance(self::PLUGIN)->prefix); ?></a>
 									</td>
@@ -672,6 +729,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 																						 'id' => $i,
 																						 'width' => '600',
 																						 'height' => '500',
+                                                                                         'nonce' => $this->fm_nonce,
 																						 'TB_iframe' => '1',
 																					   ), admin_url('admin-ajax.php')); ?>" title="<?php _e("Paypal information", WDFMInstance(self::PLUGIN)->prefix); ?>">
 								<img src="<?php echo WDFMInstance(self::PLUGIN)->plugin_url . '/images/info.png'; ?>" />
@@ -679,7 +737,8 @@ class  FMViewSubmissions_fm extends FMAdminView {
 							</td>
 						  <?php
 						}
-						?>
+
+              ?>
 					  </tr>
 					  <?php
 					  $k = 1 - $k;
@@ -746,7 +805,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
               <div id="div_stats"></div>
             </div>
             <script>
-				show_stats_url = "<?php echo add_query_arg( array('action' => 'get_stats' . WDFMInstance(self::PLUGIN)->plugin_postfix, 'task' => 'show_stats', 'current_id' => $form_id ), $page_url); ?>";
+				show_stats_url = "<?php echo add_query_arg( array('action' => 'get_stats' . WDFMInstance(self::PLUGIN)->plugin_postfix, 'task' => 'show_stats', 'nonce' => $this->fm_nonce, 'current_id' => $form_id ), $page_url); ?>";
 			</script>
             <?php
           }
@@ -812,7 +871,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 				  }
 				}
 			  }
-			}
+      }
 			renderColumns();
 		}
 	</script>
@@ -853,6 +912,16 @@ class  FMViewSubmissions_fm extends FMAdminView {
       </div>
       <?php
     }
+    if ( !empty($params['webhook_data']) && gettype($params['webhook_data']) == 'array' ) {
+      ?>
+      <div class="fm_check_labels">
+        <input type="checkbox" onclick="clickLabChB('webhook', this)" id="fm_check_webhook" <?php echo (strpos($lists['hide_label_list'], '@webhook@') === FALSE) ? 'checked="checked"' : ''; ?> />
+        <label for="fm_check_webhooko"><?php _e('Webhook Status', WDFMInstance(self::PLUGIN)->prefix); ?></label>
+      </div>
+
+      <?php
+    }
+
     ?>
     <div class="done-cont">
       <button onclick="toggleChBDiv(false); return false;" class="button button-primary"><?php _e('Done', WDFMInstance(self::PLUGIN)->prefix); ?></button>
@@ -890,6 +959,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 			  url: "<?php echo add_query_arg(array(
 											   'form_id' => $form_id,
 											   'send_header' => 0,
+                                               'nonce' => $this->fm_nonce,
 											 ), admin_url('admin-ajax.php')); ?>&action=generete_" + type + "<?php echo WDFMInstance(self::PLUGIN)->plugin_postfix; ?>&limitstart=" + limitstart,
 			  data: {
 					page_num: page_num,
@@ -963,6 +1033,7 @@ class  FMViewSubmissions_fm extends FMAdminView {
 			window.location = "<?php echo add_query_arg(array(
 													'form_id' => $form_id,
 													'send_header' => 1,
+													'nonce' => $this->fm_nonce,
 												  ), admin_url('admin-ajax.php')); ?>&action=generete_" + type + "<?php echo WDFMInstance(self::PLUGIN)->plugin_postfix; ?>&limitstart=" + limitstart;
 
 		}

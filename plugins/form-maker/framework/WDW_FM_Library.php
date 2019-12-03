@@ -355,6 +355,11 @@ class WDW_FM_Library {
   const LINEEND = "\n";
 
   public static $fm_js_content;
+
+  public static function get_fm_js_content() {
+    return self::$fm_js_content;
+  }
+
   /**
    * Get request value.
    *
@@ -364,7 +369,7 @@ class WDW_FM_Library {
    *
    * @return string|array
    */
-  public static function get($key, $default_value = '', $esc_html = true) {
+  public static function get($key, $default_value = '', $callback = '') {
     if (isset($_GET[$key])) {
       $value = $_GET[$key];
     }
@@ -378,10 +383,10 @@ class WDW_FM_Library {
       $value = $default_value;
     }
     if (is_array($value)) {
-      array_walk_recursive($value, array('self', 'validate_data'), $esc_html);
+      array_walk_recursive($value, array('self', 'validate_data'), $callback);
     }
     else {
-      self::validate_data($value, $esc_html);
+      self::validate_data($value, 0, $callback);
     }
     return $value;
   }
@@ -392,10 +397,10 @@ class WDW_FM_Library {
    * @param $value
    * @param $esc_html
    */
-  private static function validate_data(&$value, $esc_html) {
+  private static function validate_data(&$value, $key, $callback) {
     $value = stripslashes($value);
-    if ($esc_html) {
-      $value = esc_html($value);
+    if (!empty($callback) && function_exists($callback)) {
+      $value = $callback($value);
     }
   }
 
@@ -885,6 +890,46 @@ class WDW_FM_Library {
     return $google_fonts;
   }
 
+  /**
+   * Get google fonts used in themes and options.
+   *
+   * @return string
+   */
+
+  public static function get_all_used_google_fonts() {
+    global $wpdb;
+    $url = '';
+    $google_array = array();
+    $google_fonts = self::get_google_fonts();
+    $sql = 'SELECT `fmt`.`css` FROM `' . $wpdb->prefix . 'formmaker` fm
+			INNER JOIN `' . $wpdb->prefix . 'formmaker_themes` fmt ON (`fm`.`theme` = `fmt`.`id`)
+			GROUP BY `fmt`.`id`';
+    $results = $wpdb->get_results($sql, 'OBJECT');
+    if ( $results ) {
+      foreach ( $results as $row ) {
+        if ( isset($row->css) ) {
+          $options = json_decode($row->css);
+          if ( !empty($options) ) {
+
+            foreach ( $options as $option ) {
+              $is_google_fonts = in_array((string) $option, $google_fonts) ? TRUE : FALSE;
+              if ( TRUE == $is_google_fonts ) {
+                $google_array[$option] = $option;
+              }
+            }
+          }
+        }
+      }
+    }
+    if ( !empty($google_array) ) {
+      $query = implode("|", str_replace(' ', '+', $google_array));
+      $url = 'https://fonts.googleapis.com/css?family=' . $query;
+      $url .= '&subset=greek,latin,greek-ext,vietnamese,cyrillic-ext,latin-ext,cyrillic';
+    }
+
+    return $url;
+  }
+
   public static function cleanData( &$str ) {
     $str = preg_replace("/\t/", "\\t", $str);
     $str = preg_replace("/\r?\n/", "\\n", $str);
@@ -923,7 +968,7 @@ class WDW_FM_Library {
       $row->hide_mobile = 0;
       $row->scrollbox_closing = 1;
       $row->scrollbox_minimize = 1;
-      $row->scrollbox_minimize_text = '';
+      $row->scrollbox_minimize_text = 'The form is minimized';
       $row->display_on = 'home,post,page';
       $row->posts_include = '';
       $row->pages_include = '';
@@ -980,7 +1025,14 @@ class WDW_FM_Library {
     }
     $form_currency = apply_filters('fm_form_currency', $form_currency, $form_id);
     $form_currency = self::replace_currency_code( $form_currency );
-    $form_paypal_tax = $row->tax;
+    $form_paypal_tax = 0;
+    if ( $row->paypal_mode && $row->paypal_mode == 1 ) {
+      $form_paypal_tax = $row->tax;
+    }
+    if ( $row->paypal_mode && $row->paypal_mode == 2 ) {
+      $stripe_data = apply_filters('fm_addon_stripe_get_data_init', array('form_id' => $form_id));
+      $form_paypal_tax = $stripe_data->stripe_tax;
+    }
     $is_type = array();
     $id1s = array();
     $types = array();
@@ -1054,6 +1106,7 @@ class WDW_FM_Library {
             $params_value = explode('***', wp_specialchars_decode($cond_params[$m], 'single'));
             switch ( $type_and_id[$params_value[0]] ) {
               case "type_text":
+              case "type_star_rating":
               case "type_password":
               case "type_textarea":
               case "type_number":
@@ -1071,7 +1124,12 @@ class WDW_FM_Library {
                     $params_value[2] = "";
                     $params_value[1] = $params_value[1] . "=";
                   }
-                  $if .= ' jQuery("#wdform_' . $params_value[0] . '_element' . $form_id . '").val()' . $params_value[1] . '"' . $params_value[2] . '" ';
+                  if ( $type_and_id[$params_value[0]] == "type_star_rating" ) {
+                    $if .= ' jQuery("#wdform_' . $params_value[0] . '_selected_star_amount' . $form_id . '").val()' . $params_value[1] . '"' . $params_value[2] . '" ';
+                  }
+                  else {
+                    $if .= ' jQuery("#wdform_' . $params_value[0] . '_element' . $form_id . '").val()' . $params_value[1] . '"' . $params_value[2] . '" ';
+                  }
                 }
                 $keyup .= '#wdform_' . $params_value[0] . '_element' . $form_id . ', ';
                 if ( $type_and_id[$params_value[0]] == "type_date_new" ) {
@@ -1079,6 +1137,9 @@ class WDW_FM_Library {
                 }
                 if ( $type_and_id[$params_value[0]] == "type_spinner" ) {
                   $click .= '#wdform_' . $params_value[0] . '_element' . $form_id . ' ~ a, ';
+                }
+                if ( $type_and_id[$params_value[0]] == "type_star_rating" ) {
+                  $change .= '#wdform_' . $params_value[0] . '_selected_star_amount' . $form_id . ', ';
                 }
                 if ( $type_and_id[$params_value[0]] == "type_phone_new" ) {
                   $blur = '#wdform_' . $params_value[0] . '_element' . $form_id . ', ';
@@ -1731,11 +1792,13 @@ class WDW_FM_Library {
     $check_regExp_all = array();
     $check_paypal_price_min_max = array();
     $file_upload_check = array();
+	$inputIds = array();
     $spinner_check = array();
     foreach ( $id1s as $id1s_key => $id1 ) {
-      $label = $labels[$id1s_key];
+	  $label = $labels[$id1s_key];
       $type = $types[$id1s_key];
       $params = $paramss[$id1s_key];
+	  $id_type = $id1 . '|' . $type;
       if ( strpos($form, '%' . $id1 . ' - ' . $label . '%') || strpos($form, '%' . $id1 . ' -' . $label . '%') ) {
         $required = FALSE;
         $param = array();
@@ -2099,9 +2162,14 @@ class WDW_FM_Library {
           }
           case 'type_address': {
             $w_states = self::get_states();
+            $w_provinces = self::get_provinces_canada();
             $w_state_options = '';
             foreach ( $w_states as $w_state ) {
               $w_state_options .= '<option value="' . $w_state . '">' . $w_state . '</option>';
+            }
+            $w_provinces_options = '';
+            foreach ( $w_provinces as $w_province ) {
+              $w_provinces_options .= '<option value="' . $w_province . '">' . $w_province . '</option>';
             }
             $params_names = array(
               'w_field_label_size',
@@ -2142,8 +2210,12 @@ class WDW_FM_Library {
             if ( isset($w_disabled_fields[6]) && $w_disabled_fields[6] == 'yes' ) {
               $onload_js .= '
   jQuery("#wdform_' . $id1 . '_country' . $form_id . '").change(function() {
-    if( jQuery(this).val() == "United States") {
+    if( jQuery(this).val() == "United States" ) {
       jQuery("#wdform_' . $id1 . '_state' . $form_id . '").parent().append("<select type=\"text\" id=\"wdform_' . $id1 . '_state' . $form_id . '\" name=\"wdform_' . ($id1 + 3) . '_state' . $form_id . '\" style=\"width: 100%;\" ' . $param['attributes'] . '>' . addslashes($w_state_options) . '</select><label class=\"mini_label\" id=\"' . $id1 . '_mini_label_state\">' . $w_mini_labels[3] . '</label>");
+      jQuery("#wdform_' . $id1 . '_state' . $form_id . '").parent().children("input:first, label:first").remove();
+    }
+    else if ( jQuery(this).val() == "Canada" ) {
+      jQuery("#wdform_' . $id1 . '_state' . $form_id . '").parent().append("<select type=\"text\" id=\"wdform_' . $id1 . '_state' . $form_id . '\" name=\"wdform_' . ($id1 + 3) . '_state' . $form_id . '\" style=\"width: 100%;\" ' . $param['attributes'] . '>' . addslashes($w_provinces_options) . '</select><label class=\"mini_label\" id=\"' . $id1 . '_mini_label_state\">' . $w_mini_labels[3] . '</label>");
       jQuery("#wdform_' . $id1 . '_state' . $form_id . '").parent().children("input:first, label:first").remove();
     }
     else {
@@ -2277,11 +2349,27 @@ class WDW_FM_Library {
                 'w_class',
               );
             }
+
             foreach ( $params_names as $params_name ) {
               $temp = explode('*:*' . $params_name . '*:*', $temp);
               $param[$params_name] = $temp[0];
               $temp = $temp[1];
             }
+			
+			if ( isset($param['w_choices_value']) ) {
+				$param['w_choices_value'] = explode('***', $param['w_choices_value']);
+				$param['w_choices_params'] = explode('***', $param['w_choices_params']);
+			}
+
+			foreach ( $param['w_choices_params'] as $choices ) {
+				if ( !empty($choices) ) {
+					preg_match_all('/{\d+}/', $choices, $matches);
+					if ( !empty($matches[0][0]) ) {
+						$inputIds[$id_type][] = str_replace( array('{','}'), array('',''), $matches[0][0] ); 
+					}
+				}
+			}
+
             $required = ($param['w_required'] == "yes" ? TRUE : FALSE);
             $post_value = isset($_POST["counter" . $form_id]) ? esc_html($_POST["counter" . $form_id]) : NULL;
             $is_other = FALSE;
@@ -2301,16 +2389,14 @@ class WDW_FM_Library {
               array_push($req_fields, $id1);
             }
             if ( $is_other ) {
-              $onload_js .= '
-  show_other_input("wdform_' . $id1 . '","' . $form_id . '"); jQuery("#wdform_' . $id1 . '_other_input' . $form_id . '").val("' . (isset($_POST['wdform_' . $id1 . "_other_input" . $form_id]) ? esc_html(stripslashes($_POST['wdform_' . $id1 . "_other_input" . $form_id])) : '') . '");';
+              $onload_js .= 'show_other_input("wdform_' . $id1 . '","' . $form_id . '"); jQuery("#wdform_' . $id1 . '_other_input' . $form_id . '").val("' . (isset($_POST['wdform_' . $id1 . "_other_input" . $form_id]) ? esc_html(stripslashes($_POST['wdform_' . $id1 . "_other_input" . $form_id])) : '') . '");';
             }
             if ( $param['w_randomize'] == 'yes' ) {
-              $onload_js .= '
-  jQuery("#form' . $form_id . ' div[wdid=' . $id1 . '] .wdform-element-section> div").shuffle();';
+              $onload_js .= 'jQuery("#form' . $form_id . ' div[wdid=' . $id1 . '] .wdform-element-section> div").shuffle();';
             }
             $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_allow_other' . $form_id . '\" value=\"' . $param['w_allow_other'] . '\" />").appendTo("#form' . $form_id . '");
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_allow_other_num' . $form_id . '\" value=\"' . $param['w_allow_other_num'] . '\" />").appendTo("#form' . $form_id . '");';
+				  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_allow_other' . $form_id . '\" value=\"' . $param['w_allow_other'] . '\" />").appendTo("#form' . $form_id . '");
+				  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_allow_other_num' . $form_id . '\" value=\"' . $param['w_allow_other_num'] . '\" />").appendTo("#form' . $form_id . '");';
             break;
           }
           case 'type_radio': {
@@ -2372,6 +2458,21 @@ class WDW_FM_Library {
               $param[$params_name] = $temp[0];
               $temp = $temp[1];
             }
+
+			if ( isset($param['w_choices_value']) ) {
+			  $param['w_choices_value'] = explode('***', $param['w_choices_value']);
+			  $param['w_choices_params'] = explode('***', $param['w_choices_params']);
+			}
+			
+			foreach ( $param['w_choices_params'] as $choices ) {
+				if ( !empty($choices) ) {
+					preg_match_all('/{\d+}/', $choices, $matches);
+					if ( !empty($matches[0][0]) ) {
+						$inputIds[$id_type][] = str_replace( array('{','}'), array('',''), $matches[0][0] ); 
+					} 
+				}
+			}
+			
             $required = ($param['w_required'] == "yes" ? TRUE : FALSE);
             $post_value = isset($_POST["counter" . $form_id]) ? esc_html($_POST["counter" . $form_id]) : NULL;
             $is_other = FALSE;
@@ -2451,6 +2552,20 @@ class WDW_FM_Library {
               $param[$params_name] = $temp[0];
               $temp = $temp[1];
             }
+
+			if ( isset($param['w_choices_value']) ) {
+				$param['w_choices_value'] = explode('***', $param['w_choices_value']);
+				$param['w_choices_params'] = explode('***', $param['w_choices_params']);
+			}
+
+			foreach ( $param['w_choices_params'] as $choices ) {
+				if ( !empty($choices) ) {
+					preg_match_all('/{\d+}/', $choices, $matches);
+					if ( !empty($matches[0][0]) ) {
+						$inputIds[$id_type][] = str_replace( array('{','}'), array('',''), $matches[0][0] ); 
+					}
+				}
+			}
             $required = ($param['w_required'] == "yes" ? TRUE : FALSE);
             if ( $required ) {
               array_push($req_fields, $id1);
@@ -3294,18 +3409,28 @@ class WDW_FM_Library {
               $param[$params_name] = $temp[0];
               $temp = $temp[1];
             }
+
+			if ( isset($param['w_choices_params']) ) {
+				$w_choices_params = explode('***', $param['w_choices_params']);
+				foreach ( $w_choices_params as $choices ) {
+					if ( !empty($choices) ) {
+						preg_match_all('/{\d+}/', $choices, $matches);
+						if ( !empty($matches[0][0]) ) {
+							$inputIds[$id_type][] = str_replace( array('{','}'), array('',''), $matches[0][0] ); 
+						}
+					}
+				}
+			}
+
             $required = ($param['w_required'] == "yes" ? TRUE : FALSE);
             $param['w_property'] = explode('***', $param['w_property']);
             if ( $required ) {
               array_push($req_fields, $id1);
             }
-            $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_label' . $form_id . '\" />").val(jQuery("#wdform_' . $id1 . '_element' . $form_id . ' option:selected").text()).appendTo("#form' . $form_id . '");';
-            $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_quantity_label' . $form_id . '\" />").val("' . (__("Quantity", WDFMInstance(self::PLUGIN)->prefix)) . '").appendTo("#form' . $form_id . '");';
+            $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_label' . $form_id . '\" />").val(jQuery("#wdform_' . $id1 . '_element' . $form_id . ' option:selected").text()).appendTo("#form' . $form_id . '");';
+            $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_quantity_label' . $form_id . '\" />").val("' . (__("Quantity", WDFMInstance(self::PLUGIN)->prefix)) . '").appendTo("#form' . $form_id . '");';
             foreach ( $param['w_property'] as $key => $property ) {
-              $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_property_label' . $form_id . $key . '\" />").val("' . $property . '").appendTo("#form' . $form_id . '");';
+              $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_property_label' . $form_id . $key . '\" />").val("' . $property . '").appendTo("#form' . $form_id . '");';
             }
             break;
           }
@@ -3376,18 +3501,16 @@ class WDW_FM_Library {
               $param[$params_name] = $temp[0];
               $temp = $temp[1];
             }
+
             $required = ($param['w_required'] == "yes" ? TRUE : FALSE);
             $param['w_property'] = explode('***', $param['w_property']);
             if ( $required ) {
               array_push($req_fields, $id1);
             }
-            $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_label' . $form_id . '\" />").val((jQuery("#wdform_' . $id1 . '_element' . $form_id . ' input:checked").length != 0) ? jQuery("#wdform_' . $id1 . '_element' . $form_id . ' input:checked").attr("id").replace("element", "elementlabel_") : "").appendTo("#form' . $form_id . '");';
-            $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_quantity_label' . $form_id . '\" />").val("' . (__("Quantity", WDFMInstance(self::PLUGIN)->prefix)) . '").appendTo("#form' . $form_id . '");';
+            $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_label' . $form_id . '\" />").val((jQuery("#wdform_' . $id1 . '_element' . $form_id . ' input:checked").length != 0) ? jQuery("#wdform_' . $id1 . '_element' . $form_id . ' input:checked").attr("id").replace("element", "elementlabel_") : "").appendTo("#form' . $form_id . '");';
+            $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_quantity_label' . $form_id . '\" />").val("' . (__("Quantity", WDFMInstance(self::PLUGIN)->prefix)) . '").appendTo("#form' . $form_id . '");';
             foreach ( $param['w_property'] as $key => $property ) {
-              $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_property_label' . $form_id . $key . '\" />").val("' . $property . '").appendTo("#form' . $form_id . '");';
+              $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_property_label' . $form_id . $key . '\" />").val("' . $property . '").appendTo("#form' . $form_id . '");';
             }
             break;
           }
@@ -3463,13 +3586,10 @@ class WDW_FM_Library {
             if ( $required ) {
               array_push($req_fields, $id1);
             }
-            $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_label' . $form_id . '\" />").val(jQuery("label[for=\'"+jQuery("input[name^=\'wdform_' . $id1 . '_element' . $form_id . '\']:checked").attr("id")+"\']").eq(0).text()).appendTo("#form' . $form_id . '");';
-            $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_quantity_label' . $form_id . '\" />").val("' . (__("Quantity", WDFMInstance(self::PLUGIN)->prefix)) . '").appendTo("#form' . $form_id . '");';
+            $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_label' . $form_id . '\" />").val(jQuery("label[for=\'"+jQuery("input[name^=\'wdform_' . $id1 . '_element' . $form_id . '\']:checked").attr("id")+"\']").eq(0).text()).appendTo("#form' . $form_id . '");';
+            $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_quantity_label' . $form_id . '\" />").val("' . (__("Quantity", WDFMInstance(self::PLUGIN)->prefix)) . '").appendTo("#form' . $form_id . '");';
             foreach ( $param['w_property'] as $key => $property ) {
-              $onsubmit_js .= '
-  jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_property_label' . $form_id . $key . '\" />").val("' . $property . '").appendTo("#form' . $form_id . '");';
+              $onsubmit_js .= 'jQuery("<input type=\"hidden\" name=\"wdform_' . $id1 . '_element_property_label' . $form_id . $key . '\" />").val("' . $property . '").appendTo("#form' . $form_id . '");';
             }
             break;
           }
@@ -3872,7 +3992,7 @@ class WDW_FM_Library {
         }
       }
     }
-    $onsubmit_js .= '
+	$onsubmit_js .= '
     var disabled_fields = "";
     jQuery("#form' . $form_id . ' div[wdid]").each(function() {
       if(jQuery(this).css("display") == "none") {
@@ -3900,40 +4020,164 @@ class WDW_FM_Library {
     var header_image_animation<?php echo $form_id; ?> = '<?php echo $row->header_image_animation; ?>';
     var scrollbox_loading_delay<?php echo $form_id; ?> = '<?php echo $row_display->scrollbox_loading_delay; ?>';
     var scrollbox_auto_hide<?php echo $form_id; ?> = '<?php echo $row_display->scrollbox_auto_hide; ?>';
-    <?php
-    ?>
+    var inputIds<?php echo $form_id; ?> = '<?php echo json_encode($inputIds); ?>';
+	<?php
+		reset($inputIds);
+		$first_field_id = explode('|',  key($inputIds) );
+	?>
+	var update_first_field_id<?php echo $form_id; ?> = <?php echo !empty($first_field_id[0]) ? $first_field_id[0] : 0; ?>;
+	var form_view_count<?php echo $form_id ?> = 0;
     <?php echo preg_replace($pattern, ' ', $row->javascript); ?>
 
     function onload_js<?php echo $form_id ?>() {<?php
-    echo $onload_js; ?>
-
+		echo $onload_js; ?>
     }
+
     function condition_js<?php echo $form_id ?>() {<?php
-    echo $condition_js; ?>
+		echo $condition_js; ?>
+    }
 
-    }
     function check_js<?php echo $form_id ?>(id, form_id) {
-    if (id != 0) {
-    x = jQuery("#" + form_id + "form_view"+id);
+		if (id != 0) {
+			x = jQuery("#" + form_id + "form_view"+id);
+		}
+		else {
+		x = jQuery("#form"+form_id);
+		}
+		<?php echo $check_js; ?>
     }
-    else {
-    x = jQuery("#form"+form_id);
-    }<?php
-    echo $check_js; ?>
-    }
+
     function onsubmit_js<?php echo $form_id ?>() {
-    <?php echo $onsubmit_js; ?>
+		<?php echo $onsubmit_js; ?>
     }
-    form_view_count<?php echo $form_id ?> = 0;
+
+	function unset_fields<?php echo $form_id ?>( values, id, i ) {
+		rid = 0;
+		if ( i > 0 ) {
+			jQuery.each( values, function( k, v ) {
+				if ( id == k.split('|')[2] ) {
+					rid = k.split('|')[0];
+					values[k] = '';
+				}
+			});
+			return unset_fields<?php echo $form_id ?>(values, rid, i - 1);
+		} else {
+			return values;
+		}
+	}
+	function ajax_similarity<?php echo $form_id ?>( obj, changing_field_id ) {
+		jQuery.ajax({
+			type: "POST",
+			url: fm_objectL10n.form_maker_admin_ajax,
+			dataType: "json",
+			data: {
+				nonce: fm_ajax.ajaxnonce,
+				action: 'fm_reload_input',
+				page: 'form_maker',
+				form_id: <?php echo $form_id ?>,
+				inputs: obj.inputs
+			},
+			beforeSend: function() {
+				if ( !jQuery.isEmptyObject(obj.inputs) ) {
+					jQuery.each( obj.inputs, function( key, val ) {
+						wdid = key.split('|')[0];
+						if ( val != '' && parseInt(wdid) == parseInt(changing_field_id) ) {
+							jQuery("#form<?php echo $form_id ?> div[wdid='"+ wdid +"']").append( '<div class="fm-loading"></div>' );
+						}
+					});
+				}
+			},
+			success: function (res) {
+				if ( !jQuery.isEmptyObject(obj.inputs) ) {
+					jQuery.each( obj.inputs, function( key, val ) {
+						wdid = key.split('|')[0];
+						jQuery("#form<?php echo $form_id ?> div[wdid='"+ wdid +"'] .fm-loading").remove();
+						if ( !jQuery.isEmptyObject(res[wdid]) && ( !val || parseInt(wdid) == parseInt(changing_field_id) ) ) {
+							jQuery("#form<?php echo $form_id ?> div[wdid='"+ wdid +"']").html( res[wdid].html );
+						}
+					});
+				}
+			},
+			complete: function() {
+			}
+		});
+	}
+
+	function fm_script_ready<?php echo $form_id ?>() {
+		if (jQuery('#form<?php echo $form_id ?> .wdform_section').length > 0) {
+			fm_document_ready( <?php echo $form_id ?> );
+		}
+		else {
+			jQuery("#form<?php echo $form_id ?>").closest(".fm-form-container").removeAttr("style")
+		}
+		if (jQuery('#form<?php echo $form_id ?> .wdform_section').length > 0) {
+			formOnload(<?php echo $form_id ?>);
+		}
+
+		var ajaxObj<?php echo $form_id ?> = {};
+		var value_ids<?php echo $form_id ?> = {};
+
+		jQuery.each( jQuery.parseJSON( inputIds<?php echo $form_id ?> ), function( key, values ) {
+			jQuery.each( values, function( index, input_id ) {
+				tagName =  jQuery('#form<?php echo $form_id ?> [id^="wdform_'+ input_id +'_elemen"]').prop("tagName");
+				type =  jQuery('#form<?php echo $form_id ?> [id^="wdform_'+ input_id +'_elemen"]').prop("type");
+				if ( tagName == 'INPUT' ) {
+					input_value = jQuery('#form<?php echo $form_id ?> [id^="wdform_'+ input_id +'_elemen"]').val();
+					if ( jQuery('#form<?php echo $form_id ?> [id^="wdform_'+ input_id +'_elemen"]').is(':checked') ) { 
+						if ( input_value ) {
+							value_ids<?php echo $form_id ?>[key + '|' + input_id] = input_value;
+						}
+					}
+					else if ( type == 'text' ) {
+						if ( input_value ) {
+							value_ids<?php echo $form_id ?>[key + '|' + input_id] = input_value;
+						}
+					}
+				}
+				else if ( tagName == 'SELECT' ) {
+					select_value = jQuery('#form<?php echo $form_id ?> [id^="wdform_'+ input_id +'_elemen"] option:selected').val();
+					if ( select_value ) {
+						value_ids<?php echo $form_id ?>[key + '|' + input_id] = select_value;
+					}
+				}
+				ajaxObj<?php echo $form_id ?>.inputs = value_ids<?php echo $form_id ?>;
+
+				jQuery(document).on('change', '#form<?php echo $form_id ?> [id^="wdform_'+ input_id +'_elemen"]', function() {
+					var id = '';
+					var changing_field_id = '';
+					if( jQuery(this).prop("tagName") == 'INPUT' ) {
+						if( jQuery(this).is(':checked') ) {
+							id = jQuery(this).val();
+						}
+						if( jQuery(this).attr('type') == 'text' ) {
+							id = jQuery(this).val();
+						}
+					}
+					else {
+						id = jQuery(this).val();
+					}
+					value_ids<?php echo $form_id ?>[key + '|' + input_id] = id;
+
+					jQuery.each( value_ids<?php echo $form_id ?>, function( k, v ) {
+						key_arr = k.split('|');
+						if ( input_id == key_arr[2] ) {
+							changing_field_id = key_arr[0];
+							count = Object.keys(value_ids<?php echo $form_id ?>).length;
+							value_ids<?php echo $form_id ?> = unset_fields<?php echo $form_id ?>( value_ids<?php echo $form_id ?>, changing_field_id, count );
+						}
+					});
+
+					ajaxObj<?php echo $form_id ?>.inputs = value_ids<?php echo $form_id ?>;
+					ajax_similarity<?php echo $form_id ?>( ajaxObj<?php echo $form_id ?>, changing_field_id );
+				});
+			});
+		});
+
+		ajax_similarity<?php echo $form_id ?>( ajaxObj<?php echo $form_id ?>, update_first_field_id<?php echo $form_id; ?> );
+	}
+
     jQuery(document).ready(function () {
-    if (jQuery('form#form<?php echo $form_id ?> .wdform_section').length > 0) {
-    fm_document_ready(<?php echo $form_id ?>);
-    }
-    });
-    jQuery(document).ready(function () {
-    if (jQuery('form#form<?php echo $form_id ?> .wdform_section').length > 0) {
-    formOnload(<?php echo $form_id ?>);
-    }
+		fm_script_ready<?php echo $form_id ?>();
     });
     <?php
     $js_content = ob_get_clean();
@@ -4252,20 +4496,24 @@ class WDW_FM_Library {
       'form-maker-stripe/fm_stripe.php',
       'form-maker-calculator/fm_calculator.php'
     );
+
     return $addons;
   }
 
   /**
-   * Deactivate all addons.
+   * Deactivate all addons with given additional plugin.
    *
-   * @return bool $addon
+   * @param bool $additional_plugin
    */
-  public static function deactivate_all_addons() {
+  public static function deactivate_all_addons($additional_plugin = FALSE) {
     include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
     $addons = self::get_all_addons_path();
+    if ( $additional_plugin ) {
+      array_push($addons, $additional_plugin);
+    }
     foreach ( $addons as $addon ) {
-      if( is_plugin_active( $addon ) ) {
-        deactivate_plugins( $addon );
+      if ( is_plugin_active( $addon ) ) {
+        deactivate_plugins( $addon, false, false );
       }
     }
   }
@@ -4382,7 +4630,7 @@ class WDW_FM_Library {
       "Liechtenstein" => __("Liechtenstein", WDFMInstance(self::PLUGIN)->prefix),
       "Lithuania" => __("Lithuania", WDFMInstance(self::PLUGIN)->prefix),
       "Luxembourg" => __("Luxembourg", WDFMInstance(self::PLUGIN)->prefix),
-      "Macedonia" => __("Macedonia", WDFMInstance(self::PLUGIN)->prefix),
+      "North Macedonia" => __("North Macedonia", WDFMInstance(self::PLUGIN)->prefix),
       "Madagascar" => __("Madagascar", WDFMInstance(self::PLUGIN)->prefix),
       "Malawi" => __("Malawi", WDFMInstance(self::PLUGIN)->prefix),
       "Malaysia" => __("Malaysia", WDFMInstance(self::PLUGIN)->prefix),
@@ -4412,6 +4660,7 @@ class WDW_FM_Library {
       "Oman" => __("Oman", WDFMInstance(self::PLUGIN)->prefix),
       "Pakistan" => __("Pakistan", WDFMInstance(self::PLUGIN)->prefix),
       "Palau" => __("Palau", WDFMInstance(self::PLUGIN)->prefix),
+      "Palestine" => __("Palestine", WDFMInstance(self::PLUGIN)->prefix),
       "Panama" => __("Panama", WDFMInstance(self::PLUGIN)->prefix),
       "Papua New Guinea" => __("Papua New Guinea", WDFMInstance(self::PLUGIN)->prefix),
       "Paraguay" => __("Paraguay", WDFMInstance(self::PLUGIN)->prefix),
@@ -4432,7 +4681,8 @@ class WDW_FM_Library {
       "Sao Tome and Principe" => __("Sao Tome and Principe", WDFMInstance(self::PLUGIN)->prefix),
       "Saudi Arabia" => __("Saudi Arabia", WDFMInstance(self::PLUGIN)->prefix),
       "Senegal" => __("Senegal", WDFMInstance(self::PLUGIN)->prefix),
-      "Serbia and Montenegro" => __("Serbia and Montenegro", WDFMInstance(self::PLUGIN)->prefix),
+      "Serbia" => __("Serbia", WDFMInstance(self::PLUGIN)->prefix),
+      "Montenegro" => __("Montenegro", WDFMInstance(self::PLUGIN)->prefix),
       "Seychelles" => __("Seychelles", WDFMInstance(self::PLUGIN)->prefix),
       "Sierra Leone" => __("Sierra Leone", WDFMInstance(self::PLUGIN)->prefix),
       "Singapore" => __("Singapore", WDFMInstance(self::PLUGIN)->prefix),
@@ -4441,11 +4691,12 @@ class WDW_FM_Library {
       "Solomon Islands" => __("Solomon Islands", WDFMInstance(self::PLUGIN)->prefix),
       "Somalia" => __("Somalia", WDFMInstance(self::PLUGIN)->prefix),
       "South Africa" => __("South Africa", WDFMInstance(self::PLUGIN)->prefix),
+      "South Sudan" => __("South Sudan", WDFMInstance(self::PLUGIN)->prefix),
       "Spain" => __("Spain", WDFMInstance(self::PLUGIN)->prefix),
       "Sri Lanka" => __("Sri Lanka", WDFMInstance(self::PLUGIN)->prefix),
       "Sudan" => __("Sudan", WDFMInstance(self::PLUGIN)->prefix),
       "Suriname" => __("Suriname", WDFMInstance(self::PLUGIN)->prefix),
-      "Swaziland" => __("Swaziland", WDFMInstance(self::PLUGIN)->prefix),
+      "Eswatini" => __("Eswatini", WDFMInstance(self::PLUGIN)->prefix),
       "Sweden" => __("Sweden", WDFMInstance(self::PLUGIN)->prefix),
       "Switzerland" => __("Switzerland", WDFMInstance(self::PLUGIN)->prefix),
       "Syria" => __("Syria", WDFMInstance(self::PLUGIN)->prefix),
@@ -4476,7 +4727,7 @@ class WDW_FM_Library {
       "Zambia" => __("Zambia", WDFMInstance(self::PLUGIN)->prefix),
       "Zimbabwe" => __("Zimbabwe", WDFMInstance(self::PLUGIN)->prefix),
     );
-
+    asort( $countries );
     return $countries;
   }
 
@@ -4540,8 +4791,34 @@ class WDW_FM_Library {
       "Wisconsin" => __("Wisconsin", WDFMInstance(self::PLUGIN)->prefix),
       "Wyoming" => __("Wyoming", WDFMInstance(self::PLUGIN)->prefix),
     );
-
+    asort( $states );
     return $states;
+  }
+
+    /**
+   * Get Canada states list.
+   *
+   * @return array
+   */
+  public static function get_provinces_canada() {
+    $province = array(
+      "" => "",
+      "Alberta" => __("Alberta", WDFMInstance(self::PLUGIN)->prefix),
+      "British Columbia" => __("British Columbia", WDFMInstance(self::PLUGIN)->prefix),
+      "Manitoba" => __("Manitoba", WDFMInstance(self::PLUGIN)->prefix),
+      "New Brunswick" => __("New Brunswick", WDFMInstance(self::PLUGIN)->prefix),
+      "Newfoundland and Labrador" => __("Newfoundland and Labrador", WDFMInstance(self::PLUGIN)->prefix),
+      "Northwest Territories" => __("Northwest Territories", WDFMInstance(self::PLUGIN)->prefix),
+      "Nova Scotia" => __("Nova Scotia", WDFMInstance(self::PLUGIN)->prefix),
+      "Nunavut" => __("Nunavut", WDFMInstance(self::PLUGIN)->prefix),
+      "Ontario" => __("Ontario", WDFMInstance(self::PLUGIN)->prefix),
+      "Prince Edward Island" => __("Prince Edward Island", WDFMInstance(self::PLUGIN)->prefix),
+      "Quebec" => __("Quebec", WDFMInstance(self::PLUGIN)->prefix),
+      "Saskatchewan" => __("Saskatchewan", WDFMInstance(self::PLUGIN)->prefix),
+      "Yukon" => __("Yukon", WDFMInstance(self::PLUGIN)->prefix),
+    );
+    asort( $province );
+    return $province;
   }
 
   /**
@@ -4593,7 +4870,7 @@ class WDW_FM_Library {
    *
    * @return bool
    */
-  public static function mail($recipient, $subject, $message = '', $header_arr = array(), $attachment = array()) {
+  public static function mail($recipient, $subject, $message = '', $header_arr = array(), $attachment = array(), $save_uploads = 1 ) {
     $recipient = trim($recipient, ',');
     $recipient = explode(',', $recipient);
     $recipient = array_map('trim', $recipient);
@@ -4639,7 +4916,9 @@ class WDW_FM_Library {
       //            $from_str .= "<" . $from . ">";
       //            $headers[] = $from_str;
       self::$email_from = $from;
-      add_filter('wp_mail_from', array('WDW_FM_Library', 'mail_from'));
+      if ( self::is_email( $from ) ) {
+        add_filter('wp_mail_from', array('WDW_FM_Library', 'mail_from'));
+      }
     }
 
     if ( isset($header_arr['content_type']) && $header_arr['content_type'] ) {
@@ -4658,7 +4937,9 @@ class WDW_FM_Library {
       $reply_to = $header_arr['reply_to'];
       $reply_to = trim($reply_to);
       $reply_to = trim($reply_to, ',');
-      $headers[] = "Reply-To: <" . $reply_to . ">";
+      if ( self::is_email( $reply_to ) ) {
+        $headers[] = "Reply-To: <" . $reply_to . ">";
+      }
     }
 
     if ( isset($header_arr['cc']) && $header_arr['cc'] ) {
@@ -4675,6 +4956,17 @@ class WDW_FM_Library {
       $headers[] = "Bcc: " . $bcc;
     }
 
+    $temp = array();
+    if ( !empty( $attachment ) ) {
+      foreach ( $attachment as $att ) {
+        if( $save_uploads ) {
+          $temp[] = ABSPATH . $att;
+        } else {
+          $temp[] = $att;
+        }
+      }
+      $attachment = $temp;
+    }
     $sent = wp_mail($recipient, $subject, $message, $headers, $attachment);
 
     remove_filter('wp_mail_content_type', array('WDW_FM_Library', 'mail_content_type'));
@@ -5056,13 +5348,13 @@ class WDW_FM_Library {
 	public static function create_email_options_placeholders( $labels = array() ) {
 		$data = array();
 		$form_inputs = array();
-		$continue_types = array('type_submit_reset', 'type_editor', 'type_map', 'type_mark_map', 'type_captcha', 'type_recaptcha', 'type_button', 'type_send_copy');
+		$continue_types = self::get_fields_continue_types();
 		$inputs = array(
 			array('value' => 'all', 'title' => __('All fields list', WDFMInstance(self::PLUGIN)->prefix)),
 		);
 		if ( !empty($labels) ) {
 			foreach($labels as $key => $label) {
-				if ( in_array($label['type'], $continue_types) ) {
+				if ( empty($key) || in_array($label['type'], $continue_types) ) {
 				  continue;
 				}
 				if ( $label['type'] == "type_file_upload" ) {
@@ -5093,7 +5385,12 @@ class WDW_FM_Library {
    */
   public static function get_shortcode_data() {
     global $wpdb;
-    $rows = $wpdb->get_results("SELECT `id`, `title` as name FROM `" . $wpdb->prefix . "formmaker`" . (!WDFMInstance(self::PLUGIN)->is_free ? '' : ' WHERE id' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ') ORDER BY `title`'));
+    $rows = $wpdb->get_results("SELECT `id`, `title` as name, `published`  FROM `" . $wpdb->prefix . "formmaker`" . (!WDFMInstance(self::PLUGIN)->is_free ? '' : ' WHERE id' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ') ORDER BY `title`'));
+    foreach ($rows as $row) {
+      if( $row->published == 0) {
+        $row->name .= ' - ' . __('Unpublished', WDFMInstance(self::PLUGIN)->prefix);
+      }
+    }
     $data = array();
     $data['shortcode_prefix'] = WDFMInstance(self::PLUGIN)->is_free == 2 ? 'wd_contact_form' : 'Form';
     $data['inputs'][] = array(
@@ -5274,7 +5571,7 @@ class WDW_FM_Library {
     $post_id = get_option( 'wp_page_for_privacy_policy' );
     if ( $post_id ) {
       $post = get_post( $post_id, OBJECT );
-      if ( $post->post_status == 'publish' ) {
+      if ( !empty($post) && $post->post_status == 'publish' ) {
         $permalink = get_permalink( $post_id );
         $title = $post->post_title;
       }
@@ -5302,16 +5599,72 @@ class WDW_FM_Library {
    */
   public static function get_forms() {
     global $wpdb;
-    $query = "SELECT `id`, `title` FROM `" . $wpdb->prefix . "formmaker`" . (!WDFMInstance(self::PLUGIN)->is_free ? '' : ' WHERE id' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ') ORDER BY `title`');
+    $query = "SELECT `id`, `title`, `published` FROM `" . $wpdb->prefix . "formmaker`" . (!WDFMInstance(self::PLUGIN)->is_free ? '' : ' WHERE id' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ') ORDER BY `title`');
     
     $rows = $wpdb->get_results($query);
 
     $forms = array();
     $forms[0] = __('Select a form', WDFMInstance(self::PLUGIN)->prefix);
     foreach ( $rows as $row ) {
+      if( $row->published == 0) {
+        $row->title .= ' - ' . __('Unpublished', WDFMInstance(self::PLUGIN)->prefix);
+      }
       $forms[$row->id] = $row->title;
     }
 
     return $forms;
   }
+
+  public static function is_email( $email ) {
+    if ( $email != '' ) {
+      if ( !preg_match('/^[a-zA-Z\x{0400}-\x{04FF}0-9.+_-]+@[a-zA-Z\x{0400}-\x{04FF}0-9.-]+\.[a-zA-Z\x{0400}-\x{04FF}]{2,61}$/u', $email) ) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
+  }
+
+  /**
+   * Get Form fields continue types.
+   * @return array
+   */
+  public static function get_fields_continue_types() {
+    $types = array('type_submit_reset', 'type_editor', 'type_map', 'type_mark_map', 'type_captcha', 'type_recaptcha', 'type_button', 'type_send_copy');
+
+    return $types;
+  }
+  public static function set_exclude_placeholder( $params = array() ) {
+    $str = '';
+    if ( !empty($params) ) {
+      $str = 'data-exclude-placeholder=\'' . json_encode($params) . '\'';
+    }
+    return $str;
+  }
+  /**
+   * Get custom fields
+   * @return array
+   */
+  public static function get_custom_fields() {
+    $userid = '';
+    $username = '';
+    $useremail = '';
+    $adminemail = get_option( 'admin_email' );
+    $current_user = wp_get_current_user();
+    if ( $current_user->ID != 0 ) {
+      $userid = $current_user->ID;
+      $username = $current_user->display_name;
+      $useremail = $current_user->user_email;
+    }
+    $custom_fields = array(
+      "ip" => $_SERVER['REMOTE_ADDR'],
+      "userid" => $userid,
+      'adminemail' => $adminemail,
+      "useremail" => $useremail,
+      "username" => $username
+    );
+    return $custom_fields;
+  }
+
+
 }

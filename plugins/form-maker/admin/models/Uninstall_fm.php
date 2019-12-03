@@ -4,11 +4,28 @@ class FMModelUninstall_fm extends FMAdminModel {
 
   public function delete_db_tables() {
     global $wpdb;
-    $true_or_false_forms = !WDFMInstance(self::PLUGIN)->is_free ? false : $wpdb->get_var('SELECT COUNT(*) FROM ' . $wpdb->prefix . 'formmaker WHERE `id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ')');
-    if ( $true_or_false_forms ) {
-      $wpdb->query('DELETE FROM ' . $wpdb->prefix . 'formmaker WHERE `id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ')');
-      $wpdb->query('DELETE FROM ' . $wpdb->prefix . 'formmaker_submits WHERE `form_id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ')');
-      $wpdb->query('DELETE FROM ' . $wpdb->prefix . 'formmaker_views WHERE `form_id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . (get_option('contact_form_forms', '') != '' ? get_option('contact_form_forms') : 0) . ')');
+    $remove_tables = FALSE;
+    $contact_form_ids = get_option('contact_form_forms');
+    if ( !WDFMInstance(self::PLUGIN)->is_free || $contact_form_ids == '' ) {
+      // Form maker paid or there is no contact form maker forms.
+      $remove_tables = TRUE;
+    }
+    else {
+      // Form maker free.
+      $forms_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . $wpdb->prefix . 'formmaker WHERE `id` NOT IN (' . $contact_form_ids . ')');
+      // Contact form maker.
+      $contact_forms_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . $wpdb->prefix . 'formmaker WHERE `id` IN (' . $contact_form_ids . ')');
+      if ( (WDFMInstance(self::PLUGIN)->is_free == 1 && $contact_forms_count == 0)
+        || (WDFMInstance(self::PLUGIN)->is_free == 2 && $forms_count == 0) ) {
+        // Installed only Form maker free or only Contact form maker.
+        $remove_tables = TRUE;
+      }
+    }
+    if ( !$remove_tables ) {
+      // Installed both Form maker free and Contact form maker.
+      $wpdb->query('DELETE FROM ' . $wpdb->prefix . 'formmaker WHERE `id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . $contact_form_ids . ')');
+      $wpdb->query('DELETE FROM ' . $wpdb->prefix . 'formmaker_submits WHERE `form_id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . $contact_form_ids . ')');
+      $wpdb->query('DELETE FROM ' . $wpdb->prefix . 'formmaker_views WHERE `form_id`' . (WDFMInstance(self::PLUGIN)->is_free == 1 ? ' NOT ' : ' ') . 'IN (' . $contact_form_ids . ')');
     }
     else {
       $email_verification_post_id = $wpdb->get_var('SELECT mail_verification_post_id  FROM ' . $wpdb->prefix . 'formmaker WHERE mail_verification_post_id != 0');
@@ -23,6 +40,11 @@ class FMModelUninstall_fm extends FMAdminModel {
       delete_option('fmc_settings');
       delete_option('fm_subscribe_done');
       delete_option('cfm_subscribe_done');
+      delete_option('fm_subscribe_popup');
+      delete_option('cfm_subscribe_popup');
+      delete_option('tenweb_notice_status');
+      delete_option('tenweb_webinar_status');
+      delete_option('wd_bk_notice_status');
       wp_delete_post($email_verification_post_id);
 
       // Delete form js and css files.

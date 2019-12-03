@@ -15,6 +15,8 @@ jQuery(function($) {
 		this.setMapObject(mapObject);
 	}
 	
+	WPGMZA.GoogleInfoWindow.Z_INDEX		= 99;
+	
 	if(WPGMZA.isProVersion())
 		Parent = WPGMZA.ProInfoWindow;
 	else
@@ -35,10 +37,28 @@ jQuery(function($) {
 	
 	WPGMZA.GoogleInfoWindow.prototype.createGoogleInfoWindow = function()
 	{
+		var self = this;
+		
 		if(this.googleInfoWindow)
 			return;
 		
 		this.googleInfoWindow = new google.maps.InfoWindow();
+		
+		this.googleInfoWindow.setZIndex(WPGMZA.GoogleInfoWindow.Z_INDEX);
+		
+		google.maps.event.addListener(this.googleInfoWindow, "domready", function(event) {
+			self.trigger("domready");
+		});
+		
+		google.maps.event.addListener(this.googleInfoWindow, "closeclick", function(event) {
+			
+			if(self.state == WPGMZA.InfoWindow.STATE_CLOSED)
+				return;
+			
+			self.state = WPGMZA.InfoWindow.STATE_CLOSED;
+			self.mapObject.map.trigger("infowindowclose");
+			
+		});
 	}
 	
 	/**
@@ -52,6 +72,9 @@ jQuery(function($) {
 		if(!Parent.prototype.open.call(this, map, mapObject))
 			return false;
 		
+		// Set parent for events to bubble up to
+		this.parent = map;
+		
 		this.createGoogleInfoWindow();
 		this.setMapObject(mapObject);
 		
@@ -60,40 +83,28 @@ jQuery(function($) {
 			this.googleObject
 		);
 		
-		if(this.content)
-			this.googleInfoWindow.setContent(this.content);
+		var guid = WPGMZA.guid();
+		var html = "<div id='" + guid + "'>" + this.content + "</div>";
+
+		this.googleInfoWindow.setContent(html);
 		
-		//this.
-		
-		/*this.getContent(function(html) {
+		var intervalID;
+		intervalID = setInterval(function(event) {
 			
-			// Wrap HTML with unique ID
-			var guid = WPGMZA.guid();
-			var html = "<div id='" + guid + "'>" + html + "</div>";
-			var div, intervalID;
+			div = $("#" + guid);
 			
-			self.googleInfoWindow.setContent(html);
-			self.googleInfoWindow.open(
-				self.mapObject.map.googleMap,
-				self.googleObject
-			);
-			
-			intervalID = setInterval(function(event) {
+			if(div.length)
+			{
+				clearInterval(intervalID);
 				
-				div = $("#" + guid);
+				div[0].wpgmzaMapObject = self.mapObject;
+				div.addClass("wpgmza-infowindow");
 				
-				if(div.find(".gm-style-iw").length)
-				{
-					div[0].wpgmzaMapObject = self.mapObject;
-					
-					self.dispatchEvent("infowindowopen");
-					div.trigger("infowindowopen");
-					clearInterval(intervalID);
-				}
-				
-			}, 50);
+				self.element = div[0];
+				self.trigger("infowindowopen");
+			}
 			
-		});*/
+		}, 50);
 		
 		return true;
 	}

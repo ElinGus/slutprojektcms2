@@ -17,6 +17,8 @@ jQuery(function($) {
 	{
 		var self = this;
 		
+		this._offset = {x: 0, y: 0};
+		
 		WPGMZA.assertInstanceOf(this, "Marker");
 		
 		this.lat = "36.778261";
@@ -28,6 +30,9 @@ jQuery(function($) {
 		this.icon = "";
 		this.approved = 1;
 		this.pic = null;
+		
+		this.isFilterable = true;
+		this.disableInfoWindow = false;
 		
 		WPGMZA.MapObject.apply(this, arguments);
 		
@@ -46,6 +51,8 @@ jQuery(function($) {
 		this.addEventListener("added", function(event) {
 			self.onAdded(event);
 		});
+		
+		this.handleLegacyGlobals(row);
 	}
 	
 	WPGMZA.Marker.prototype = Object.create(WPGMZA.MapObject.prototype);
@@ -91,6 +98,36 @@ jQuery(function($) {
 	WPGMZA.Marker.ANIMATION_BOUNCE			= "1";
 	WPGMZA.Marker.ANIMATION_DROP			= "2";
 	
+	Object.defineProperty(WPGMZA.Marker.prototype, "offsetX", {
+		
+		get: function()
+		{
+			return this._offset.x;
+		},
+		
+		set: function(value)
+		{
+			this._offset.x = value;
+			this.updateOffset();
+		}
+		
+	});
+	
+	Object.defineProperty(WPGMZA.Marker.prototype, "offsetY", {
+		
+		get: function()
+		{
+			return this._offset.y;
+		},
+		
+		set: function(value)
+		{
+			this._offset.y = value;
+			this.updateOffset();
+		}
+		
+	});
+	
 	/**
 	 * Called when the marker has been added to a map
 	 * @method
@@ -100,8 +137,6 @@ jQuery(function($) {
 	WPGMZA.Marker.prototype.onAdded = function(event)
 	{
 		var self = this;
-		
-		// this.infoWindow = WPGMZA.InfoWindow.createInstance(this);
 		
 		this.addEventListener("click", function(event) {
 			self.onClick(event);
@@ -117,19 +152,47 @@ jQuery(function($) {
 		
 		if(this.map.settings.marker == this.id)
 			self.trigger("select");
+		
+		if(this.infoopen == "1")
+			this.openInfoWindow();
 	}
 	
-	/**
-	 * This function will hide the last info the user interacted with, so that only one InfoWindow can be open at any given moment.
-	 * @method
-	 * @memberof WPGMZA.Marker
-	 */
-	WPGMZA.Marker.prototype.hidePreviousInteractedInfoWindow = function()
+	WPGMZA.Marker.prototype.handleLegacyGlobals = function(row)
 	{
-		if(!this.map.lastInteractedMarker)
+		if(!(WPGMZA.settings.useLegacyGlobals && this.map_id && this.id))
 			return;
 		
-		this.map.lastInteractedMarker.infoWindow.close();
+		var m;
+		if(WPGMZA.pro_version && (m = WPGMZA.pro_version.match(/\d+/)))
+		{
+			if(m[0] <= 7)
+				return; // Don't touch the legacy globals
+		}
+		
+		if(!window.marker_array)
+			window.marker_array = {};
+		
+		if(!marker_array[this.map_id])
+			marker_array[this.map_id] = [];
+		
+		marker_array[this.map_id][this.id] = this;
+		
+		if(!window.wpgmaps_localize_marker_data)
+			window.wpgmaps_localize_marker_data = {};
+		
+		if(!wpgmaps_localize_marker_data[this.map_id])
+			wpgmaps_localize_marker_data[this.map_id] = [];
+		
+		var cloned = $.extend({marker_id: this.id}, row);
+		wpgmaps_localize_marker_data[this.map_id][this.id] = cloned;
+	}
+	
+	WPGMZA.Marker.prototype.initInfoWindow = function()
+	{
+		if(this.infoWindow)
+			return;
+		
+		this.infoWindow = WPGMZA.InfoWindow.createInstance();
 	}
 	
 	/**
@@ -139,9 +202,22 @@ jQuery(function($) {
 	 */
 	WPGMZA.Marker.prototype.openInfoWindow = function()
 	{
-		//this.hidePreviousInteractedInfoWindow();
-		//this.infoWindow.open(this.map, this);
-		//this.map.lastInteractedMarker = this;
+		if(!this.map)
+		{
+			console.warn("Cannot open infowindow for marker with no map");
+			return;
+		}
+		
+		// NB: This is a workaround for "undefined" in InfoWindows (basic only) on map edit page
+		if(WPGMZA.currentPage == "map-edit" && !WPGMZA.pro_version)
+			return;
+		
+		if(this.map.lastInteractedMarker)
+			this.map.lastInteractedMarker.infoWindow.close();
+		this.map.lastInteractedMarker = this;
+		
+		this.initInfoWindow();
+		this.infoWindow.open(this.map, this);
 	}
 	
 	/**
@@ -191,6 +267,9 @@ jQuery(function($) {
 			return url.replace(/^http(s?):/, "");
 		}
 		
+		if(WPGMZA.defaultMarkerIcon)
+			return stripProtocol(WPGMZA.defaultMarkerIcon);
+		
 		return stripProtocol(WPGMZA.settings.default_marker_icon);
 	}
 	
@@ -202,10 +281,10 @@ jQuery(function($) {
 	 */
 	WPGMZA.Marker.prototype.getPosition = function()
 	{
-		return {
+		return new WPGMZA.LatLng({
 			lat: parseFloat(this.lat),
 			lng: parseFloat(this.lng)
-		};
+		});
 	}
 	
 	/**
@@ -226,6 +305,19 @@ jQuery(function($) {
 			this.lat = parseFloat(latLng.lat);
 			this.lng = parseFloat(latLng.lng);
 		}
+	}
+	
+	WPGMZA.Marker.prototype.setOffset = function(x, y)
+	{
+		this._offset.x = x;
+		this._offset.y = y;
+		
+		this.updateOffset();
+	}
+	
+	WPGMZA.Marker.prototype.updateOffset = function()
+	{
+		
 	}
 	
 	/**
@@ -252,6 +344,7 @@ jQuery(function($) {
 	/**
 	 * Get the marker visibility
 	 * @method
+	 * @todo Implement
 	 * @memberof WPGMZA.Marker
 	 */
 	WPGMZA.Marker.prototype.getVisible = function()
@@ -271,6 +364,11 @@ jQuery(function($) {
 			this.infoWindow.close();
 	}
 	
+	WPGMZA.Marker.prototype.getMap = function()
+	{
+		return this.map;
+	}
+	
 	/**
 	 * Sets the map this marker should be displayed on. If it is already on a map, it will be removed from that map first, before being added to the supplied map.
 	 * @method
@@ -283,11 +381,11 @@ jQuery(function($) {
 		{
 			if(this.map)
 				this.map.removeMarker(this);
-			
-			return;
 		}
+		else
+			map.addMarker(this);
 		
-		map.addMarker(this);
+		this.map = map;
 	}
 	
 	/**
@@ -319,6 +417,11 @@ jQuery(function($) {
 	 * @param {object} options An object containing the options to be set
 	 */
 	WPGMZA.Marker.prototype.setOptions = function(options)
+	{
+		
+	}
+	
+	WPGMZA.Marker.prototype.setOpacity = function(opacity)
 	{
 		
 	}

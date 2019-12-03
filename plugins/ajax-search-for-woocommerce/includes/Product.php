@@ -37,6 +37,21 @@ class Product
     }
 
     /**
+     * Get created date
+     *
+     * @return mixed
+     */
+    public function getCreatedDate()
+    {
+        $date = $this->wcProduct->get_date_created();
+        if ( ! $date) {
+            $date = '0000-00-00 00:00:00';
+        }
+
+        return $date;
+    }
+
+    /**
      * Get product name
      * @return string
      */
@@ -46,23 +61,37 @@ class Product
     }
 
     /**
-     * Get product short description
+     * Get prepared product description
+     *
+     * @param string $type full|short|suggestions
+     *
      * @return string
      */
-    public function getDescription()
+    public function getDescription($type = 'full')
     {
 
         $output = '';
 
-        $desc = $this->wcProduct->get_short_description();
-
-        if (empty($desc)) {
-            $desc = $this->wcProduct->get_description();
+        if ($type === 'full') {
+            $output = $this->wcProduct->get_description();
         }
 
-        if ( ! empty($desc)) {
-            $output = Helpers::strCut(wp_strip_all_tags($desc), 120);
-            $output = html_entity_decode($output);
+        if ($type === 'short') {
+            $output = $this->wcProduct->get_short_description();
+        }
+
+        if ($type === 'suggestons') {
+
+            $desc = $this->wcProduct->get_short_description();
+
+            if (empty($desc)) {
+                $desc = $this->wcProduct->get_description();
+            }
+
+            if ( ! empty($desc)) {
+                $output = Helpers::strCut(wp_strip_all_tags($desc), 120);
+                $output = html_entity_decode($output);
+            }
         }
 
         return $output;
@@ -91,9 +120,13 @@ class Product
         if ( ! empty($imageID)) {
             $imageSrc = wp_get_attachment_image_src($imageID, 'dgwt-wcas-product-suggestion');
 
-            if ( ! empty($imageSrc[0])) {
+            if ( is_array($imageSrc) && ! empty($imageSrc[0])) {
                 $src = $imageSrc[0];
             }
+        }
+
+        if(empty($src)){
+            $src = wc_placeholder_img_src();
         }
 
         return $src;
@@ -108,6 +141,7 @@ class Product
         return '<img src="' . $this->getThumbnailSrc() . '" alt="' . $this->getName() . '" />';
     }
 
+
     /**
      * Get HTML code with the product price
      * @return string
@@ -115,6 +149,46 @@ class Product
     public function getPriceHTML()
     {
         return $this->wcProduct->get_price_html();
+    }
+
+    /**
+     * Get price
+     *
+     * @return string
+     */
+    public function getPrice()
+    {
+        return $this->wcProduct->get_price();
+    }
+
+    /**
+     * Get average rating
+     *
+     * @return float
+     */
+    public function getAverageRating()
+    {
+        return $this->wcProduct->get_average_rating();
+    }
+
+    /**
+     * Get review count
+     *
+     * @return int
+     */
+    public function getReviewCount()
+    {
+        return $this->wcProduct->get_review_count();
+    }
+
+    /**
+     * Get total sales
+     *
+     * @return int
+     */
+    public function getTotalSales()
+    {
+        return $this->wcProduct->get_total_sales();
     }
 
     /**
@@ -132,10 +206,9 @@ class Product
      */
     public function getAvailableVariations()
     {
-        $childrens = $this->wcProduct->get_children();
 
-        if (empty($this->variations) && ! empty($childrens)) {
-            $this->variations = $this->wcProduct->get_available_variations();
+        if (empty($this->variations) && is_a($this->wcProduct, 'WC_Product_Variable')) {
+            return $this->wcProduct->get_available_variations();
         }
 
         return $this->variations;
@@ -150,16 +223,56 @@ class Product
     {
         $skus = array();
 
-        foreach ($this->variations as $variation) {
+        $variations = $this->getAvailableVariations();
 
-            if ( ! empty($variation->variation_has_sku)) {
-                $skus[] = $variation->get_sku();
+        foreach ($variations as $variation) {
+
+            if (is_array($variation) && ! empty($variation['sku'])) {
+                $skus[] = sanitize_text_field($variation['sku']);
             }
         }
 
         return $skus;
     }
 
+    /**
+     * Get attributes
+     *
+     * @return array
+     */
+    public function getAttributes($onlyNames = false)
+    {
+
+        $attributes          = array();
+        $attributeTaxonomies = wc_get_attribute_taxonomies();
+        if ( ! empty($attributeTaxonomies)) {
+
+            foreach ($attributeTaxonomies as $taxonomy) {
+
+                $terms = get_the_terms($this->getID(), 'pa_' . $taxonomy->attribute_name);
+
+                if (is_array($terms)) {
+                    if ( ! $onlyNames) {
+                        $attributes[$taxonomy->attribute_name] = array();
+                    }
+                    foreach ($terms as $term) {
+                        if ( ! $onlyNames) {
+                            $attributes[$taxonomy->attribute_name][] = array(
+                                'name' => $term->name
+                            );
+                        } else {
+                            $attributes[] = $term->name;
+                        }
+                    }
+                }
+
+
+            }
+        }
+
+
+        return $attributes;
+    }
 
     /**
      * Check, if class is initialized correctly
@@ -174,16 +287,6 @@ class Product
         }
 
         return $isValid;
-    }
-
-    /**
-     * Get total reviews
-     *
-     * @return
-     */
-    public function getReviewCount()
-    {
-        return $this->wcProduct->get_review_count();
     }
 
     /**

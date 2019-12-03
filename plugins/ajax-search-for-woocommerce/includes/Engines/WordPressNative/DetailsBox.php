@@ -14,13 +14,16 @@ class DetailsBox {
 
 	public function __construct() {
 
-		// Searched result details ajax action
-		if ( DGWT_WCAS_WC_AJAX_ENDPOINT ) {
-			add_action( 'wc_ajax_' . DGWT_WCAS_RESULT_DETAILS_ACTION, array( $this, 'get_result_details' ) );
-		} else {
-			add_action( 'wp_ajax_nopriv_' . DGWT_WCAS_RESULT_DETAILS_ACTION, array( $this, 'get_result_details' ) );
-			add_action( 'wp_ajax_' . DGWT_WCAS_RESULT_DETAILS_ACTION, array( $this, 'get_result_details' ) );
-		}
+	    if(defined('DGWT_WCAS_WC_AJAX_ENDPOINT')) {
+
+            // Searched result details ajax action
+            if (DGWT_WCAS_WC_AJAX_ENDPOINT) {
+                add_action('wc_ajax_' . DGWT_WCAS_RESULT_DETAILS_ACTION, array($this, 'get_result_details'));
+            } else {
+                add_action('wp_ajax_nopriv_' . DGWT_WCAS_RESULT_DETAILS_ACTION, array($this, 'get_result_details'));
+                add_action('wp_ajax_' . DGWT_WCAS_RESULT_DETAILS_ACTION, array($this, 'get_result_details'));
+            }
+        }
 	}
 
 	/**
@@ -44,7 +47,7 @@ class DetailsBox {
 		if ( !empty( $_REQUEST[ 'post_id' ] ) && is_numeric( $_REQUEST[ 'post_id' ] ) ) {
 
 			$product_id = absint( $_REQUEST[ 'post_id' ] );
-			if ( DGWT_WCAS_WOO_PRODUCT_POST_TYPE === get_post_type( $product_id ) ) {
+			if ( 'product' === get_post_type( $product_id ) ) {
 				$html = $this->get_product_details( $product_id );
 			}
 		}
@@ -59,11 +62,11 @@ class DetailsBox {
 				$html = '';
 
 				switch ( $_REQUEST[ 'taxonomy' ] ) {
-					case DGWT_WCAS_WOO_PRODUCT_CATEGORY:
-						$html	 = $this->get_taxonomy_details( $term_id, DGWT_WCAS_WOO_PRODUCT_CATEGORY, $suggestion );
+					case 'product_cat':
+						$html	 = $this->get_taxonomy_details( $term_id, 'product_cat', $suggestion );
 						break;
-					case DGWT_WCAS_WOO_PRODUCT_TAG:
-						$html	 = $this->get_taxonomy_details( $term_id, DGWT_WCAS_WOO_PRODUCT_TAG, $suggestion );
+					case 'product_tag':
+						$html	 = $this->get_taxonomy_details( $term_id, 'product_tag', $suggestion );
 						break;
 				}
 			}
@@ -90,10 +93,10 @@ class DetailsBox {
 
 	/**
 	 * Prepare products details to the ajax output
-	 * 
+	 *
 	 * @param int $product_id
 	 * @param string $value Suggestion value
-	 * 
+	 *
 	 * @return string HTML
 	 */
 
@@ -102,7 +105,7 @@ class DetailsBox {
 		$html = '';
 
 		$product = new Product( $product_id );
-	
+
 		if ( empty( $product) ) {
 			return;
 		}
@@ -127,11 +130,11 @@ class DetailsBox {
 
 	/**
 	 * Prepare category details to the ajax output
-	 * 
+	 *
 	 * @param int $term_id
-	 * @param string taxonomy 
-	 * @param string $suggestion Suggestion value 
-	 * 
+	 * @param string taxonomy
+	 * @param string $suggestion Suggestion value
+	 *
 	 * @return string HTML
 	 */
 
@@ -161,7 +164,7 @@ class DetailsBox {
 			// Details box title
 			$title .= '<span class="dgwt-wcas-datails-title">';
 			$title .= '<span class="dgwt-wcas-details-title-tax">';
-			if ( DGWT_WCAS_WOO_PRODUCT_CATEGORY === $taxonomy ) {
+			if ( 'product_cat' === $taxonomy ) {
 				$title .= __( 'Category', 'ajax-search-for-woocommerce' ) . ': ';
 			} else {
 				$title .= __( 'Tag', 'ajax-search-for-woocommerce' ) . ': ';
@@ -218,7 +221,7 @@ class DetailsBox {
 		);
 
 		// @TODO Impelement show_hide and hide_free options
-		// 
+		//
 //		if ( empty( $instance[ 'show_hidden' ] ) ) {
 //			$query_args[ 'meta_query' ][]	 = WC()->query->visibility_meta_query();
 //			$query_args[ 'post_parent' ]	 = 0;
