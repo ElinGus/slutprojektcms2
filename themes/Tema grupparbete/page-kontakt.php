@@ -121,26 +121,22 @@ endif;
               ?>
         </div>
         <div class="column formular">
-          <?php if( have_rows('layout') ):
-        while ( have_rows('layout') ) : the_row();
-        if( get_row_layout() == '2_column' ): ?>
-          <?php
-              if( have_rows('formular') ):
-              while ( have_rows('formular') ) : the_row(); ?>
-          <div class="kontaktTitle">
-            <?php the_sub_field('title');?>
-          </div>
-          <p>
-            <?php the_sub_field('formular');?>
-          </p>
-        <?php endwhile;
-      endif;
-      ?>
-          <?php
-    endif;
-    endwhile;
-    endif;
-    ?>
+          <div class="kontaktTitle">Kontakta oss</div>
+          <form action="" method="post">
+             <div class="select form-padding">
+               <select>
+                 <option selected>Välj ärende</option>
+                 <option value="kontakt">Kontakt</option>
+                 <option value="reklamation">Reklamation</option>
+                 <option value="faktura">Faktura</option>
+               </select>
+             </div>
+             <input class="input form-padding" type="text" placeholder="E-post">
+             <textarea class="textarea form-padding" placeholder="Meddelande"></textarea>
+             <input class="input form-padding" type="file" id="myFile" accept="image/*">
+             <br>
+             <input class="button form-button form-padding" type="submit" value="Skicka">
+          </form>
         </div>
       </div>
     </div>

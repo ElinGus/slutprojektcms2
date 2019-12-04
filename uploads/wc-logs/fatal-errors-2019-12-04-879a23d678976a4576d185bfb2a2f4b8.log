@@ -1,2 +1,8 @@
 2019-12-04T08:26:22+00:00 CRITICAL Maximum execution time of 30 seconds exceeded in C:\xampp\htdocs\grupparbete\wp-content\plugins\advanced-custom-fields-pro\includes\locations\class-acf-location-nav-menu-item.php on line 3
 
+2019-12-04T09:26:02+00:00 CRITICAL Maximum execution time of 30 seconds exceeded in C:\xampp\htdocs\grupparbete\wp-includes\Requests\Transport\cURL.php on line 163
+
+2019-12-04T09:58:06+00:00 CRITICAL syntax error, unexpected 'endif' (T_ENDIF), expecting end of file in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\page-kontakt.php on line 156
+
+2019-12-04T09:58:14+00:00 CRITICAL syntax error, unexpected 'endwhile' (T_ENDWHILE), expecting end of file in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\page-kontakt.php on line 156
+
