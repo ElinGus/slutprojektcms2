@@ -13,7 +13,7 @@ på den men laborerade mig fram till det via Bulmas dokumentation -->
     <div class="container">
       <div class="columns">
         <div class="column is-three-fifths is-offset-one-fifth">
-        <h1>Store locator</h1>
+        <h1><?php wp_title(''); ?></h1>
               <?php
                 while (have_posts()) {
                     the_post();
