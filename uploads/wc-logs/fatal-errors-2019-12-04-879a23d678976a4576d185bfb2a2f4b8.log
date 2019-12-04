@@ -6,3 +6,7 @@
 
 2019-12-04T09:58:14+00:00 CRITICAL syntax error, unexpected 'endwhile' (T_ENDWHILE), expecting end of file in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\page-kontakt.php on line 156
 
+2019-12-04T10:47:54+00:00 CRITICAL syntax error, unexpected '{' in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\page-kontakt.php on line 125
+
+2019-12-04T10:55:25+00:00 CRITICAL syntax error, unexpected 'kontaktTitle' (T_STRING), expecting ',' or ';' in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\page-kontakt.php on line 126
+

@@ -121,22 +121,30 @@ endif;
               ?>
         </div>
         <div class="column formular">
-          <div class="kontaktTitle">Kontakta oss</div>
-          <form action="" method="post">
-             <div class="select form-padding">
-               <select>
-                 <option selected>Välj ärende</option>
-                 <option value="kontakt">Kontakt</option>
-                 <option value="reklamation">Reklamation</option>
-                 <option value="faktura">Faktura</option>
-               </select>
-             </div>
-             <input class="input form-padding" type="text" placeholder="E-post">
-             <textarea class="textarea form-padding" placeholder="Meddelande"></textarea>
-             <input class="input form-padding" type="file" id="myFile" accept="image/*">
-             <br>
-             <input class="button form-button form-padding" type="submit" value="Skicka">
-          </form>
+          <?php
+          if($_SERVER['REQUEST_METHOD'] == 'POST'){
+            echo '<div class"kontaktTitle">Tack för ditt meddelande!</div>';
+          } else {
+            ?>
+            <div class="kontaktTitle">Kontakta oss</div>
+            <form action="" method="post">
+               <div class="select form-padding">
+                 <select>
+                   <option selected>Välj ärende</option>
+                   <option value="kontakt">Kontakt</option>
+                   <option value="reklamation">Reklamation</option>
+                   <option value="faktura">Faktura</option>
+                 </select>
+               </div>
+               <input class="input form-padding" type="text" placeholder="E-post">
+               <textarea class="textarea form-padding" placeholder="Meddelande"></textarea>
+               <input class="input form-padding" type="file" id="myFile" accept="image/*">
+               <br>
+               <input class="button form-button form-padding" type="submit" value="Skicka">
+            </form>
+          <?php
+          }?>
+
         </div>
       </div>
     </div>
