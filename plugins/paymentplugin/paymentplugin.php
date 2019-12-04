@@ -7,40 +7,34 @@ Author: Elin, Annika, Yasmine
 */
 
 if (!defined("ABSPATH")) {
-    // Se till att inte filen laddas direkt
     exit;
 }
 
-// Verifiera att woocommerce är aktiverat
 if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
 
-    // Vänta tills plugin är laddade innan payment gatewayen skapas
     add_action('plugins_loaded', 'iths_add_payment_gateway');
     function iths_add_payment_gateway() {
 
         class WC_fakturabetalning_Payment_Gateway extends WC_Payment_Gateway {
 
             function __construct() {
-                // Sätter upp basparametrarna för modulen
+
                 $this->id = "fakturabetalning-payments";
                 $this->method_title = __("Fakturabetalning", "fakturabetalning");
                 $this->method_description = __("En betalningsmodul för fakturaköp", "fakturabetalning");
                 $this->title = $this->method_title;
 
                 $this->icon = null;
-                // Vi behöver inga fält i checkouten
+
                 $this->has_fields = false;
 
-                // Initiera formulärsfält och inställningar
                 $this->init_form_fields();
                 $this->init_settings();
 
-                // Ser till att inställningarna laddas in i $this->settings
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
             }
 
             function init_form_fields() {
-                // Sätter upp de formulärsfält som behövs
                 $this->form_fields = [
                     'enabled' => [
                         'title' => __('Aktivera/Avaktivera Gateway', 'fakturabetalning'),
@@ -51,38 +45,37 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 ];
             }
 
-            // Hanterar "betalningen"
             function process_payment($order_id)
             {
-                // Laddar in woocommerce-objektet
-                // Detta behövs för att rensa varukorgen
                 global $woocommerce;
 
-                // Skapar ett orderobjekt från det givna IDt
                 $order = new WC_Order($order_id);
 
+                $SSNumber = get_post_meta( $order_id, '_billing_wooccm11', true );
 
-                if (strtolower($givenName) == strtolower($acceptedName)) {
-                    // Om namnen stämmer överens så lägger vi till en ny note, markerar ordern som betald och tömmer varukorgen
-                    $order->add_order_note(__("Betalningen lyckades", "fakturabetalning"));
-                    $order->payment_complete();
-                    $woocommerce->cart->empty_cart();
+                //Luhn-algorithmen
+                function is_valid_luhn($SSNumber) {
+                  settype($SSNumber, 'string');
+                  $sumTable = array(
+                    array(0,1,2,3,4,5,6,7,8,9),
+                    array(0,2,4,6,8,1,3,5,7,9));
+                  $sum = 0;
+                  $flip = 0;
+                  for ($i = strlen($SSNumber) - 1; $i >= 0; $i--) {
+                    $sum += $sumTable[$flip++ & 0x1][$SSNumber[$i]];
+                  }
+                  return $sum % 10 === 0;
+                }
 
-                    return [
-                        'result'   => 'success',
-                        'redirect' => $this->get_return_url( $order ),
-                    ];
-                } else {
-                    // Om namnen inste stämmer överens så lägger vi till en note att betalningen misslyckades. Vi
-                    // visar även ett felmeddelande för kunden
-                    $error = __("Betalningen misslyckades", "fakturabetalning");
-                    wc_add_notice( $error, 'error' );
-                    $order->add_order_note( 'Error: '. $error );
+                if (is_valid_luhn($SSNumber)) {
+                  return [
+                      'result'   => 'success',
+                      'redirect' => $this->get_return_url( $order ),
+                  ];
                 }
             }
         }
 
-        // Lägger till vår nyskapade gateway
         add_filter('woocommerce_payment_gateways', 'iths_load_payment_gateway');
         function iths_load_payment_gateway($methods)
         {
@@ -91,5 +84,4 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         }
     }
 }
-
 ?>
