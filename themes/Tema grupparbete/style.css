@@ -154,6 +154,10 @@ a.edit {
   font-size: 1.2rem;
 }
 
+.woocommerce #respond input#submit, .woocommerce a.button, .woocommerce button.button, .woocommerce input.button {
+  margin-top: 3%;
+}
+
 /* ----- Elins kod ----- */
 /* ---- Yasmine & Elin ----- */
 .kontaktTitle {
