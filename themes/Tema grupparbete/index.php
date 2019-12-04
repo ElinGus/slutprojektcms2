@@ -30,4 +30,36 @@
 </section>
 <?php get_template_part('partials/carousel'); ?>
 
+<section>
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-two-thirds">
+        <?php
+          if ( have_posts() ) {
+          	while ( have_posts() ) {
+          		the_post();
+              the_content();
+          	} // end while
+          } // end if
+        ?>
+        <?php
+        // check if the repeater field has rows of data
+        if( have_rows('produkter_startsida') ):
+         	// loop through the rows of data
+            while ( have_rows('produkter_startsida') ) : the_row();
+                // display a sub field value
+                the_sub_field('startsida_rubrik');
+                echo do_shortcode(get_sub_field('produkts_shortcode'));
+            endwhile;
+        else :
+            // no rows found
+        endif;
+        ?>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
 <?php wp_footer(); ?>
