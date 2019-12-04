@@ -20,4 +20,6 @@ get_template_part('partials/navbar'); ?>
   </div>
 </div>
 
+
+
 <?php get_footer(); ?>
