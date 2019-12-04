@@ -3,26 +3,22 @@
 <?php get_header();
 get_template_part('partials/navbar');?>
 
-<!-- Slider med Bulma Carousel -->
-<!-- Valde en slider här istället för klassisk blogginläggslook då vi ville ha
-det lite renare och mer lättöverskådligt. Det är en vanlig loop som hämtar
-poster från custom post type 'Tjänster/services' där man givetvis kan redigera
-och lägga till innehåll i wp-admin. Hade lite bekymmer med att få rätt storlek
-på den men laborerade mig fram till det via Bulmas dokumentation -->
-<section>
+<section class="service-slide">
     <div class="container">
       <div class="columns">
         <div class="column is-three-fifths is-offset-one-fifth">
-        <h1><?php wp_title(''); ?></h1>
+        <h1 class="title"><?php wp_title(''); ?></h1>
+                  <ul>
               <?php
                 while (have_posts()) {
                     the_post();
                     //the_post_thumbnail_url();
                     ?>
-                    <p><a href="<?php the_permalink(); ?>"><?php the_title(); ?> &nbsp; <i class="fa fa-angle-double-right"></i></a></p>
+                    <li class="is-size-5" style="padding-bottom:.6rem"><a href="<?php the_permalink(); ?>"><?php the_title(); ?> &nbsp; <i class="fa fa-angle-double-right"></i></a></li>
                     <?php
                   }
                   ?>
+                  </ul>
         </div>
       </div>
     </div>              
