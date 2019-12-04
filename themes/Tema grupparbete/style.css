@@ -72,6 +72,18 @@ h1 {
   padding: 100px;
 }
 
+.form-padding {
+  margin: 2%;
+}
+
+.form-button {
+  background-color: #eee;
+}
+
+.form-button:hover {
+  background-color: #b5b5b5;
+}
+
 .map {
   margin-right: 50px;
 }
