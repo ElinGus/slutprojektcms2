@@ -66,18 +66,18 @@
       <div class="column is-two-thirds">
         <h1>Recent Posts</h1>
         <ul>
-    <?php // Define Query Parameters
-    $the_query = new WP_Query( 'posts_per_page=3' );
-    // Do the query loop
-    while( $the_query->have_posts() ): $the_query->the_post();
-      // Display the Post Title with Hyperlink ?>
-      <li>
-        <?php the_title(); ?>
-            <?php the_post_thumbnail_url(); ?>
-        <?php the_excerpt(); ?>
-      </li>
-    <?php endwhile; ?>
-  </ul>
+          <?php // Define Query Parameters
+          $the_query = new WP_Query( 'posts_per_page=3' );
+          // Do the query loop
+          while( $the_query->have_posts() ): $the_query->the_post();
+            // Display the Post Title with Hyperlink ?>
+            <li>
+              <?php the_title(); ?>
+              <img src=<?php the_post_thumbnail_url(); ?> />
+              <?php the_excerpt(); ?>
+            </li>
+          <?php endwhile; ?>
+        </ul>
       </div>
     </div>
   </div>
