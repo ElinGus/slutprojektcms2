@@ -1,4 +1,0 @@
-2019-12-09T09:45:46+00:00 CRITICAL Maximum execution time of 30 seconds exceeded in C:\xampp\htdocs\grupparbete\wp-includes\wp-db.php on line 2030
-
-2019-12-09T13:01:36+00:00 CRITICAL Maximum execution time of 30 seconds exceeded in C:\xampp\htdocs\grupparbete\wp-includes\class-phpmailer.php on line 700
-

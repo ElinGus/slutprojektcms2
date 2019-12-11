@@ -7,7 +7,6 @@
             "label": "Layout",
             "name": "layout",
             "type": "flexible_content",
-            "value": null,
             "instructions": "",
             "required": 0,
             "conditional_logic": 0,
@@ -28,7 +27,6 @@
                             "label": "Indexgallery",
                             "name": "indexgallery",
                             "type": "gallery",
-                            "value": null,
                             "instructions": "",
                             "required": 0,
                             "conditional_logic": 0,
@@ -48,6 +46,25 @@
                             "max_height": "",
                             "max_size": "",
                             "mime_types": ""
+                        },
+                        {
+                            "key": "field_5df0b41fd40fb",
+                            "label": "Campaigntext",
+                            "name": "campaigntext",
+                            "type": "text",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "",
+                            "maxlength": ""
                         }
                     ],
                     "min": "",
@@ -76,5 +93,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1543917366
+    "modified": 1576057503
 }
