@@ -136,8 +136,8 @@ endif;
                    <option value="faktura">Invoice</option>
                  </select>
                </div>
-               <input class="input form-padding" type="text" placeholder="Email">
-               <textarea class="textarea form-padding" placeholder="Message"></textarea>
+               <input class="input form-padding" type="text" placeholder="Email" required>
+               <textarea class="textarea form-padding" placeholder="Message" required></textarea>
                <input class="input form-padding" type="file" id="myFile" accept="image/*">
                <br>
                <input class="button form-button form-padding" type="submit" value="Send">
