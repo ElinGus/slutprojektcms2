@@ -17,6 +17,9 @@
       <?php foreach( $images as $image ): ?>
       <div class='carousel-item has-background is-active'>
         <img class="is-background" src="<?php echo $image['url']; ?>" alt="<?php echo $image['alt']; ?>" />
+        <div class="bildspelstext">
+          <h1>Cykellycka på stigen 2020</h1>
+        </div>
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
