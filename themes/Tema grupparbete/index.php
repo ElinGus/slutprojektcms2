@@ -15,12 +15,8 @@
           $size = 'full'; // (thumbnail, medium, large, full or custom size)
           if( $images ): ?>
       <?php foreach( $images as $image ): ?>
-        <?php
-        if( get_row_layout() == 'indexgallery' ):
-          $text = get_sub_field('campaigntext'); ?>
       <div class='carousel-item has-background is-active'>
         <img class="is-background" src="<?php echo $image['url']; ?>" alt="<?php echo $image['alt']; ?>" />
-        <h1> <?php echo $text; ?>
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
