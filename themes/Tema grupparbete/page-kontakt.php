@@ -123,24 +123,24 @@ endif;
         <div class="column formular">
           <?php
           if($_SERVER['REQUEST_METHOD'] == 'POST'){
-            echo '<div class"kontaktTitle">Tack för ditt meddelande!</div>';
+            echo '<div class="kontaktTitle">Thank you for your message!</div>';
           } else {
             ?>
-            <div class="kontaktTitle">Kontakta oss</div>
+            <div class="kontaktTitle">Contact us</div>
             <form action="" method="post">
                <div class="select form-padding">
                  <select>
-                   <option selected>Välj ärende</option>
-                   <option value="kontakt">Kontakt</option>
-                   <option value="reklamation">Reklamation</option>
-                   <option value="faktura">Faktura</option>
+                   <option selected>Choose subject</option>
+                   <option value="kontakt">Contact</option>
+                   <option value="reklamation">Complaint</option>
+                   <option value="faktura">Invoice</option>
                  </select>
                </div>
-               <input class="input form-padding" type="text" placeholder="E-post">
-               <textarea class="textarea form-padding" placeholder="Meddelande"></textarea>
+               <input class="input form-padding" type="text" placeholder="Email" required>
+               <textarea class="textarea form-padding" placeholder="Message" required></textarea>
                <input class="input form-padding" type="file" id="myFile" accept="image/*">
                <br>
-               <input class="button form-button form-padding" type="submit" value="Skicka">
+               <input class="button form-button form-padding" type="submit" value="Send">
             </form>
           <?php
           }?>
