@@ -66,12 +66,6 @@ function wpdocs_theme_slug_widgets_init() {
   }
     add_action( 'widgets_init', 'wpdocs_theme_slug_widgets_init' );
 
-// Kod för att ändra 'read more' på excerpts på blogginlägg
-function modify_read_more_link() {
-  return '<a class="more-link" href="' . get_permalink() . '">Läs mer</a>';
-}
-    add_filter( 'the_content_more_link', 'modify_read_more_link' );
-
 //Custom post types - stores
 function stores() {
   $postType = 'stores';
@@ -99,12 +93,6 @@ function stores() {
 }
 
 add_action('init', 'stores');
-
-// Byta ut text i Sale-knapp till Rea på Woocommerce produktsida
-add_filter( 'woocommerce_sale_flash', 'wc_custom_replace_sale_text' );
-  function wc_custom_replace_sale_text( $html ) {
-    return str_replace( __( 'Sale!', 'woocommerce' ), __( 'Rea!', 'woocommerce' ), $html );
-  }
 
 //För kategorisidan woocommerce
 function mytheme_add_woocommerce_support() {
