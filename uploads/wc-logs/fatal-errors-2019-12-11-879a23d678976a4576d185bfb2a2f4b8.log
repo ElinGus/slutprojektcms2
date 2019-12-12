@@ -1,8 +1,0 @@
-2019-12-11T18:18:43+00:00 CRITICAL Maximum execution time of 30 seconds exceeded in C:\xampp\htdocs\grupparbete\wp-includes\functions.php on line 5699
-
-2019-12-11T19:16:33+00:00 CRITICAL syntax error, unexpected 'endwhile' (T_ENDWHILE) in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\index.php on line 57
-
-2019-12-11T19:23:14+00:00 CRITICAL syntax error, unexpected 'endif' (T_ENDIF) in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\index.php on line 57
-
-2019-12-11T19:24:52+00:00 CRITICAL syntax error, unexpected 'endif' (T_ENDIF) in C:\xampp\htdocs\grupparbete\wp-content\themes\Tema grupparbete\index.php on line 54
-
