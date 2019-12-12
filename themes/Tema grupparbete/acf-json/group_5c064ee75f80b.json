@@ -46,11 +46,21 @@
                             "max_height": "",
                             "max_size": "",
                             "mime_types": ""
-                        },
+                        }
+                    ],
+                    "min": "",
+                    "max": ""
+                },
+                "layout_5df161921d2f9": {
+                    "key": "layout_5df161921d2f9",
+                    "name": "campaign_text",
+                    "label": "Campaign text",
+                    "display": "block",
+                    "sub_fields": [
                         {
-                            "key": "field_5df0b41fd40fb",
-                            "label": "Campaigntext",
-                            "name": "campaigntext",
+                            "key": "field_5df161ba1d2fa",
+                            "label": "Campaign text",
+                            "name": "campaign_text",
                             "type": "text",
                             "instructions": "",
                             "required": 0,
@@ -93,5 +103,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1576057503
+    "modified": 1576100635
 }
