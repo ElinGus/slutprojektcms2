@@ -87,6 +87,7 @@
 
 
 <!-- VISAR PRODUKTER (VIA SHORTCODE) -->
+<br>
 <section>
   <div class="container">
     <div class="columns is-centered">
@@ -129,11 +130,13 @@
           // Do the query loop
           while( $the_query->have_posts() ): $the_query->the_post();
             // Display the Post Title with Hyperlink ?>
-            <li>
+            <div class="col">
+            <li><br>
               <?php the_title(); ?>
               <img src=<?php the_post_thumbnail_url(); ?> />
               <?php the_excerpt(); ?>
-            </li>
+            </li><br>
+            </div>
           <?php endwhile; ?>
         </ul>
       </div>

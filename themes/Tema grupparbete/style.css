@@ -5,8 +5,17 @@ Author: Yasmine, Elin & Annika
 /* --------- Yasmines kod -------*/
 
 .campaign-text {
-  padding-top: 300px;
-  padding-left: 450px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: purple;
+}
+
+.col {
+	width: 33.3%;
+	float: left;
+  padding: 20px;
 }
 
 footer {
