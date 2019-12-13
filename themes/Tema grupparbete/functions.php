@@ -5,7 +5,7 @@ function my_theme_enqueues() {
   wp_enqueue_script( 'script', get_stylesheet_directory_uri() . '/js/bulma-carousel.min.js', array( 'jquery' ), false, true );
   wp_enqueue_script( 'accordionscript', get_stylesheet_directory_uri() . '/js/bulma-accordion.min.js', array( 'jquery' ), false, true );
   wp_enqueue_script( 'aosJS', get_stylesheet_directory_uri() . '/js/aos.js', array( 'jquery' ), false, true );
-  wp_enqueue_style( 'bulma', get_stylesheet_directory_uri() . '/bulma-0.7.2/css/bulma.min.css' );
+  wp_enqueue_style( 'bulma', get_stylesheet_directory_uri() . '/bulma-0.8.0/css/bulma.min.css' );
   wp_enqueue_style( 'carouselcss', get_stylesheet_directory_uri() . '/css/bulma-carousel.min.css' );
   wp_enqueue_style( 'accordioncss', get_stylesheet_directory_uri() . '/css/bulma-accordion.min.css' );
   wp_enqueue_style( 'aosCSS', get_stylesheet_directory_uri() . '/css/aos.css' );
