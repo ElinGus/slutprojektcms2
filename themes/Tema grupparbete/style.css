@@ -321,14 +321,18 @@ a.navbar-link:hover {
   width: 150px;
 }
 
-.campaign-text {
+#campaign-container {
+  position: relative;
+}
+
+.campaign-info {
   position: absolute;
   top: 50%;
-  left: 50%;
   background-color: rgba(0, 0, 0, 0.5);
   padding: 12px;
   color: white;
-  max-width: 100rem;
+  max-width: 50rem;
+  right: 0;
 }
 
 /*-------------FONTS------------------*/

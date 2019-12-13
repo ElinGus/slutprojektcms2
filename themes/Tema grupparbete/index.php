@@ -6,8 +6,8 @@
   <div class="naven">
     <?php get_template_part('partials/navbar'); ?>
   </div>
-  <div class="hero-carousel carousel-animated carousel-animate-fade" data-autoplay="true" data-delay="5000">
-    <div class="carousel-container">
+  <div id="carousel-campaign" class="hero-carousel">
+
 
       <?php /* loop som hämtar gallerit som läggs upp i acf-field och sedan visar dessa bilder */
       if( have_rows('campaign') ):
@@ -16,9 +16,9 @@
           $size = 'full'; // (thumbnail, medium, large, full or custom size)
           if( $images ): ?>
       <?php foreach( $images as $image ): ?>
-      <div class='carousel-item has-background is-active'>
+      <div id="campaign-container" class="carousel-item has-background">
         <img class="is-background" src="<?php echo $image['url']; ?>" alt="<?php echo $image['alt']; ?>" />
-        <span class="campaign-text"><?php the_sub_field('campaign_text'); ?></span>
+        <span class="campaign-info"><?php the_sub_field('campaign_text'); ?></span>
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
@@ -27,7 +27,7 @@
       endif;
       ?>
 
-    </div>
+
   </div>
 </section>
 <?php get_template_part('partials/carousel'); ?>
