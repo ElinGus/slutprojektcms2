@@ -6,37 +6,23 @@
   <div class="naven">
     <?php get_template_part('partials/navbar'); ?>
   </div>
-  <div class="hero-carousel carousel-animated carousel-animate-fade" data-autoplay="true" data-delay="3000">
-    <div class='carousel-container'>
-
-      <?php // Layout för kampanjtext
-      if( have_rows('layout') ):
-        while ( have_rows('layout') ) : the_row();
-        if( get_row_layout() == 'campaign_text' ):
-          $campaign_text = get_sub_field('campaign_text');
-          ?>
-          <h1 class="campaign-text"> <?php echo ($campaign_text); ?></h1>
-          <?php
-        endif;
-        endwhile;
-      endif;
-      ?>
+  <div class="hero-carousel carousel-animated carousel-animate-fade" data-autoplay="true" data-delay="5000">
+    <div class="carousel-container">
 
       <?php /* loop som hämtar gallerit som läggs upp i acf-field och sedan visar dessa bilder */
-      if( have_rows('layout') ):
-        while ( have_rows('layout') ) : the_row();
-        if( get_row_layout() == 'indexgallery' ):
-          $images = get_sub_field('indexgallery');
+      if( have_rows('campaign') ):
+        while ( have_rows('campaign') ) : the_row();
+          $images = get_sub_field('gallery_images');
           $size = 'full'; // (thumbnail, medium, large, full or custom size)
           if( $images ): ?>
       <?php foreach( $images as $image ): ?>
       <div class='carousel-item has-background is-active'>
         <img class="is-background" src="<?php echo $image['url']; ?>" alt="<?php echo $image['alt']; ?>" />
+        <span class="campaign-text"><?php the_sub_field('campaign_text'); ?></span>
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
       <?php
-      endif;
       endwhile;
       endif;
       ?>
@@ -45,46 +31,6 @@
   </div>
 </section>
 <?php get_template_part('partials/carousel'); ?>
-
-
-
-<!-- TEST: REPEATER FÖR KAMPANJ -->
-<!-- <section class="hero is-fullheight has-carousel">
-  <div class="naven">
-    <?php get_template_part('partials/navbar'); ?>
-  </div>
-<div class="hero-carousel carousel-animated carousel-animate-fade" data-autoplay="true" data-delay="3000">
-  <div class="carousel-container">
-
-    <?php
-				// check if the repeater field has rows of data
-		if( have_rows('campaign') ):
-		 	// loop through the rows of data
-		    while ( have_rows('campaign') ) : the_row();
-		        // display a sub field value
-            $campaign_text = get_sub_field('campaign_text');
-		        $images = get_sub_field('gallery_images');
-				if( $images ): ?>
-        <?php foreach( $images as $image ): ?>
-        <div class='carousel-item has-background is-active'>
-          <img class="is-background" src="<?php echo $image['url']; ?>" alt="<?php echo $image['alt']; ?>" />
-        </div>
-        <h1 class="campaign-text"> <?php echo ($campaign_text); ?> </h1>
-            </li>
-        <?php endforeach;
-        endif;?>
-		   <?php endwhile;
-		else :
-		    // no rows found
-		endif;
-		?>
-
-  </div>
-</div>
-</section>
-<?php get_template_part('partials/carousel'); ?> -->
-
-
 
 <!-- VISAR PRODUKTER (VIA SHORTCODE) -->
 <br>
