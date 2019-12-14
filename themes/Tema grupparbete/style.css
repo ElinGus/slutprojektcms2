@@ -321,6 +321,20 @@ a.navbar-link:hover {
   width: 150px;
 }
 
+#campaign-container {
+  position: relative;
+}
+
+.campaign-info {
+  position: absolute;
+  top: 30vw;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 12px;
+  color: white;
+  max-width: 50rem;
+  right: 0;
+}
+
 /*-------------FONTS------------------*/
 @font-face {
   font-family: Title;

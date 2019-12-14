@@ -1,0 +1,22 @@
+2019-12-13T09:41:08+00:00 CRITICAL Uncaught Error: Call to undefined method WooCommerce::add_error() in C:\xampp\htdocs\grupparbete\wp-content\plugins\paymentplugin\paymentplugin.php:72
+Stack trace:
+#0 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-checkout.php(924): WC_fakturabetalning_Payment_Gateway->process_payment(556)
+#1 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-checkout.php(1124): WC_Checkout->process_order_payment(556, 'fakturabetalnin...')
+#2 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-ajax.php(462): WC_Checkout->process_checkout()
+#3 C:\xampp\htdocs\grupparbete\wp-includes\class-wp-hook.php(288): WC_AJAX::checkout('')
+#4 C:\xampp\htdocs\grupparbete\wp-includes\class-wp-hook.php(312): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\grupparbete\wp-includes\plugin.php(478): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-ajax.php(87): do_action('wc_ajax_checkou...')
+#7 C:\xampp\ in C:\xampp\htdocs\grupparbete\wp-content\plugins\paymentplugin\paymentplugin.php on line 72
+
+2019-12-13T09:41:29+00:00 CRITICAL Uncaught Error: Call to undefined method WooCommerce::add_error() in C:\xampp\htdocs\grupparbete\wp-content\plugins\paymentplugin\paymentplugin.php:72
+Stack trace:
+#0 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-checkout.php(924): WC_fakturabetalning_Payment_Gateway->process_payment(556)
+#1 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-checkout.php(1124): WC_Checkout->process_order_payment(556, 'fakturabetalnin...')
+#2 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-ajax.php(462): WC_Checkout->process_checkout()
+#3 C:\xampp\htdocs\grupparbete\wp-includes\class-wp-hook.php(288): WC_AJAX::checkout('')
+#4 C:\xampp\htdocs\grupparbete\wp-includes\class-wp-hook.php(312): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\grupparbete\wp-includes\plugin.php(478): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-ajax.php(87): do_action('wc_ajax_checkou...')
+#7 C:\xampp\ in C:\xampp\htdocs\grupparbete\wp-content\plugins\paymentplugin\paymentplugin.php on line 72
+

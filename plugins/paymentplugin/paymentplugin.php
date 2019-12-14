@@ -72,6 +72,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                       'result'   => 'success',
                       'redirect' => $this->get_return_url( $order ),
                   ];
+                } else {
+                  //ändrar på error-meddelandet
+                  add_action('woocommerce_checkout_process', 'my_custom_checkout_field_process');
+                  wc_add_notice( __( 'Please, enter 10 digits in the social security number field.' ), 'error' );
                 }
             }
         }
