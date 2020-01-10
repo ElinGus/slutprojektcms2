@@ -77,11 +77,13 @@
           while( $the_query->have_posts() ): $the_query->the_post();
             // Display the Post Title with Hyperlink ?>
             <div class="col">
-            <li><br>
-              <?php the_title(); ?>
+            <li>
+              <p class="title is-4">
+                <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+              </p>
               <img src=<?php the_post_thumbnail_url(); ?> />
-              <?php the_excerpt(); ?>
-            </li><br>
+              <?php the_content(); ?>
+            </li>
             </div>
           <?php endwhile; ?>
         </ul>
