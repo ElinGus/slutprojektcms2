@@ -33,8 +33,7 @@
 <?php get_template_part('partials/carousel'); ?>
 
 <!-- VISAR PRODUKTER (VIA SHORTCODE) -->
-<br>
-<section>
+<section class="index-products">
   <div class="container">
     <div class="columns is-centered">
       <div class="column is-two-thirds">
@@ -52,8 +51,15 @@
          	// loop through the rows of data
             while ( have_rows('produkter_startsida') ) : the_row();
                 // display a sub field value
-                the_sub_field('startsida_rubrik');
-                echo do_shortcode(get_sub_field('produkts_shortcode'));
+                ?><p class="title"> <?php
+                the_sub_field('startsida_rubrik'); ?>
+                </p>
+                <div class="index-products-column">
+                  <?php
+                  echo do_shortcode(get_sub_field('produkts_shortcode'));
+                  ?>
+                </div>
+                <?php
             endwhile;
         else :
             // no rows found
@@ -66,17 +72,17 @@
 
 <!-- VISAR SENASTE INLÄGGEN -->
 <section>
-  <div class="container">
+  <div class="container latest-posts">
     <div class="columns is-centered">
       <div class="column is-two-thirds">
-        <h1>Recent Posts</h1>
+        <h1 class="recent-posts-title">Recent Posts</h1>
         <ul>
           <?php // Define Query Parameters
           $the_query = new WP_Query( 'posts_per_page=3' );
           // Do the query loop
           while( $the_query->have_posts() ): $the_query->the_post();
             // Display the Post Title with Hyperlink ?>
-            <div class="col">
+            <div class="col recent-posts-column">
             <li>
               <p class="title is-4">
                 <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>

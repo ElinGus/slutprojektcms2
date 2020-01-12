@@ -3,7 +3,6 @@ Theme Name: Tema grupparbete
 Author: Yasmine, Elin & Annika
 */
 /* --------- Yasmines kod -------*/
-
 .campaign-text {
   position: absolute;
   top: 50%;
@@ -13,8 +12,8 @@ Author: Yasmine, Elin & Annika
 }
 
 .col {
-	width: 33.3%;
-	float: left;
+  width: 33.3%;
+  float: left;
   padding: 20px;
 }
 
@@ -185,6 +184,41 @@ a.edit {
   margin-top: 3%;
 }
 
+/*-- slider --*/
+.slider-navigation-previous {
+  margin-left: 30px;
+}
+
+.slider-navigation-next {
+  margin-right: 30px;
+}
+
+/* index */
+.index-products {
+  background-color: #eee;
+  padding-top: 40px;
+}
+
+.index-products-column {
+  border-bottom: solid black 1px;
+  margin-bottom: 50px;
+}
+
+.index-products .title {
+  font-family: navbarText;
+  font-weight: lighter;
+}
+
+.recent-posts-column:nth-child(2) {
+  background-color: #eee;
+}
+
+.recent-posts-title {
+  font-family: navbarText;
+  font-weight: lighter;
+  padding: 20px;
+}
+
 /* ----- Elins kod ----- */
 /* ---- Yasmine & Elin ----- */
 .kontaktTitle {
@@ -305,15 +339,21 @@ a {
 
 a.navbar-item:hover {
   color: #8f609f;
+  background-color: transparent;
 }
 
 a.navbar-link:hover {
   color: #8f609f;
+  background-color: transparent;
 }
 
 .navbar-link:not(.is-arrowless)::after {
   border-color: #8f609f;
   margin-top: -12px;
+}
+
+a.navbar-link:not(.is-arrowless):hover {
+  background-color: yellow;
 }
 
 .navbar-item img {
