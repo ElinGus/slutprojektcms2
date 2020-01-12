@@ -20,3 +20,5 @@ Stack trace:
 #6 C:\xampp\htdocs\grupparbete\wp-content\plugins\woocommerce\includes\class-wc-ajax.php(87): do_action('wc_ajax_checkou...')
 #7 C:\xampp\ in C:\xampp\htdocs\grupparbete\wp-content\plugins\paymentplugin\paymentplugin.php on line 72
 
+2019-12-13T13:14:13+00:00 CRITICAL Maximum execution time of 30 seconds exceeded in C:\xampp\htdocs\grupparbete\wp-content\plugins\advanced-custom-fields-pro\pro\fields\class-acf-field-clone.php on line 3
+
